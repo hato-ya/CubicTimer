@@ -240,6 +240,8 @@ public class                                                                    
 
     @BindView(R.id.detail_average_record_message) View detailAverageRecordMesssage;
 
+    @BindView(R.id.sessionRecentResultText) TextView recentResultText;
+
     @BindView(R.id.chronometer)      ChronometerMilli    chronometer;
     @BindView(R.id.scramble_box)     CardView                scrambleBox;
     @BindView(R.id.scramble_text)
@@ -273,6 +275,7 @@ public class                                                                    
     private boolean buttonsEnabled;
     private boolean scrambleImgEnabled;
     private boolean sessionStatsEnabled;
+    private boolean recentResultsEnabled;
     private boolean worstSolveEnabled;
     private boolean bestSolveEnabled;
     private boolean scrambleEnabled;
@@ -627,6 +630,7 @@ public class                                                                    
         startCueEnabled = Prefs.getBoolean(R.string.pk_start_cue_enabled, res.getBoolean(R.bool.default_startCue));
 
         sessionStatsEnabled = Prefs.getBoolean(R.string.pk_show_session_stats, true);
+        recentResultsEnabled = Prefs.getBoolean(R.string.pk_show_recent_results, true);
         bestSolveEnabled = Prefs.getBoolean(R.string.pk_show_best_time, true);
         worstSolveEnabled = Prefs.getBoolean(R.string.pk_show_worst_time, false);
 
@@ -704,6 +708,9 @@ public class                                                                    
         if (! sessionStatsEnabled) {
             detailTextAvg.setVisibility(View.INVISIBLE);
             detailTextOther.setVisibility(View.INVISIBLE);
+        }
+        if (! recentResultsEnabled) {
+            recentResultText.setVisibility(View.INVISIBLE);
         }
 
         if (!serialStatusEnabled) {
@@ -1159,7 +1166,7 @@ public class                                                                    
     public void onStatisticsUpdated(Statistics stats) {
         if (DEBUG_ME) Log.d(TAG, "onStatisticsUpdated(" + stats + ")");
 
-        if (getView() == null || !sessionStatsEnabled) {
+        if (getView() == null) {
             // Must have arrived after "onDestroyView" was called, so do nothing.
             return;
         }
@@ -1172,78 +1179,90 @@ public class                                                                    
             return;
         }
 
-        String sessionDeviation = convertTimeToString(tr(stats.getSessionStdDeviation()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle);
-        String sessionCount = String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves());
-        String sessionBestTime = convertTimeToString(tr(stats.getSessionBestTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle);
-        String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle);
+        if (sessionStatsEnabled) {
+            String sessionDeviation = convertTimeToString(tr(stats.getSessionStdDeviation()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle);
+            String sessionCount = String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves());
+            String sessionBestTime = convertTimeToString(tr(stats.getSessionBestTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle);
+            String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle);
 
-        long allTimeBestAvg[] = new long[4];
-        long sessionCurrentAvg[] = new long[4];
+            long allTimeBestAvg[] = new long[4];
+            long sessionCurrentAvg[] = new long[4];
 
-        allTimeBestAvg[0] = tr(stats.getAverageOf(5, false).getBestAverage());
-        allTimeBestAvg[1] = tr(stats.getAverageOf(12, false).getBestAverage());
-        allTimeBestAvg[2] = tr(stats.getAverageOf(50, false).getBestAverage());
-        allTimeBestAvg[3] = tr(stats.getAverageOf(100, false).getBestAverage());
+            allTimeBestAvg[0] = tr(stats.getAverageOf(5, false).getBestAverage());
+            allTimeBestAvg[1] = tr(stats.getAverageOf(12, false).getBestAverage());
+            allTimeBestAvg[2] = tr(stats.getAverageOf(50, false).getBestAverage());
+            allTimeBestAvg[3] = tr(stats.getAverageOf(100, false).getBestAverage());
 
-        sessionCurrentAvg[0] = tr(stats.getAverageOf(5, true).getCurrentAverage());
-        sessionCurrentAvg[1] = tr(stats.getAverageOf(12, true).getCurrentAverage());
-        sessionCurrentAvg[2] = tr(stats.getAverageOf(50, true).getCurrentAverage());
-        sessionCurrentAvg[3] = tr(stats.getAverageOf(100, true).getCurrentAverage());
+            sessionCurrentAvg[0] = tr(stats.getAverageOf(5, true).getCurrentAverage());
+            sessionCurrentAvg[1] = tr(stats.getAverageOf(12, true).getCurrentAverage());
+            sessionCurrentAvg[2] = tr(stats.getAverageOf(50, true).getCurrentAverage());
+            sessionCurrentAvg[3] = tr(stats.getAverageOf(100, true).getCurrentAverage());
 
-        // detailTextNamesArray should be in the same order as shown in the timer
-        // (keep R.arrays.timer_detail_stats in sync with the order!)
-        StringBuilder stringDetailOther = new StringBuilder();
-        stringDetailOther.append(detailTextNamesArray[4]).append(": ").append(sessionDeviation).append("\n");
-        stringDetailOther.append(detailTextNamesArray[5]).append(": ").append(sessionMean).append("\n");
-        stringDetailOther.append(detailTextNamesArray[6]).append(": ").append(sessionBestTime).append("\n");
-        stringDetailOther.append(detailTextNamesArray[7]).append(": ").append(sessionCount);
+            // detailTextNamesArray should be in the same order as shown in the timer
+            // (keep R.arrays.timer_detail_stats in sync with the order!)
+            StringBuilder stringDetailOther = new StringBuilder();
+            stringDetailOther.append(detailTextNamesArray[4]).append(": ").append(sessionDeviation).append("\n");
+            stringDetailOther.append(detailTextNamesArray[5]).append(": ").append(sessionMean).append("\n");
+            stringDetailOther.append(detailTextNamesArray[6]).append(": ").append(sessionBestTime).append("\n");
+            stringDetailOther.append(detailTextNamesArray[7]).append(": ").append(sessionCount);
 
-        detailTextOther.setText(stringDetailOther.toString());
+            detailTextOther.setText(stringDetailOther.toString());
 
-        // To prevent the record message being animated more than once in case the user sets
-        // two or more average records at the same time.
-        boolean hasShownRecordMessage = false;
+            // To prevent the record message being animated more than once in case the user sets
+            // two or more average records at the same time.
+            boolean hasShownRecordMessage = false;
 
-        // reset card visibility
-        detailAverageRecordMesssage.setVisibility(View.GONE);
+            // reset card visibility
+            detailAverageRecordMesssage.setVisibility(View.GONE);
 
-        StringBuilder stringDetailAvg = new StringBuilder();
-        // Iterate through averages and set respective TextViews
+            StringBuilder stringDetailAvg = new StringBuilder();
+            // Iterate through averages and set respective TextViews
 
-        String[] avgNums = {"5", "12", "50", "100"};
-        for (int i = 0; i < 4; i++) {
-            if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
-                    sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
-                // Create string.
-                stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
-                        .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");
+            String[] avgNums = {"5", "12", "50", "100"};
+            for (int i = 0; i < 4; i++) {
+                if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
+                        sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
+                    // Create string.
+                    stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                            .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");
 
-                // Show record message, if it was not shown before
-                if (!hasShownRecordMessage && !isRunning && !countingDown) {
-                    detailAverageRecordMesssage.setVisibility(View.VISIBLE);
-                    detailAverageRecordMesssage
-                            .animate()
-                            .alpha(1)
-                            .setDuration(mAnimationDuration);
-                    hasShownRecordMessage = true;
+                    // Show record message, if it was not shown before
+                    if (!hasShownRecordMessage && !isRunning && !countingDown) {
+                        detailAverageRecordMesssage.setVisibility(View.VISIBLE);
+                        detailAverageRecordMesssage
+                                .animate()
+                                .alpha(1)
+                                .setDuration(mAnimationDuration);
+                        hasShownRecordMessage = true;
+                    }
+                } else if (sessionStatsEnabled) {
+                    stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                            .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle));
                 }
-            } else if (sessionStatsEnabled) {
-                stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
-                        .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle));
+                // append newline to every line but the last
+                if (i < 3) {
+                    stringDetailAvg.append("<br>");
+                }
             }
-            // append newline to every line but the last
-            if (i < 3) {
-                stringDetailAvg.append("<br>");
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString(), Html.FROM_HTML_MODE_LEGACY));
+            } else {
+                detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString()));
             }
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString(), Html.FROM_HTML_MODE_LEGACY));
-        } else {
-            detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString()));
+        if (recentResultsEnabled) {
+            // show recent result
+            StringBuilder stringRecentResult = new StringBuilder();
+            long recentTimes[] = stats.getAverageOf(5, true).getRecentTimes();
+            for (int i = 0; i < recentTimes.length; i++) {
+                stringRecentResult.append(convertTimeToString(recentTimes[i], FORMAT_SINGLE, currentPuzzle) + "\n");
+            }
+            recentResultText.setText(stringRecentResult.toString());
         }
 
         if (!isRunning && !countingDown)
@@ -1298,17 +1317,27 @@ public class                                                                    
     }
 
     private void showDetailStats() {
-        detailTextAvg.setVisibility(View.VISIBLE);
-        detailTextAvg.animate()
-                .alpha(1)
-                .translationY(0)
-                .setDuration(mAnimationDuration);
+        if (sessionStatsEnabled) {
+            detailTextAvg.setVisibility(View.VISIBLE);
+            detailTextAvg.animate()
+                    .alpha(1)
+                    .translationY(0)
+                    .setDuration(mAnimationDuration);
 
-        detailTextOther.setVisibility(View.VISIBLE);
-        detailTextOther.animate()
-                .alpha(1)
-                .translationY(0)
-                .setDuration(mAnimationDuration);
+            detailTextOther.setVisibility(View.VISIBLE);
+            detailTextOther.animate()
+                    .alpha(1)
+                    .translationY(0)
+                    .setDuration(mAnimationDuration);
+        }
+
+        if (recentResultsEnabled) {
+            recentResultText.setVisibility(View.VISIBLE);
+            recentResultText.animate()
+                    .alpha(1)
+                    .translationY(0)
+                    .setDuration(mAnimationDuration);
+        }
     }
 
     private void showImage() {
@@ -1378,6 +1407,13 @@ public class                                                                    
                     .translationY(detailTextOther.getHeight())
                     .setDuration(mAnimationDuration)
                     .withEndAction(() -> detailTextOther.setVisibility(View.INVISIBLE));
+        }
+        if (recentResultsEnabled) {
+            recentResultText.animate()
+                    .alpha(0)
+                    .translationY(recentResultText.getHeight())
+                    .setDuration(mAnimationDuration)
+                    .withEndAction(() -> recentResultText.setVisibility(View.INVISIBLE));
         }
         if (buttonsEnabled) {
             undoButton.setVisibility(View.GONE);

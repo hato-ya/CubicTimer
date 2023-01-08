@@ -138,25 +138,40 @@
         tools:visibility="visible" />
 
     <TextView
+        android:id="@+id/sessionRecentResultText"
+        android:layout_above="@id/detail_average_record_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="8dp"
+        android:alpha=".85"
+        android:fontFamily="@font/lato"
+        android:gravity="right"
+        android:textColor="?colorTimerText"
+        android:textSize="12sp"
+        tools:text="12.34\n56.78\n12.34\n56.78\n12.34" />
+
+    <TextView
         android:id="@+id/detail_average_record_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_above="@id/sessionDetailTextAverage"
         android:layout_alignRight="@id/sessionDetailTextAverage"
         android:layout_alignParentRight="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
         android:paddingLeft="6dp"
         android:paddingTop="2dp"
         android:paddingRight="6dp"
         android:paddingBottom="4dp"
-        android:gravity="center"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:layout_marginBottom="4dp"
-        android:layout_marginRight="16dp"
         android:text="@string/timer_detail_average_record_message"
         android:textColor="?colorTimerText"
+        android:textSize="12sp"
         android:textStyle="bold"
-        android:textSize="12sp" />
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/sessionDetailTextAverage"

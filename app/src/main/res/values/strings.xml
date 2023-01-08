@@ -295,6 +295,10 @@
 
     <string name="sessionStatsEnabledTitle">Session stats</string>
 
+    <string name="recentResultEnabledSummary">Show current session recent results on the timer</string>
+
+    <string name="recentResultEnabledTitle">Recent results</string>
+
     <string name="showHintsSummary">Enables cross hints for the 3x3 puzzle</string>
 
     <string name="showHintsTitle">Show hints</string>

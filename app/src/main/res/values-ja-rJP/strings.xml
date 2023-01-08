@@ -190,6 +190,8 @@
     <string name="sent_to_session">セッションに移動</string>
     <string name="sessionStatsEnabledSummary">今のセッションの状況を表示する</string>
     <string name="sessionStatsEnabledTitle">セッションの状況</string>
+    <string name="recentResultEnabledSummary">今のセッションの直近の結果を表示する</string>
+    <string name="recentResultEnabledTitle">直近の結果</string>
     <string name="showHintsSummary">3×3×3でクロスのヒントを表示する</string>
     <string name="showHintsTitle">ヒントの表示</string>
     <string name="showHintsXCrossSummary">Xクロスのヒントの生成には時間がかかります。\n それでも良い場合のみ設定をオンにしてください。また、生成速度は端末の性能に依存します。</string>

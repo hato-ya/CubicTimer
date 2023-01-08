@@ -14,9 +14,13 @@ import net.gnehzr.tnoodle.scrambles.Puzzle;
 import puzzle.ClockPuzzle;
 import puzzle.FourByFourCubePuzzle;
 import puzzle.MegaminxPuzzle;
+import puzzle.NoInspectionFiveByFiveCubePuzzle;
+import puzzle.NoInspectionFourByFourCubePuzzle;
+import puzzle.NoInspectionThreeByThreeCubePuzzle;
 import puzzle.PyraminxPuzzle;
 import puzzle.SkewbPuzzle;
 import puzzle.SquareOneUnfilteredPuzzle;
+import puzzle.ThreeByThreeCubeFewestMovesPuzzle;
 import puzzle.ThreeByThreeCubePuzzle;
 import puzzle.TwoByTwoCubePuzzle;
 
@@ -62,6 +66,18 @@ public class ScrambleGenerator {
                 break;
             case PuzzleUtils.TYPE_SQUARE1:
                 puzzle = new SquareOneUnfilteredPuzzle();
+                break;
+            case PuzzleUtils.TYPE_333BLD:
+                puzzle = new NoInspectionThreeByThreeCubePuzzle();
+                break;
+            case PuzzleUtils.TYPE_444BLD:
+                puzzle = new NoInspectionFourByFourCubePuzzle();
+                break;
+            case PuzzleUtils.TYPE_555BLD:
+                puzzle = new NoInspectionFiveByFiveCubePuzzle();
+                break;
+            case PuzzleUtils.TYPE_333FMC:
+                puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
                 break;
             default:
                 puzzle = new ThreeByThreeCubePuzzle();

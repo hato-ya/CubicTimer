@@ -425,7 +425,7 @@ public class ChronometerMilli extends AppCompatTextView {
             isHiRes = (!mIsStarted || mShowHiRes) && hours == 0;
 
             if (elapsedMS > 0)
-                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI : FORMAT_NO_MILLI);
+                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI : FORMAT_NO_MILLI, PuzzleUtils.TYPE_333);
             else
                 timeText = "0<small>.00</small>";
             // If a "+2" penalty has been applied and the chronometer is not started or holding,

@@ -13,9 +13,11 @@ import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.DialogFragment;
 
+import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -58,6 +60,9 @@ public class AddTimeDialog extends DialogFragment {
 
     private Unbinder mUnbinder;
 
+    @BindView(R.id.nameText)
+    AppCompatTextView nameText;
+
     @BindView(R.id.edit_text_time)
     AppCompatEditText timeEditText;
 
@@ -89,7 +94,13 @@ public class AddTimeDialog extends DialogFragment {
             switch (view.getId()) {
                 case R.id.button_save:
                     if (timeEditText.getText().toString().length() > 0) {
-                        int time = (int) PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
+                        int time;
+                        if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                            time = (int) PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
+                        } else {
+                            // set move count as second (time is milli-second units)
+                            time = Integer.parseInt(timeEditText.getText().toString()) * 1000;
+                        }
                         final Solve solve = new Solve(
                                 mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time,
                                 currentPuzzle,
@@ -201,7 +212,15 @@ public class AddTimeDialog extends DialogFragment {
 
         saveButton.setOnClickListener(clickListener);
         moreButton.setOnClickListener(clickListener);
-        timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
+
+        if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            // format input time
+            timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
+        } else {
+            // input move counts instead of time
+            nameText.setText(R.string.add_move_count);
+            timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(2)});
+        }
 
         // Focus on editText and request keyboard
         timeEditText.requestFocus();

@@ -22,6 +22,7 @@
     <string name="add_comment">Add comment</string>
     <string name="add_time">Add time</string>
     <string name="add_time_hint" translatable="false">1:23.45</string>
+    <string name="add_move_count">Add move count</string>
 
     <string name="added_comment">Comment added</string>
 
@@ -77,6 +78,14 @@
     <string name="cube_pyra">Pyraminx</string>
     <string name="cube_skewb">Skewb</string>
     <string name="cube_sq1">Square-1</string>
+    <string name="cube_333bld">3x3 BLD</string>
+    <string name="cube_333bld_informal">3x3bld</string>
+    <string name="cube_444bld">4x4 BLD</string>
+    <string name="cube_444bld_informal">4x4bld</string>
+    <string name="cube_555bld">5x5 BLD</string>
+    <string name="cube_555bld_informal">5x5bld</string>
+    <string name="cube_333fmc">3x3 FMC</string>
+    <string name="cube_333fmc_informal">3x3FMC</string>
 
     <string name="delete_dialog_cancel_button">Cancel</string>
     <string name="delete_dialog_confirmation_button">Remove</string>

@@ -863,7 +863,7 @@ public class MainActivity extends AppCompatActivity
 
                         while (cursor.moveToNext()) {
                             String csvValues
-                                    = '"' + PuzzleUtils.convertTimeToString(cursor.getInt(IDX_TIME), PuzzleUtils.FORMAT_DEFAULT)
+                                    = '"' + PuzzleUtils.convertTimeToString(cursor.getInt(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType)
                                     + "\";\"" + cursor.getString(IDX_SCRAMBLE)
                                     + "\";\"" + new DateTime(cursor.getLong(IDX_DATE)).toString()
                                     + '"';

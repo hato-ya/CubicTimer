@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.fragment.TimerFragment;
 import com.hatopigeon.cubictimer.fragment.TimerListFragment;
 import com.hatopigeon.cubictimer.fragment.dialog.TimeDialog;
 import com.hatopigeon.cubictimer.listener.DialogListener;
@@ -142,10 +144,13 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
 
     private void handleTime(final TimeHolder holder, final Cursor cursor) {
         final long mId = cursor.getLong(0); // id
+        final String pPuzzle = cursor.getString(1); // puzzleType
         final int pTime = cursor.getInt(3); // time
         final int pPenalty = cursor.getInt(6); // penalty
         final long pDate = cursor.getLong(4); // date
         final String pComment = cursor.getString(7); // comment
+
+        //Log.d("TimeCursorAdapter", "puzzle type : " + pPuzzle);
 
         holder.dateText.setText(new DateTime(pDate).toString(mDateFormatSpec));
 
@@ -180,7 +185,8 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
             }
         });
 
-        holder.timeText.setText(Html.fromHtml(PuzzleUtils.convertTimeToString(pTime, PuzzleUtils.FORMAT_SMALL_MILLI)));
+        holder.timeText.setText(Html.fromHtml(PuzzleUtils.convertTimeToString(pTime,
+                PuzzleUtils.FORMAT_SMALL_MILLI, pPuzzle)));
         holder.penaltyText.setTextColor(ContextCompat.getColor(mContext, R.color.red_material));
 
         switch (pPenalty) {

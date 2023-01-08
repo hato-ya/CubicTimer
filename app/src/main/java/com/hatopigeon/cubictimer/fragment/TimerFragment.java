@@ -326,6 +326,8 @@ public class                                                                    
                 case ACTION_TIME_ADDED_MANUALLY:
                     currentSolve = TTIntent.getSolve(intent);
                     if (currentSolve != null) {
+                        congratsText.setVisibility(View.GONE);
+                        hasStoppedTimerOnce = true;
                         chronometer.setText(Html.fromHtml(
                                 PuzzleUtils.convertTimeToString(currentSolve.getTime(),
                                         PuzzleUtils.FORMAT_SMALL_MILLI, currentPuzzle)));

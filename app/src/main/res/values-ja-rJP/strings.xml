@@ -21,6 +21,7 @@
     <string name="action_update">更新</string>
     <string name="add_comment">コメントを追加する</string>
     <string name="add_time">タイムを入力する</string>
+    <string name="add_move_count">手数を入力する</string>
     <string name="added_comment">追加されたコメント</string>
     <string name="advanced_pref_summary">この設定変更は問題を引き起こす恐れがあります。</string>
     <string name="backCancelEnabledSummary">ソルブ中に戻るボタンを押したとき、ソルブを中止する。</string>
@@ -49,7 +50,11 @@
     <string name="cube_mega">メガミンクス</string>
     <string name="cube_pyra">ピラミンクス</string>
     <string name="cube_skewb">スキューブ</string>
-    <string name="cube_sq1">Square-1</string>
+    <string name="cube_sq1">スクエア1</string>
+    <string name="cube_333bld">3×3×3 目隠し</string>
+    <string name="cube_444bld">4×4×4 目隠し</string>
+    <string name="cube_555bld">5×5×5 目隠し</string>
+    <string name="cube_333fmc">3×3×3 最小手数</string>
     <string name="delete_dialog_cancel_button">キャンセル</string>
     <string name="delete_dialog_confirmation_button">削除</string>
     <string name="delete_dialog_confirmation_title">ソルブを消去しますか？</string>
@@ -81,9 +86,9 @@
     <string name="fab_add_time">タイムを入力する</string>
     <string name="fab_share_ao12">Ao12</string>
     <string name="fab_share_ao5">Ao5</string>
-    <string name="fab_share_distribution">偏差</string>
+    <string name="fab_share_distribution">ヒストグラム</string>
     <string name="fab_share_error">共有できません。ソルブ数が少なすぎます。</string>
-    <string name="fab_share_histogram_solvecount">%1$s 偏差 (%2$d ソルブ)</string>
+    <string name="fab_share_histogram_solvecount">%1$s ヒストグラム (%2$d ソルブ)</string>
     <string name="fab_share_title">このセッションを共有する</string>
     <string name="file_selection_error_content">%1$s のファイルを有効にするか確認する</string>
     <string name="file_selection_error_title">ファイルの種類が違います</string>
@@ -103,8 +108,8 @@
     <string name="import_external_title">.txt ファイルからインポートする</string>
     <string name="import_progress_content">インポートが完了しました</string>
     <string name="import_progress_content_errors">エラー</string>
-    <string name="import_progress_content_ignored_duplicates">重複したファイル</string>
-    <string name="import_progress_content_successful_imports">インポートに成功したファイル</string>
+    <string name="import_progress_content_ignored_duplicates">重複した記録</string>
+    <string name="import_progress_content_successful_imports">インポートに成功した記録</string>
     <string name="import_progress_title">ソルブをインポート中</string>
     <string name="inspectionEnabledTitle">インスペクション</string>
     <string name="inspectionTimeSummary">デフォルトは15秒です</string>
@@ -224,7 +229,7 @@
     <string name="graph_stats_label_ao12_full">Ao12</string>
     <string name="graph_stats_label_ao50_full">Ao50</string>
     <string name="graph_stats_label_ao100_full">Ao100</string>
-    <string name="timer_detail_average_record_message">平均タイム更新！</string>
+    <string name="timer_detail_average_record_message">平均記録更新！</string>
     <string name="timer_serial_status_message">"シリアル : "</string>
     <string name="timer_serial_status_disabled_message">無効</string>
     <string name="timer_serial_status_disconnect_message">切断</string>

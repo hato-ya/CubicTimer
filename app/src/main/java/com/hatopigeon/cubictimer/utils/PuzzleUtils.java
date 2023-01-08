@@ -2,27 +2,21 @@ package com.hatopigeon.cubictimer.utils;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.items.Solve;
-import com.hatopigeon.cubictimer.solver.StringUtils;
 import com.hatopigeon.cubictimer.stats.AverageCalculator;
 import com.hatopigeon.cubictimer.stats.Statistics;
 
 import org.joda.time.Period;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
 
@@ -41,6 +35,10 @@ public class PuzzleUtils {
     public static final String TYPE_SKEWB   = "skewb";
     public static final String TYPE_CLOCK   = "clock";
     public static final String TYPE_SQUARE1 = "sq1";
+    public static final String TYPE_333BLD  = "333bld";
+    public static final String TYPE_444BLD  = "444bld";
+    public static final String TYPE_555BLD  = "555bld";
+    public static final String TYPE_333FMC  = "333fmc";
 
     public static final int NO_PENALTY       = 0;
     public static final int PENALTY_PLUSTWO  = 1;
@@ -53,10 +51,11 @@ public class PuzzleUtils {
 
 
     // -- Format constants for timeToString --
-    public static final int FORMAT_DEFAULT = 0;
-    public static final int FORMAT_SMALL_MILLI = 1;
-    public static final int FORMAT_NO_MILLI = 2;
-    public static final int FORMAT_LARGE = 3;
+    public static final int FORMAT_SINGLE = 0;
+    public static final int FORMAT_STATS = 1;
+    public static final int FORMAT_SMALL_MILLI = 2;
+    public static final int FORMAT_NO_MILLI = 3;
+    public static final int FORMAT_LARGE = 4;
     // --                                    --
 
     public PuzzleUtils() {
@@ -77,6 +76,10 @@ public class PuzzleUtils {
             case  8: return TYPE_PYRA;
             case  9: return TYPE_SQUARE1;
             case 10: return TYPE_CLOCK;
+            case 11: return TYPE_333BLD;
+            case 12: return TYPE_444BLD;
+            case 13: return TYPE_555BLD;
+            case 14: return TYPE_333FMC;
         }
     }
 
@@ -103,6 +106,10 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return  8;
             case TYPE_SQUARE1: return  9;
             case TYPE_CLOCK:   return 10;
+            case TYPE_333BLD:  return 11;
+            case TYPE_444BLD:  return 12;
+            case TYPE_555BLD:  return 13;
+            case TYPE_333FMC:  return 14;
         }
     }
 
@@ -128,6 +135,10 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return R.string.cube_pyra;
             case TYPE_SKEWB:   return R.string.cube_skewb;
             case TYPE_SQUARE1: return R.string.cube_sq1;
+            case TYPE_333BLD:  return R.string.cube_333bld_informal;
+            case TYPE_444BLD:  return R.string.cube_444bld_informal;
+            case TYPE_555BLD:  return R.string.cube_555bld_informal;
+            case TYPE_333FMC:  return R.string.cube_333fmc_informal;
             default:           return 0;
         }
     }
@@ -147,52 +158,84 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return R.string.cube_pyra;
             case TYPE_SKEWB:   return R.string.cube_skewb;
             case TYPE_SQUARE1: return R.string.cube_sq1;
+            case TYPE_333BLD:  return R.string.cube_333bld;
+            case TYPE_444BLD:  return R.string.cube_444bld;
+            case TYPE_555BLD:  return R.string.cube_555bld;
+            case TYPE_333FMC:  return R.string.cube_333fmc;
         }
     }
 
     /**
      * Converts a duration value in milliseconds to a String
+     * For other than FMC
+     *   - FORMAT_SINGLE / FORMAT_STATS
+     *     - xx:xx.xx
+     *   - FORMAT_SMALL_MILLI
+     *     - xx:xx.xx (.xx is small)
+     *   - FORMAT_NO_MILLI
+     *     - xx:xx
+     *   - FORMAT_LARGE (used for Total Time)
+     *     - xxh xxm
+     * For FMC
+     *   - FORMAT_SINGLE
+     *     - xx
+     *   - FORMAT_STATS
+     *     - xx.xx
+     *   - FORMAT_SMALL_MILLI
+     *     - xx
+     *   - FORMAT_NO_MILLI
+     *     - xx
+     *   - FORMAT_LARGE (used for Total Time)
+     *     - "--"
+     *
      * @param time
      *      the time in milliseconds
      * @param format
      *      the format. see FORMAT constants in {@link PuzzleUtils}
+     * @param puzzleType
+     *      current puzzle type
      * @return
      *      a String containing the converted time
      */
-    public static String convertTimeToString(long time, int format) {
+    public static String convertTimeToString(long time, int format, String puzzleType) {
         if (time == TIME_DNF)
             return "DNF";
         if (time == 0)
             return "--";
-
-        Period period = new Period(time);
-        PeriodFormatterBuilder periodFormatterBuilder = new PeriodFormatterBuilder();
+        if (format == FORMAT_LARGE && puzzleType.equals(TYPE_333FMC))
+            return "--";
 
         StringBuilder formattedString = new StringBuilder();
 
+        if (!puzzleType.equals(TYPE_333FMC)) {
+            // PeriodFormatter ignores appends (and suffixes) if time is not enough to convert.
+            // If the time ir smaller than 10_000 milliseconds (10 seconds), do not pad it with
+            // a zero
+            Period period = new Period(time);
+            PeriodFormatterBuilder periodFormatterBuilder = new PeriodFormatterBuilder();
+            PeriodFormatter periodFormatter;
 
-        // PeriodFormatter ignores appends (and suffixes) if time is not enough to convert.
-        // If the time ir smaller than 10_000 milliseconds (10 seconds), do not pad it with
-        // a zero
-        PeriodFormatter periodFormatter;
+            if (format == FORMAT_LARGE) {
+                periodFormatter = periodFormatterBuilder
+                        .appendHours().appendSuffix("h ")
+                        .printZeroAlways()
+                        .appendMinutes().appendSuffix("m")
+                        .toFormatter();
+            } else {
+                periodFormatter = periodFormatterBuilder
+                        .appendHours().appendSuffix("h ")
+                        .appendMinutes().appendSuffix(":")
+                        .printZeroAlways()
+                        .minimumPrintedDigits(time < (10_000) ? 1 : 2)
+                        .appendSeconds()
+                        .toFormatter();
+            }
 
-        if (format == FORMAT_LARGE) {
-            periodFormatter = periodFormatterBuilder
-                    .appendHours().appendSuffix("h ")
-                    .printZeroAlways()
-                    .appendMinutes().appendSuffix("m")
-                    .toFormatter();
+            formattedString.append(period.toString(periodFormatter));
         } else {
-            periodFormatter = periodFormatterBuilder
-                    .appendHours().appendSuffix("h ")
-                    .appendMinutes().appendSuffix(":")
-                    .printZeroAlways()
-                    .minimumPrintedDigits(time < (10_000) ? 1 : 2)
-                    .appendSeconds()
-                    .toFormatter();
+            // simply append move count
+            formattedString.append(time/1000);
         }
-
-        formattedString.append(period.toString(periodFormatter));
 
         // Restrict millis to 2 digits
         long millis = time % 1000;
@@ -201,14 +244,22 @@ public class PuzzleUtils {
 
         // Append millis
         switch (format) {
-            case FORMAT_DEFAULT:
+            case FORMAT_SINGLE:
+                if (!puzzleType.equals(TYPE_333FMC)) {
+                    formattedString.append(".");
+                    formattedString.append(millis >= 10 ? millis : "0" + millis);
+                }
+                break;
+            case FORMAT_STATS:
                 formattedString.append(".");
                 formattedString.append(millis >= 10 ? millis : "0" + millis);
                 break;
             case FORMAT_SMALL_MILLI:
-                formattedString.append("<small>.");
-                formattedString.append(millis >= 10 ? millis : "0" + millis);
-                formattedString.append("</small>");
+                if (!puzzleType.equals(TYPE_333FMC)) {
+                    formattedString.append("<small>.");
+                    formattedString.append(millis >= 10 ? millis : "0" + millis);
+                    formattedString.append("</small>");
+                }
                 break;
             case FORMAT_NO_MILLI:
             default:
@@ -330,13 +381,14 @@ public class PuzzleUtils {
      *
      * @param n     The value of "N" for which the "average-of-N" is required.
      * @param stats The statistics from which to get the details of the average calculation.
+     * @param puzzleType The puzzle type for which the "average-of-N" is required.
      *
      * @return
      *     The average-of-N in string format; or {@code null} if there is no average calculated for
      *     that value of "N", or if insufficient (less than "N") times have been recorded in the
      *     current session, of if {@code stats} is {@code null}.
      */
-    private static String formatAverageOfN(int n, Statistics stats) {
+    private static String formatAverageOfN(int n, Statistics stats, String puzzleType) {
         if (stats == null || stats.getAverageOf(n, true) == null) {
             return null;
         }
@@ -349,12 +401,12 @@ public class PuzzleUtils {
             return null;
         }
 
-        final StringBuilder s = new StringBuilder(convertTimeToString(tr(average), PuzzleUtils.FORMAT_DEFAULT));
+        final StringBuilder s = new StringBuilder(convertTimeToString(tr(average), PuzzleUtils.FORMAT_STATS, puzzleType));
 
         s.append(" = ");
 
         for (int i = 0; i < n; i++) {
-            final String time = convertTimeToString(tr(times[i]), PuzzleUtils.FORMAT_DEFAULT);
+            final String time = convertTimeToString(tr(times[i]), PuzzleUtils.FORMAT_SINGLE, puzzleType);
 
             // The best and worst indices may be -1, but that is OK: they just will not be marked.
             if (i == aoN.getBestTimeIndex() || i == aoN.getWorstTimeIndex()) {
@@ -442,7 +494,7 @@ public class PuzzleUtils {
          */
     public static boolean shareAverageOf(
             int n, String puzzleType, Statistics stats, Activity activityContext) {
-        final String averageOfN = formatAverageOfN(n, stats);
+        final String averageOfN = formatAverageOfN(n, stats, puzzleType);
 
         if (averageOfN != null) {
             final Intent shareIntent = new Intent();
@@ -450,7 +502,7 @@ public class PuzzleUtils {
             shareIntent.setAction(Intent.ACTION_SEND);
             shareIntent.putExtra(Intent.EXTRA_TEXT,
                     activityContext.getString(getPuzzleName(puzzleType))
-                            + ": " + formatAverageOfN(n, stats));
+                            + ": " + formatAverageOfN(n, stats, puzzleType));
             shareIntent.setType("text/plain");
             activityContext.startActivity(shareIntent);
 
@@ -466,12 +518,13 @@ public class PuzzleUtils {
      * truncated to whole seconds.
      *
      * @param stats The statistics from which to get the frequencies.
+     * @param puzzleType The puzzle type for which to get the frequencies.
      *
      * @return
      *     A multi-line string presenting the histogram using "ASCII art"; or an empty string if
      *     the statistics are {@code null}, or if no times have been recorded.
      */
-    public static String createHistogramOf(Statistics stats) {
+    public static String createHistogramOf(Statistics stats, String puzzleType) {
         final StringBuilder histogram = new StringBuilder(1_000);
 
         if (stats != null) {
@@ -481,7 +534,7 @@ public class PuzzleUtils {
             for (Long time : timeFreqs.keySet()) {
                 histogram
                         .append('\n')
-                        .append(convertTimeToString(tr(time), FORMAT_NO_MILLI))
+                        .append(convertTimeToString(tr(time), FORMAT_NO_MILLI, puzzleType))
                         .append(": ")
                         .append(convertToBars(timeFreqs.get(time))); // frequency value.
             }
@@ -516,7 +569,7 @@ public class PuzzleUtils {
             shareIntent.putExtra(Intent.EXTRA_TEXT,
                 activityContext.getString(R.string.fab_share_histogram_solvecount,
                     activityContext.getString(getPuzzleName(puzzleType)), solveCount) + ":" +
-                    createHistogramOf(stats));
+                    createHistogramOf(stats, puzzleType));
             shareIntent.setType("text/plain");
             activityContext.startActivity(shareIntent);
 
@@ -541,4 +594,16 @@ public class PuzzleUtils {
         return temp.toString();
     }
 
+    /**
+     * Confirm inspection is enabled or not in current puzzle type.
+     * If puzzle type is BLD or FMC, inspection is disabled.
+     *
+     * @param puzzleType current puzzle type
+     *
+     * @return
+     */
+    public static boolean isInspectionEnabled (String puzzleType) {
+        return !(puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
+                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC));
+    }
 }

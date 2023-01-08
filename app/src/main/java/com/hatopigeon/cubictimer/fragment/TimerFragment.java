@@ -96,7 +96,8 @@ import butterknife.Unbinder;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
-import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_DEFAULT;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_STATS;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.NO_PENALTY;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_PLUSTWO;
@@ -325,7 +326,9 @@ public class                                                                    
                 case ACTION_TIME_ADDED_MANUALLY:
                     currentSolve = TTIntent.getSolve(intent);
                     if (currentSolve != null) {
-                        chronometer.setText(Html.fromHtml(PuzzleUtils.convertTimeToString(currentSolve.getTime(), PuzzleUtils.FORMAT_SMALL_MILLI)));
+                        chronometer.setText(Html.fromHtml(
+                                PuzzleUtils.convertTimeToString(currentSolve.getTime(),
+                                        PuzzleUtils.FORMAT_SMALL_MILLI, currentPuzzle)));
                         hideButtons(true, true);
                         broadcastNewSolve();
                         declareRecordTimes(currentSolve);
@@ -583,7 +586,8 @@ public class                                                                    
         scrambleButtonEdit.setOnClickListener(buttonClickListener);
 
         // Preferences //
-        final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false);
+        final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
+                && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
         final float timerTextSize = Prefs.getInt(R.string.pk_timer_text_size, 100) / 100f;
         float scrambleImageSize = Prefs.getInt(R.string.pk_scramble_image_size, 100) / 100f;
@@ -708,8 +712,8 @@ public class                                                                    
         // Manual entry
         if (manualEntryEnabled) {
             scrambleButtonManualEntry.setVisibility(View.VISIBLE);
-            scrambleButtonManualEntry.setOnClickListener(buttonClickListener);
         }
+        scrambleButtonManualEntry.setOnClickListener(buttonClickListener);
 
         // Inspection timer
         if (inspectionEnabled) {
@@ -900,7 +904,12 @@ public class                                                                    
                         // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
                         chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
                     }
-                    addNewSolve();
+                    if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                        addNewSolve();
+                    } else {
+                        // For FMC, use isCanceld flag not to show quick action button and not update solves
+                        isCanceled = true;
+                    }
                 }
                 return false;
             }
@@ -1024,6 +1033,10 @@ public class                                                                    
             case PuzzleUtils.TYPE_222:
             case PuzzleUtils.TYPE_444:
             case PuzzleUtils.TYPE_333:
+            case PuzzleUtils.TYPE_333BLD:
+            case PuzzleUtils.TYPE_444BLD:
+            case PuzzleUtils.TYPE_555BLD:
+            case PuzzleUtils.TYPE_333FMC:
                 // 3 faces of the cube vertically divided by 4 faces horizontally (it draws the cube like a cross)
                 return (multiplier / 4) * 3;
             case PuzzleUtils.TYPE_CLOCK:
@@ -1103,7 +1116,7 @@ public class                                                                    
             if (newTime < previousBestTime ) {
                 rippleBackground.startRippleAnimation();
                 congratsText.setText(getString(R.string.personal_best_message,
-                        PuzzleUtils.convertTimeToString(previousBestTime - newTime, PuzzleUtils.FORMAT_DEFAULT)));
+                        PuzzleUtils.convertTimeToString(previousBestTime - newTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
                 congratsText.setVisibility(View.VISIBLE);
 
                 new Handler().postDelayed(() -> {
@@ -1120,7 +1133,7 @@ public class                                                                    
             // make sure it is at least greater than zero before testing against the new time.
             if (previousWorstTime > 0 && newTime > previousWorstTime) {
                 congratsText.setText(getString(R.string.personal_worst_message,
-                        PuzzleUtils.convertTimeToString(newTime - previousWorstTime, PuzzleUtils.FORMAT_DEFAULT)));
+                        PuzzleUtils.convertTimeToString(newTime - previousWorstTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
 
                 congratsText.setCompoundDrawablesWithIntrinsicBounds(
                             poopDrawable, null,
@@ -1156,11 +1169,13 @@ public class                                                                    
             return;
         }
 
-        String sessionDeviation = convertTimeToString(tr(stats.getSessionStdDeviation()), PuzzleUtils
-                .FORMAT_DEFAULT);
+        String sessionDeviation = convertTimeToString(tr(stats.getSessionStdDeviation()),
+                PuzzleUtils.FORMAT_STATS, currentPuzzle);
         String sessionCount = String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves());
-        String sessionBestTime = convertTimeToString(tr(stats.getSessionBestTime()), PuzzleUtils.FORMAT_DEFAULT);
-        String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()), PuzzleUtils.FORMAT_DEFAULT);
+        String sessionBestTime = convertTimeToString(tr(stats.getSessionBestTime()),
+                PuzzleUtils.FORMAT_SINGLE, currentPuzzle);
+        String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()),
+                PuzzleUtils.FORMAT_STATS, currentPuzzle);
 
         long allTimeBestAvg[] = new long[4];
         long sessionCurrentAvg[] = new long[4];
@@ -1200,7 +1215,8 @@ public class                                                                    
             if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
                     sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
                 // Create string.
-                stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ").append(convertTimeToString(sessionCurrentAvg[i], FORMAT_DEFAULT)).append("</b></u>");
+                stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                        .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");
 
                 // Show record message, if it was not shown before
                 if (!hasShownRecordMessage && !isRunning && !countingDown) {
@@ -1212,7 +1228,8 @@ public class                                                                    
                     hasShownRecordMessage = true;
                 }
             } else if (sessionStatsEnabled) {
-                stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ").append(convertTimeToString(sessionCurrentAvg[i], FORMAT_DEFAULT));
+                stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                        .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle));
             }
             // append newline to every line but the last
             if (i < 3) {
@@ -1389,7 +1406,7 @@ public class                                                                    
         // the spinner to visible.
         isRunning = true;
 
-        if (scrambleEnabled) {
+        if (scrambleEnabled && !currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
             currentScramble = realScramble;
             generateNewScramble();
         }
@@ -1656,7 +1673,7 @@ public class                                                                    
 
         if (showHintsEnabled && currentPuzzle.equals(PuzzleUtils.TYPE_333))
             scrambleButtonHint.setVisibility(View.VISIBLE);
-        if (manualEntryEnabled)
+        if (manualEntryEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC))
             scrambleButtonManualEntry.setVisibility(View.VISIBLE);
         scrambleProgress.setVisibility(View.GONE);
         scrambleButtonEdit.setVisibility(View.VISIBLE);
@@ -1849,13 +1866,14 @@ public class                                                                    
 
     // Stack Timer Support
     private void connect() {
-        if (!stackTimerEnabled) {
+        Log.d(TAG, "UART connect : start");
+        if (!stackTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            Log.d(TAG, "UART connect : disabled");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disabled_message));
             return;
         }
 
-        Log.d(TAG, "UART connect : start");
         serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                 + getString(R.string.timer_serial_status_disconnect_message));
         // Find all available drivers from attached devices.
@@ -1922,7 +1940,6 @@ public class                                                                    
             return;
         }
 
-        Log.d(TAG, "UART disconnect");
         serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                 + getString(R.string.timer_serial_status_disconnect_message));
 
@@ -1942,7 +1959,8 @@ public class                                                                    
     }
 
     private void updateStackTimer(String str) {
-        final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false);
+        final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
+                && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
 
         // update debug string

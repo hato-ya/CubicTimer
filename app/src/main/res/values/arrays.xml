@@ -20,6 +20,10 @@
         <item>@string/cube_pyra</item>
         <item>@string/cube_sq1</item>
         <item>@string/cube_clock</item>
+        <item>@string/cube_333bld</item>
+        <item>@string/cube_444bld</item>
+        <item>@string/cube_555bld</item>
+        <item>@string/cube_333fmc</item>
     </string-array>
 
     <string-array name="stats_column_average">

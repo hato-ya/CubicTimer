@@ -186,6 +186,12 @@
 
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_buttonEnabled"
+                    android:key="@string/pk_show_recent_results"
+                    android:summary="@string/recentResultEnabledSummary"
+                    android:title="@string/recentResultEnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_buttonEnabled"
                     android:key="@string/pk_show_quick_actions"
                     android:summary="@string/buttonsEnabledSummary"
                     android:title="@string/buttonsEnabledTitle" />

@@ -755,6 +755,39 @@ public final class AverageCalculator {
     }
 
     /**
+     * Gets recent(all) times of AverageCalculator
+     * Times are sorted from newer one to older one.
+     * DNF is converted to TIME_DNF (used in PuzzleUtils)
+     *
+     * @return
+     *     The array of times
+     */
+    public long[] getRecentTimes() {
+        long[] times = new long[mN];
+        int idx = 0;
+
+        for (int i = mNext-1; i >= 0; i--) {
+            if (mTimes[i] != DNF) {
+                times[idx] = mTimes[i];
+            } else {
+                times[idx] = PuzzleUtils.TIME_DNF;
+            }
+            idx++;
+        }
+
+        for (int i = mN-1; i >= mNext; i--) {
+            if (mTimes[i] != DNF) {
+                times[idx] = mTimes[i];
+            } else {
+                times[idx] = PuzzleUtils.TIME_DNF;
+            }
+            idx++;
+        }
+
+        return times;
+    }
+
+    /**
      * Gets the total number of solve times (including DNFs) that were added to this calculator.
      * This may be greater than the number (given by {@link #getN}) that are included in the
      * calculation of the average. Subtract the value from {@link #getNumDNFSolves()} to get the

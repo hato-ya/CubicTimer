@@ -139,6 +139,21 @@
         tools:visibility="visible" />
 
     <TextView
+        android:id="@+id/sessionRecentResultText"
+        android:layout_above="@id/detail_average_record_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="8dp"
+        android:alpha=".85"
+        android:fontFamily="@font/lato"
+        android:gravity="right"
+        android:textColor="?colorTimerText"
+        android:textSize="12sp"
+        tools:text="12.34\n56.78\n12.34\n56.78\n12.34" />
+
+    <TextView
         android:id="@+id/detail_average_record_message"
         android:layout_above="@id/sessionDetailTextAverage"
         android:layout_toRightOf="@id/scramble_img"
@@ -169,10 +184,10 @@
         android:layout_marginRight="16dp"
         android:layout_marginBottom="?tabBarPadding"
         android:alpha=".85"
-        android:textColor="?colorTimerText"
-        android:textSize="12sp"
         android:fontFamily="@font/lato"
         android:gravity="right"
+        android:textColor="?colorTimerText"
+        android:textSize="12sp"
         tools:text="Ao5: 12.2\nAo12: 12.2\nAo50: 12.2\nAo100: 23.21" />
 
     <TextView

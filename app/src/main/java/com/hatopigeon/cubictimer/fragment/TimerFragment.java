@@ -232,6 +232,7 @@ public class                                                                    
     private final Handler mainLooper;
     private boolean isExternalTimer;
     private String previousTimerString = "";
+    private boolean isSerialConnected = false;
 
     @BindView(R.id.sessionDetailTextAverage) TextView detailTextAvg;
 
@@ -1927,6 +1928,7 @@ public class                                                                    
             Log.d(TAG, "UART connect : connected");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_connect_message));
+            isSerialConnected = true;
         } catch(Exception e) {
             Log.d(TAG, "UART connect : open exception");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
@@ -1936,6 +1938,7 @@ public class                                                                    
     }
 
     private void disconnect() {
+        isSerialConnected = false;
         if (!stackTimerEnabled) {
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disabled_message));
@@ -1964,6 +1967,14 @@ public class                                                                    
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
                 && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
+
+        // Sometimes, this function is dispatched after view recreated and in that time
+        // serialStatusMessage is null. So, checking serial is connected or not to avoid null
+        // pointer exception
+        if (!isSerialConnected) {
+            Log.d(TAG, "UART update after closed");
+            return;
+        }
 
         // update debug string
         serialStatusMessage.setText(str);

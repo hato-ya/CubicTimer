@@ -38,11 +38,11 @@
         android:singleLine="true"
         android:text="@string/graph_stats_title_global"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_label"
         app:layout_constraintEnd_toStartOf="@+id/stats_session"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_label"
-        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:srcCompat="@drawable/ic_alpha_g_box_outline" />
 
     <TextView
@@ -61,11 +61,11 @@
         android:focusable="true"
         android:padding="6dp"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_global"
         app:layout_constraintEnd_toStartOf="@+id/stats_today"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_global"
-        app:layout_constraintTop_toTopOf="@+id/stats_global"
         app:srcCompat="@drawable/ic_alpha_s_box_outline" />
 
     <TextView
@@ -84,11 +84,11 @@
         android:focusable="true"
         android:padding="6dp"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_session"
         app:layout_constraintEnd_toStartOf="@+id/stats_current"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_session"
-        app:layout_constraintTop_toTopOf="@+id/stats_session"
         app:srcCompat="@drawable/ic_alpha_s_box_outline" />
 
     <TextView
@@ -107,11 +107,11 @@
         android:focusable="true"
         android:padding="6dp"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_today"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_today"
-        app:layout_constraintTop_toTopOf="@+id/stats_today"
         app:srcCompat="@drawable/ic_alpha_c_box_outline" />
 
 

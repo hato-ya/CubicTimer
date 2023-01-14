@@ -357,6 +357,23 @@
 
             </PreferenceCategory-->
 
+            <Preference android:layout="@layout/divider_preference_category" />
+
+            <PreferenceCategory
+                android:title="@string/pref_screen_title_tables">
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="true"
+                    android:key="@string/pk_stat_session_enabled"
+                    android:summary="@string/pref_summary_show_session_stats"
+                    android:title="@string/pref_title_show_session_stats" />
+                <SwitchPreferenceCompat
+                    android:defaultValue="true"
+                    android:key="@string/pk_stat_today_enabled"
+                    android:summary="@string/pref_summary_show_todays_stats"
+                    android:title="@string/pref_title_show_todays_stats" />
+
+            </PreferenceCategory>
         </PreferenceScreen>
 
     </PreferenceCategory>

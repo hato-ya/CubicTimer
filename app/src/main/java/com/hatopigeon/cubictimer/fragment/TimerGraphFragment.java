@@ -25,6 +25,7 @@ import com.hatopigeon.cubictimer.stats.ChartStatisticsLoader;
 import com.hatopigeon.cubictimer.stats.ChartStyle;
 import com.hatopigeon.cubictimer.stats.Statistics;
 import com.hatopigeon.cubictimer.stats.StatisticsCache;
+import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
@@ -122,7 +123,12 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
     @BindView(R.id.stats_card)
         CardView statsCard;
 
+    private boolean sessionStatsEnabled;
+    private boolean todaysStatsEnabled;
 
+    private int numColumnsImprovement;
+    private int numColumnsAverage;
+    private int numColumnsOther;
 
     /*
     @OnClick( {R.id.stats_label, R.id.stats_global, R.id.stats_session, R.id.stats_current} )
@@ -251,6 +257,10 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
             }
         });
 
+        // Preferences //
+        sessionStatsEnabled = Prefs.getBoolean(R.string.pk_stat_session_enabled, true);
+        todaysStatsEnabled = Prefs.getBoolean(R.string.pk_stat_today_enabled, true);
+
         // The color for the text in the legend and for the values along the chart's axes.
         final int chartTextColor = ThemeUtils.fetchAttrColor(mContext, R.attr.colorChartText);
 
@@ -308,13 +318,39 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         statsAverageLabelGridView = statsAverageLayout.findViewById(R.id.stats_label_gridView);
         statsOtherLabelGridView = statsOtherlayout.findViewById(R.id.stats_label_gridView);
 
-        // The "Improvement" and "Other" grids should only have two columns. (Best and Session)
-        // Since the base layout is 3-columns wide, we have to hide the last column title and set
-        // num of columns to 2 for these two views
+        numColumnsImprovement = 4;
+        numColumnsAverage = 4;
+        numColumnsOther = 4;
+
+        // The "Improvement" and "Other" grids should only have three columns. (Best, Session and Today)
+        // Since the base layout is 4-columns wide, we have to hide the last column title and set
+        // num of columns to 3 for these two views
         statsImprovementLayout.findViewById(R.id.stats_current).setVisibility(View.GONE);
         statsOtherlayout.findViewById(R.id.stats_current).setVisibility(View.GONE);
-        statsImprovementGridView.setNumColumns(3);
-        statsOtherGridView.setNumColumns(3);
+        numColumnsImprovement--;
+        numColumnsOther--;
+
+        if (!sessionStatsEnabled) {
+            statsImprovementLayout.findViewById(R.id.stats_session).setVisibility(View.GONE);
+            statsAverageLayout.findViewById(R.id.stats_session).setVisibility(View.GONE);
+            statsOtherlayout.findViewById(R.id.stats_session).setVisibility(View.GONE);
+            numColumnsImprovement--;
+            numColumnsAverage--;
+            numColumnsOther--;
+        }
+
+        if (!todaysStatsEnabled) {
+            statsImprovementLayout.findViewById(R.id.stats_today).setVisibility(View.GONE);
+            statsAverageLayout.findViewById(R.id.stats_today).setVisibility(View.GONE);
+            statsOtherlayout.findViewById(R.id.stats_today).setVisibility(View.GONE);
+            numColumnsImprovement--;
+            numColumnsAverage--;
+            numColumnsOther--;
+        }
+
+        statsImprovementGridView.setNumColumns(numColumnsImprovement);
+        statsAverageGridView.setNumColumns(numColumnsAverage);
+        statsOtherGridView.setNumColumns(numColumnsOther);
 
         // Set stats name tooltips (label shown on long press)
         setTooltipText(R.id.stats_global, R.string.graph_stats_title_best_all_time);
@@ -567,7 +603,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
     private ArrayList<Stat> buildImprovementStatList(Statistics stats) {
         // There are 3 columns (best, session, today), and 6 rows
-        ArrayList<Stat> statsList = new ArrayList<>(6 * 3);
+        ArrayList<Stat> statsList = new ArrayList<>(6 * numColumnsImprovement);
 
 
         // DO NOT CHANGE THE ORDER!
@@ -576,10 +612,12 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeStdDeviation()),
                 PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_GLOBAL, 0));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionStdDeviation()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 0));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayStdDeviation()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 0));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionStdDeviation()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 0));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayStdDeviation()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 0));
 
         // Ao12
         // all time best
@@ -588,15 +626,17 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
                         .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
                 Stat.SCOPE_GLOBAL, 1));
         // session best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(12, Statistics.SessionType.CURRENT)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_SESSION, 1));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(12, Statistics.SessionType.CURRENT)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_SESSION, 1));
         // today's best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(12, Statistics.SessionType.TODAY)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_TODAY, 1));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(12, Statistics.SessionType.TODAY)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_TODAY, 1));
 
         // Ao50
         // all time best
@@ -605,15 +645,17 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
                         .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
                 Stat.SCOPE_GLOBAL, 2));
         // session best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(50, Statistics.SessionType.CURRENT)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_SESSION, 2));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(50, Statistics.SessionType.CURRENT)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_SESSION, 2));
         // today's best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(50, Statistics.SessionType.TODAY)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_TODAY, 2));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(50, Statistics.SessionType.TODAY)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_TODAY, 2));
 
         // Ao100
         // all time best
@@ -622,31 +664,37 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
                         .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
                 Stat.SCOPE_GLOBAL, 3));
         // session best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(100, Statistics.SessionType.CURRENT)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_SESSION, 3));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(100, Statistics.SessionType.CURRENT)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_SESSION, 3));
         // today's best
-        statsList.add(new Stat(convertTimeToString(
-                tr(stats.getAverageOf(100, Statistics.SessionType.TODAY)
-                        .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                Stat.SCOPE_TODAY, 3));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(
+                    tr(stats.getAverageOf(100, Statistics.SessionType.TODAY)
+                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                    Stat.SCOPE_TODAY, 3));
 
         // Best time
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeBestTime()),
                 PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_GLOBAL, 4));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionBestTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 4));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayBestTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 4));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionBestTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 4));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayBestTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 4));
 
         // Num solves
         statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getAllTimeNumSolves()),
                 Stat.SCOPE_GLOBAL, 5));
-        statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves()),
-                Stat.SCOPE_SESSION, 5));
-        statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getTodayNumSolves()),
-                Stat.SCOPE_TODAY, 5));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves()),
+                    Stat.SCOPE_SESSION, 5));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getTodayNumSolves()),
+                    Stat.SCOPE_TODAY, 5));
 
         return statsList;
     }
@@ -654,7 +702,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
     private ArrayList<Stat> buildOtherStatList(Statistics stats) {
         // There are 3 columns (best, session, today), and 6 rows (best, worst, deviation, total time, mean
         // and count).
-        ArrayList<Stat> statsList = new ArrayList<>(6 * 3);
+        ArrayList<Stat> statsList = new ArrayList<>(6 * numColumnsOther);
 
 
         // DO NOT CHANGE THE ORDER!
@@ -662,45 +710,57 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         // is changed, times will be placed in the wrong spots on the grid!
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeBestTime()),
                 PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_GLOBAL, 0));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionBestTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 0));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayBestTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 0));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionBestTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 0));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayBestTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 0));
 
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeWorstTime()),
                 PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_GLOBAL, 1));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionWorstTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 1));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayWorstTime()),
-                PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 1));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionWorstTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_SESSION, 1));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayWorstTime()),
+                    PuzzleUtils.FORMAT_SINGLE, currentPuzzle), Stat.SCOPE_TODAY, 1));
 
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeStdDeviation()),
                 PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_GLOBAL, 2));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionStdDeviation()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 2));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayStdDeviation()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 2));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionStdDeviation()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 2));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayStdDeviation()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 2));
 
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeMeanTime()),
                 PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_GLOBAL, 3));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionMeanTime()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 3));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayMeanTime()),
-                PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 3));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionMeanTime()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_SESSION, 3));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayMeanTime()),
+                    PuzzleUtils.FORMAT_STATS, currentPuzzle), Stat.SCOPE_TODAY, 3));
 
         statsList.add(new Stat(convertTimeToString(tr(stats.getAllTimeTotalTime()),
                 PuzzleUtils.FORMAT_LARGE, currentPuzzle), Stat.SCOPE_GLOBAL, 4));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getSessionTotalTime()),
-                PuzzleUtils.FORMAT_LARGE, currentPuzzle), Stat.SCOPE_SESSION, 4));
-        statsList.add(new Stat(convertTimeToString(tr(stats.getTodayTotalTime()),
-                PuzzleUtils.FORMAT_LARGE, currentPuzzle), Stat.SCOPE_TODAY, 4));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getSessionTotalTime()),
+                    PuzzleUtils.FORMAT_LARGE, currentPuzzle), Stat.SCOPE_SESSION, 4));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(convertTimeToString(tr(stats.getTodayTotalTime()),
+                    PuzzleUtils.FORMAT_LARGE, currentPuzzle), Stat.SCOPE_TODAY, 4));
 
         statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getAllTimeNumSolves()),
                 Stat.SCOPE_GLOBAL, 5));
-        statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves()),
-                Stat.SCOPE_SESSION, 5));
-        statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getTodayNumSolves()),
-                Stat.SCOPE_TODAY, 5));
+        if (sessionStatsEnabled)
+            statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getSessionNumSolves()),
+                    Stat.SCOPE_SESSION, 5));
+        if (todaysStatsEnabled)
+            statsList.add(new Stat(String.format(Locale.getDefault(), "%,d", stats.getTodayNumSolves()),
+                    Stat.SCOPE_TODAY, 5));
 
         return statsList;
     }
@@ -715,9 +775,9 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
      */
     private ArrayList<Stat> buildAverageList(Statistics stats) {
         int averageNumbers[] = {3, 5, 12, 50, 100, 1000};
-        // There are 3 columns (best, session, today, current), and 6 rows (the averages)
-        // So the capacity of the list needs to be 3*6
-        ArrayList<Stat> statsList = new ArrayList<>(6 * 4);
+        // There are 4 columns (best, session, today, current), and 6 rows (the averages)
+        // So the capacity of the list needs to be 4*6
+        ArrayList<Stat> statsList = new ArrayList<>(6 * numColumnsAverage);
         for (int row = 0; row < 6; row++) {
             // best all time
             statsList.add(new Stat(convertTimeToString(
@@ -725,15 +785,17 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
                             .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
                     Stat.SCOPE_GLOBAL, row));
             // session best
-            statsList.add(new Stat(convertTimeToString(
-                    tr(stats.getAverageOf(averageNumbers[row], Statistics.SessionType.CURRENT)
-                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                    Stat.SCOPE_SESSION, row));
+            if (sessionStatsEnabled)
+                statsList.add(new Stat(convertTimeToString(
+                        tr(stats.getAverageOf(averageNumbers[row], Statistics.SessionType.CURRENT)
+                                .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                        Stat.SCOPE_SESSION, row));
             // today best
-            statsList.add(new Stat(convertTimeToString(
-                    tr(stats.getAverageOf(averageNumbers[row], Statistics.SessionType.TODAY)
-                            .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
-                    Stat.SCOPE_TODAY, row));
+            if (todaysStatsEnabled)
+                statsList.add(new Stat(convertTimeToString(
+                        tr(stats.getAverageOf(averageNumbers[row], Statistics.SessionType.TODAY)
+                                .getBestAverage()), PuzzleUtils.FORMAT_STATS, currentPuzzle),
+                        Stat.SCOPE_TODAY, row));
             // current
             statsList.add(new Stat(convertTimeToString(
                     tr(stats.getAverageOf(averageNumbers[row], Statistics.SessionType.CURRENT)

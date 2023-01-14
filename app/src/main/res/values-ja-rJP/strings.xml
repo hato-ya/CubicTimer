@@ -279,12 +279,17 @@
     <string name="pref_animation_duration_title">アニメーション速度</string>
     <string name="pref_animation_duration_summary">ミリ秒単位でタイマーのアニメーション速度を制御する</string>
     <string name="pref_screen_title_statistics">統計</string>
+    <string name="pref_screen_title_tables">表</string>
     <string name="pref_title_stat_trim">平均タイムから除くタイムの割合の変更</string>
     <string name="pref_summary_stat_trim">ワーストとベストから一定の割合で除外する</string>
     <string name="pref_title_acceptable_dnf">許容するDNFの最大数を設定する</string>
     <string name="pref_summary_acceptable_dnf">平均タイムに含む事が可能なDNFの最大数を設定する</string>
     <string name="pref_title_disqualify_dnf">平均タイムにDNFを含まない</string>
     <string name="pref_summary_disqualify_dnf">この機能を有効にすると、平均はDNFの回数が増えると自動的に失格となります</string>
+    <string name="pref_title_show_session_stats">セッションの統計</string>
+    <string name="pref_summary_show_session_stats">統計表にセッションの統計を表示する</string>
+    <string name="pref_title_show_todays_stats">今日の統計</string>
+    <string name="pref_summary_show_todays_stats">統計表に今日の統計を表示する。日付はAM5:00に切り替わる</string>
     <string name="pref_dialog_included_solves">平均タイムから除外するソルブ数の変更</string>
     <string name="pref_dialog_trim_size">除外する量%1$d</string>
     <string name="pref_dialog_dnf_percent">平均を失格にするDNFの量%1$d</string>

@@ -344,6 +344,7 @@
     <string name="graph_stats_title_best_all_time">All time best</string>
     <string name="graph_stats_title_session_best">Session best</string>
     <string name="graph_stats_title_current">Current</string>
+    <string name="graph_stats_title_today">Today</string>
 
     <string name="graph_stats_label_deviation">Deviation</string>
     <string name="graph_stats_label_mean">Mean</string>

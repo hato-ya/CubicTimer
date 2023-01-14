@@ -18,6 +18,8 @@ import com.hatopigeon.cubictimer.utils.AlgUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -490,12 +492,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // Sort into ascending order of date (oldest solves first), so that the "current"
         // average is, in the end, calculated to be that of the most recent solves.
         if (isStatisticsForCurrentSessionOnly) {
-            sql = "SELECT " + KEY_TIME + ", " + KEY_PENALTY + " FROM " + TABLE_TIMES
+            sql = "SELECT " + KEY_TIME + ", " + KEY_PENALTY + ", " + KEY_DATE + " FROM " + TABLE_TIMES
                     + " WHERE " + KEY_TYPE + "=? AND " + KEY_SUBTYPE + "=? AND "
                     + KEY_PENALTY + "!=" + PuzzleUtils.PENALTY_HIDETIME + " AND "
                     + KEY_HISTORY + "=0 ORDER BY " + KEY_DATE + " ASC";
         } else {
-            sql = "SELECT " + KEY_TIME + ", " + KEY_PENALTY + ", " + KEY_HISTORY
+            sql = "SELECT " + KEY_TIME + ", " + KEY_PENALTY + ", " + KEY_HISTORY + ", " + KEY_DATE
                     + " FROM " + TABLE_TIMES + " WHERE " + KEY_TYPE + "=? AND "
                     + KEY_SUBTYPE + "=? AND " + KEY_PENALTY + "!=" + PuzzleUtils.PENALTY_HIDETIME
                     + " ORDER BY " + KEY_DATE + " ASC";
@@ -507,17 +509,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             final int timeCol = cursor.getColumnIndex(KEY_TIME);
             final int penaltyCol = cursor.getColumnIndex(KEY_PENALTY);
+            final int dateCol = cursor.getColumnIndex(KEY_DATE);
             final int historyCol
                     = isStatisticsForCurrentSessionOnly ? -1 : cursor.getColumnIndex(KEY_HISTORY);
+
+            DateTime dtNow = new DateTime();
+            DateTime dtFrom;
+            DateTime dtTo;
+            //Log.d("DatabaseHandler", "Now  : " + dtNow.toString());
+            if (dtNow.getHourOfDay() < 5) {
+                dtTo = new DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+                dtNow = dtNow.minusDays(1);
+                dtFrom = new DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            } else {
+                dtFrom = new DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+                dtNow = dtNow.plusDays(1);
+                dtTo = new DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            }
+            //Log.d("DatabaseHandler", "From : " + dtFrom.toString());
+            //Log.d("DatabaseHandler", "To   : " + dtTo.toString());
 
             while (cursor.moveToNext()) {
                 final boolean isForCurrentSession
                         = isStatisticsForCurrentSessionOnly || cursor.getInt(historyCol) == 0;
+                final boolean isToday = (dtFrom.getMillis() <= cursor.getLong(dateCol)
+                        && cursor.getLong(dateCol) < dtTo.getMillis());
 
                 if (cursor.getInt(penaltyCol) == PuzzleUtils.PENALTY_DNF) {
-                    statistics.addDNF(isForCurrentSession);
+                    statistics.addDNF(isForCurrentSession, isToday);
                 } else {
-                    statistics.addTime(cursor.getLong(timeCol), isForCurrentSession);
+                    statistics.addTime(cursor.getLong(timeCol), isForCurrentSession, isToday);
                 }
             }
         } finally {

@@ -207,9 +207,9 @@ public class StatisticsLoader extends AsyncTaskLoader<Wrapper<Statistics>> {
 
             if (solve != null) {
                 if (solve.getPenalty() == PuzzleUtils.PENALTY_DNF) {
-                    mStatistics.addDNF(true);
+                    mStatistics.addDNF(true, true);
                 } else {
-                    mStatistics.addTime(solve.getTime(), true);
+                    mStatistics.addTime(solve.getTime(), true, true);
                 }
 
                 mLoadedData = mLoadedData.rewrap(); // See explanation in "loadInBackground".

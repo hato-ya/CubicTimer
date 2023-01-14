@@ -13,6 +13,8 @@ import static com.hatopigeon.cubictimer.stats.AverageCalculator.DNF;
 import static com.hatopigeon.cubictimer.stats.AverageCalculator.UNKNOWN;
 import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
 
+import android.util.Log;
+
 /**
  * A collection of {@link AverageCalculator} instances that distributes solve times to each
  * calculator. The calculators can be segregated into averages for times from the current session
@@ -36,6 +38,12 @@ public class Statistics {
     private final Map<Integer, AverageCalculator> mSessionACs = new HashMap<>();
 
     /**
+     * The average calculators for averages of today's time. The calculators
+     * are keyed by the number of times used to calculate the average.
+     */
+    private final Map<Integer, AverageCalculator> mTodayACs = new HashMap<>();
+
+    /**
      * The frequencies of solve times across all sessions. The keys are the solve times in
      * milliseconds, but truncated to whole seconds, and the values are the number of solve times.
      * {@link AverageCalculator#DNF} may also be a key.
@@ -51,6 +59,13 @@ public class Statistics {
     private final TreeMap<Long, Integer> mSessionTimeFreqs = new TreeMap<>();
 
     /**
+     * The frequencies of solve times today. The keys are the solve times in
+     * milliseconds, but truncated to whole seconds and the values are the number of solve times.
+     * {@link AverageCalculator#DNF} may also be a key.
+     */
+    private final TreeMap<Long, Integer> mTodayTimeFreqs = new TreeMap<>();
+
+    /**
      * An average calculator for solves across all past sessions and the current session. May be
      * {@code null}.
      */
@@ -62,9 +77,32 @@ public class Statistics {
     private AverageCalculator mOneSessionAC;
 
     /**
+     * An average calculator for solves today. May be {@code null}.
+     */
+    private AverageCalculator mOneTodayAC;
+
+    /**
      * Percent to trim off each end
      */
     private static int mTrimSize;
+
+    /**
+     * Type of session
+     */
+    public enum SessionType {
+        /**
+         * the statistics across all sessions
+         */
+        ALL_TIME,
+        /**
+         * the statistics for the current session
+         */
+        CURRENT,
+        /**
+         * the statistics of today
+         */
+        TODAY
+    }
 
     /**
      * Creates a new collection for statistics. Use a factory method to create a standard set of
@@ -87,21 +125,12 @@ public class Statistics {
 
         mTrimSize = Prefs.getInt(R.string.pk_stat_trim_size, Prefs.getDefaultIntValue(R.integer.defaultTrimSize));
 
-        // Averages for all sessions.
         stats.addAverageOf(3, 0, false);
         stats.addAverageOf(5, 5, false);
         stats.addAverageOf(12, 5, false);
         stats.addAverageOf(50, mTrimSize, false);
         stats.addAverageOf(100, mTrimSize, false);
         stats.addAverageOf(1_000, mTrimSize, false);
-
-        // Averages for the current session only.
-        stats.addAverageOf(3, 0,true);
-        stats.addAverageOf(5, 5,true);
-        stats.addAverageOf(12, 5,true);
-        stats.addAverageOf(50, mTrimSize,true);
-        stats.addAverageOf(100, mTrimSize,true);
-        stats.addAverageOf(1_000, mTrimSize,true);
 
         return stats;
     }
@@ -155,8 +184,13 @@ public class Statistics {
             sessionAC.reset();
         }
 
+        for (final AverageCalculator todayAC : mTodayACs.values()) {
+            todayAC.reset();
+        }
+
         mAllTimeTimeFreqs.clear();
         mSessionTimeFreqs.clear();
+        mTodayTimeFreqs.clear();
     }
 
     /**
@@ -195,6 +229,7 @@ public class Statistics {
 
         distinctNs.addAll(mAllTimeACs.keySet());
         distinctNs.addAll(mSessionACs.keySet());
+        distinctNs.addAll(mTodayACs.keySet());
 
         final int[] ns = new int[distinctNs.size()];
         int i = 0;
@@ -223,15 +258,23 @@ public class Statistics {
     private void addAverageOf(int n, int trimPercent, boolean isForCurrentSessionOnly) {
         final AverageCalculator ac = new AverageCalculator(n, trimPercent);
 
-        if (isForCurrentSessionOnly) {
-            mSessionACs.put(n, ac);
-            if (mOneSessionAC == null) {
-                mOneSessionAC = ac;
-            }
-        } else {
-            mAllTimeACs.put(n, ac);
+        mSessionACs.put(n, ac);
+        if (mOneSessionAC == null) {
+            mOneSessionAC = ac;
+        }
+
+        if (!isForCurrentSessionOnly) {
+            final AverageCalculator acAllTIme = new AverageCalculator(n, trimPercent);
+            final AverageCalculator acToday = new AverageCalculator(n, trimPercent);
+
+            mAllTimeACs.put(n, acAllTIme);
             if (mOneAllTimeAC == null) {
-                mOneAllTimeAC = ac;
+                mOneAllTimeAC = acAllTIme;
+            }
+
+            mTodayACs.put(n, acToday);
+            if (mOneTodayAC == null) {
+                mOneTodayAC = acToday;
             }
         }
     }
@@ -258,6 +301,30 @@ public class Statistics {
     }
 
     /**
+     * Gets the calculator for the "average of <i>n</i>" solve times.
+     *
+     * @param n
+     *     The number of solve times that were averaged (e.g., 3, 5, 12, ...).
+     * @param sessionType
+     *     Session type
+     *
+     * @return
+     *     The requested average calculator, or {@code null} if no such calculator was defined for
+     *     these statistics.
+     */
+    public AverageCalculator getAverageOf(int n, SessionType sessionType) {
+        switch (sessionType) {
+            case ALL_TIME:
+                return mAllTimeACs.get(n);
+            case CURRENT:
+            default:
+                return mSessionACs.get(n);
+            case TODAY:
+                return mTodayACs.get(n);
+        }
+    }
+
+    /**
      * Records a solve time. The time value should be in milliseconds. If the solve is a DNF,
      * call {@link #addDNF} instead.
      *
@@ -267,11 +334,14 @@ public class Statistics {
      * @param isForCurrentSession
      *     {@code true} if the solve was added during the current session; or {@code false} if
      *     the solve was added in a previous session.
+     * @param isToday
+     *     {@code true} if the solve was added today
      *
      * @throws IllegalArgumentException
      *     If the time is not greater than zero and is not {@code DNF}.
      */
-    public void addTime(long time, boolean isForCurrentSession) throws IllegalArgumentException {
+    public void addTime(long time, boolean isForCurrentSession, boolean isToday)
+            throws IllegalArgumentException {
         // "time" is validated on the first call to "AverageCalculator.addTime".
         for (final AverageCalculator allTimeAC : mAllTimeACs.values()) {
             allTimeAC.addTime(time);
@@ -280,6 +350,12 @@ public class Statistics {
         if (isForCurrentSession) {
             for (final AverageCalculator sessionAC : mSessionACs.values()) {
                 sessionAC.addTime(time);
+            }
+        }
+
+        if (isForCurrentSession && isToday) {
+            for (final AverageCalculator todayAC : mTodayACs.values()) {
+                todayAC.addTime(time);
             }
         }
 
@@ -294,6 +370,11 @@ public class Statistics {
             oldFreq = mSessionTimeFreqs.get(timeForFreq);
             mSessionTimeFreqs.put(timeForFreq, oldFreq == null ? 1 : oldFreq + 1);
         }
+
+        if (isForCurrentSession && isToday) {
+            oldFreq = mTodayTimeFreqs.get(timeForFreq);
+            mTodayTimeFreqs.put(timeForFreq, oldFreq == null ? 1 : oldFreq + 1);
+        }
     }
 
     /**
@@ -302,10 +383,12 @@ public class Statistics {
      * @param isForCurrentSession
      *     {@code true} if the DNF solve was added during the current session; or {@code false} if
      *     the solve was added in a previous session.
+     * @param isToday
+     *     {@code true} if the solve was added today
      */
     // This methods takes away any confusion about what time value represents a DNF.
-    public void addDNF(boolean isForCurrentSession) {
-        addTime(DNF, isForCurrentSession);
+    public void addDNF(boolean isForCurrentSession, boolean isToday) {
+        addTime(DNF, isForCurrentSession, isToday);
     }
 
     /**
@@ -510,5 +593,104 @@ public class Statistics {
      */
     public Map<Long, Integer> getAllTimeTimeFrequencies() {
         return new TreeMap<>(mAllTimeTimeFreqs);
+    }
+
+    /**
+     * Gets the best solve time of all those added to these statistics for today's solve
+     *
+     * @return
+     *     The best time ever added today. The result will be
+     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     were DNFs.
+     */
+    public long getTodayBestTime() {
+        return mOneTodayAC != null ? mOneTodayAC.getBestTime() : UNKNOWN;
+    }
+
+    /**
+     * Gets the worst time (not a DNF) of all those added to these statistics for today's solve
+     *
+     * @return
+     *     The worst time ever added today. The result will be
+     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     were DNFs.
+     */
+    public long getTodayWorstTime() {
+        return mOneTodayAC != null ? mOneTodayAC.getWorstTime() : UNKNOWN;
+    }
+
+    /**
+     * Gets the total number of solve times (including DNFs) that were added to these statistics
+     * today. To get the number of non-DNF solves, subtract the result of
+     * {@link #getTodayNumDNFSolves()}.
+     *
+     * @return The number of solve times that were added today.
+     */
+    public int getTodayNumSolves() {
+        return mOneTodayAC != null ? mOneTodayAC.getNumSolves() : 0;
+    }
+
+    /**
+     * Gets the total number of DNF solves that were added to these statistics today.
+     *
+     * @return The number of DNF solves that were added today.
+     */
+    public int getTodayNumDNFSolves() {
+        return mOneTodayAC != null ? mOneTodayAC.getNumDNFSolves() : 0;
+    }
+
+    /**
+     * Gets the simple arithmetic mean time of all non-DNF solves that were added to these
+     * statistics today. The returned millisecond value is truncated to a whole
+     * milliseconds value, not rounded.
+     *
+     * @return
+     *     The mean time of all non-DNF solves that were added today. The result
+     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     times were DNFs.
+     */
+    public long getTodayMeanTime() {
+        return mOneTodayAC != null ? mOneTodayAC.getMeanTime() : UNKNOWN;
+    }
+
+    /**
+     * Gets the total time (sum of all times) of all non-DNF solves that were added to these
+     * statistics today.
+     *
+     * @return
+     *     The total time of all non-DNF solves that were added today. The result
+     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     times were DNFs.
+     */
+    public long getTodayTotalTime() {
+        return mOneTodayAC != null? mOneTodayAC.getTotalTime() : UNKNOWN;
+    }
+
+    /**
+     * Gets the current Sample Standard Deviation of all non-DNF solves that were added to these
+     * statistics today.
+     *
+     * @return
+     *     The current Sample Standard Deviation of all non-DNF solves that were added today.
+     *     The result will be {@link AverageCalculator#UNKNOWN} if no times have
+     *     been added, or if all added times were DNFs.
+     */
+    public long getTodayStdDeviation() {
+        return mOneTodayAC != null ? mOneTodayAC.getStandardDeviation() : UNKNOWN;
+    }
+
+    /**
+     * Gets the solve time frequencies today. The times are truncated to whole
+     * seconds, but still expressed as milliseconds. The keys are the times (and
+     * {@link AverageCalculator#DNF} can be a key), and the values are the number of solves times
+     * that fell into the one-second interval for that key. For example, if the key is "4", the
+     * value is the number of solve times of "four-point-something seconds".
+     *
+     * @return
+     *     The solve time frequencies. The iteration order of the map begins with any DNF solves
+     *     and then continues in increasing order of time value. This may be modified freely.
+     */
+    public Map<Long, Integer> getTodayTimeFrequencies() {
+        return new TreeMap<>(mTodayTimeFreqs);
     }
 }

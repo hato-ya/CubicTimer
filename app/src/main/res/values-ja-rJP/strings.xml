@@ -220,6 +220,7 @@
     <string name="graph_stats_title_best_all_time">ベストタイム</string>
     <string name="graph_stats_title_session_best">セッションのベストタイム</string>
     <string name="graph_stats_title_current">最新</string>
+    <string name="graph_stats_title_today">今日</string>
     <string name="graph_stats_label_deviation">偏差</string>
     <string name="graph_stats_label_mean">Mean</string>
     <string name="graph_stats_label_best">ベスト</string>

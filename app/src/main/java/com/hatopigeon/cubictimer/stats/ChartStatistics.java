@@ -544,7 +544,7 @@ public class ChartStatistics {
         boolean isEntryAdded = false;
 
         // The value of "time" is validated by "Statistics.addTime".
-        mStatistics.addTime(time, true); // May throw IAE.
+        mStatistics.addTime(time, true, false); // May throw IAE.
 
         if (time != DNF) {
             mChartData.addEntry(new Entry(mXIndex, time / 1_000f), DS_ALL);

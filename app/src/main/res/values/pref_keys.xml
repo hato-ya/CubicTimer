@@ -55,6 +55,8 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_stat_acceptable_dnf_size">pk_stat_acceptable_dnf_size</string>
     <string translatable="false" name="pk_stat_disqualify_dnf">pk_stat_disqualify_dnf</string>
     <string translatable="false" name="pk_stat_discrete_graph_dataset">pk_stat_discrete_graph_dataset</string>
+    <string translatable="false" name="pk_stat_session_enabled">showSessionStatsEnabled</string>
+    <string translatable="false" name="pk_stat_today_enabled">showTodaysStatsEnabled</string>
 
     <string translatable="false" name="pref_screen_title_timer_appearance_settings">timerAppearance</string>
     <string translatable="false" name="pref_screen_other_general">prefScreenOtherGeneral</string>

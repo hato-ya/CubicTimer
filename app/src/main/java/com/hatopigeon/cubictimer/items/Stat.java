@@ -9,6 +9,7 @@ public class Stat {
     public static final int SCOPE_GLOBAL = 0;
     public static final int SCOPE_SESSION = 1;
     public static final int SCOPE_CURRENT  = 2;
+    public static final int SCOPE_TODAY  = 3;
 
     // The time string ("12.43")
     private String time;

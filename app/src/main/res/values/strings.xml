@@ -344,6 +344,7 @@
     <string name="graph_stats_title_best_all_time">All time best</string>
     <string name="graph_stats_title_session_best">Session best</string>
     <string name="graph_stats_title_current">Current</string>
+    <string name="graph_stats_title_today">Today</string>
 
     <string name="graph_stats_label_deviation">Deviation</string>
     <string name="graph_stats_label_mean">Mean</string>
@@ -445,12 +446,17 @@
     <string name="pref_animation_duration_title">Animation duration</string>
     <string name="pref_animation_duration_summary">Controls the duration in milliseconds for all timer animations</string>
     <string name="pref_screen_title_statistics">Statistics</string>
+    <string name="pref_screen_title_tables">Tables</string>
     <string name="pref_title_stat_trim">Average trim</string>
     <string name="pref_summary_stat_trim">Controls the number of best and worst solves excluded from the averages</string>
     <string name="pref_title_acceptable_dnf">Max DNF attempts</string>
     <string name="pref_summary_acceptable_dnf">Controls the maximum number of DNFs an average can have before being disqualified</string>
     <string name="pref_title_disqualify_dnf">DNFs disqualifies average</string>
     <string name="pref_summary_disqualify_dnf">If enabled, averages will be automatically disqualified once the number of DNFs gets too big</string>
+    <string name="pref_title_show_session_stats">Session stats</string>
+    <string name="pref_summary_show_session_stats">Show current session stats on the statistics table</string>
+    <string name="pref_title_show_todays_stats">Today\'s stats</string>
+    <string name="pref_summary_show_todays_stats">Show today\'s stats on the statistics table. The date is switched on at AM5:00</string>
     <string name="pref_dialog_included_solves">Number of solves excluded from the average:</string>
     <string name="pref_dialog_trim_size">Trim size: %1$d</string>
     <string name="pref_dialog_dnf_percent">DNFs: %1$d</string>

@@ -38,11 +38,11 @@
         android:singleLine="true"
         android:text="@string/graph_stats_title_global"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_label"
         app:layout_constraintEnd_toStartOf="@+id/stats_session"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_label"
-        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:srcCompat="@drawable/ic_alpha_g_box_outline" />
 
     <TextView
@@ -61,11 +61,34 @@
         android:focusable="true"
         android:padding="6dp"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_global"
+        app:layout_constraintEnd_toStartOf="@+id/stats_today"
+        app:layout_constraintHorizontal_weight="3"
+        app:srcCompat="@drawable/ic_alpha_s_box_outline" />
+
+    <TextView
+        android:textColor="?graph_stats_card_text_color"
+        android:id="@+id/stats_today"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginLeft="1dp"
+        android:background="?graph_stats_card_background"
+        android:clickable="true"
+        android:textSize="12sp"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:text="@string/graph_stats_title_today"
+        android:gravity="center"
+        android:focusable="true"
+        android:padding="6dp"
+        android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
+        app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_session"
         app:layout_constraintEnd_toStartOf="@+id/stats_current"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_global"
-        app:layout_constraintTop_toTopOf="@+id/stats_global"
         app:srcCompat="@drawable/ic_alpha_s_box_outline" />
 
     <TextView
@@ -84,11 +107,11 @@
         android:focusable="true"
         android:padding="6dp"
         android:tint="?graph_stats_card_text_color"
+        app:layout_constraintTop_toTopOf="@+id/stats_label"
         app:layout_constraintBottom_toBottomOf="@+id/stats_label"
+        app:layout_constraintStart_toEndOf="@+id/stats_today"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintStart_toEndOf="@+id/stats_session"
-        app:layout_constraintTop_toTopOf="@+id/stats_session"
         app:srcCompat="@drawable/ic_alpha_c_box_outline" />
 
 
@@ -99,7 +122,7 @@
         android:background="?graph_stats_card_divider"
         android:gravity="center"
         android:horizontalSpacing="1dp"
-        android:numColumns="3"
+        android:numColumns="4"
         android:stretchMode="columnWidth"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/stats_global"

@@ -84,8 +84,6 @@ dependencies {
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
     // LicensesDialog
     implementation 'de.psdev.licensesdialog:licensesdialog:1.8.0'
-    // Inapp Billing
-    implementation 'com.anjlab.android.iab.v3:library:1.0.44'
     // Material color picker
     implementation 'com.pavelsikun:vintage-chroma:1.5'
     // usb-serial-for-android

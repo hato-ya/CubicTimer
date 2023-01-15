@@ -30,8 +30,6 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.anjlab.android.iab.v3.BillingProcessor;
-import com.anjlab.android.iab.v3.TransactionDetails;
 import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
@@ -39,7 +37,6 @@ import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.fragment.AlgListFragment;
 import com.hatopigeon.cubictimer.fragment.TimerFragment;
 import com.hatopigeon.cubictimer.fragment.TimerFragmentMain;
-import com.hatopigeon.cubictimer.fragment.dialog.DonateDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.ExportImportDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.PuzzleChooserDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.SchemeSelectDialogMain;
@@ -92,8 +89,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGE
 import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 
 public class MainActivity extends AppCompatActivity
-        implements BillingProcessor.IBillingHandler, ExportImportDialog.ExportImportCallbacks,
-        PuzzleChooserDialog.PuzzleCallback {
+        implements ExportImportDialog.ExportImportCallbacks, PuzzleChooserDialog.PuzzleCallback {
     /**
      * Flag to enable debug logging for this class.
      */
@@ -157,16 +153,11 @@ public class MainActivity extends AppCompatActivity
      */
     public static final int ALG_LIST_LOADER_ID = 104;
 
-    BillingProcessor bp;
-
     SmoothActionBarDrawerToggle mDrawerToggle;
     FragmentManager             fragmentManager;
     DrawerLayout                mDrawerLayout;
 
     private Drawer          mDrawer;
-
-    // True if billing is initialized
-    private boolean readyToPurchase = false;
 
     private String mExportPuzzleType = "";
     private String mExportPuzzleCategory = "";
@@ -186,14 +177,6 @@ public class MainActivity extends AppCompatActivity
 
     public void closeDrawer() {
         mDrawer.closeDrawer();
-    }
-
-    public BillingProcessor getBp () {
-        return bp;
-    }
-
-    public void purchase(String productId) {
-        bp.purchase(MainActivity.this, productId);;
     }
 
     @Override
@@ -223,8 +206,6 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        bp = new BillingProcessor(this, null, this);
 
         fragmentManager = getSupportFragmentManager();
 
@@ -464,15 +445,6 @@ public class MainActivity extends AppCompatActivity
                                 });
                                 break;
 
-                            case DONATE_ID:
-                                if (readyToPurchase && BillingProcessor.isIabServiceAvailable(MainActivity.this))
-                                    DonateDialog.newInstance()
-                                            .show(fragmentManager, "donate_dialog");
-                                else
-                                    Toast.makeText(MainActivity.this, "Google Play not available",
-                                                   Toast.LENGTH_LONG).show();
-                                break;
-
                             case ABOUT_ID:
                                 mDrawerToggle.runWhenIdle(new Runnable() {
                                     @Override
@@ -525,72 +497,39 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onBillingInitialized() {
-        /*
-         * Called when BillingProcessor was initialized and it's ready to purchase
-         */
-        readyToPurchase = true;
-    }
-
-    @Override
-    public void onProductPurchased(String productId, TransactionDetails details) {
-        /*
-         * Called when requested PRODUCT ID was successfully purchased
-         */
-        bp.consumePurchase(productId);
-    }
-
-    @Override
-    public void onBillingError(int errorCode, Throwable error) {
-        /*
-         * Called when some error occurred. See Constants class for more details
-         */
-    }
-
-    @Override
-    public void onPurchaseHistoryRestored() {
-        /*
-         * Called when purchase history was restored and the list of all owned PRODUCT ID's
-         * was loaded from Google Play
-         */
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (DEBUG_ME) Log.d(TAG, "onActivityResult(requestCode=" + requestCode
                 + ", resultCode=" + resultCode + ", data=" + data + "): " + this);
-        if (! bp.handleActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
 
-            if (requestCode == REQUEST_SETTING) {
-                if (DEBUG_ME) Log.d(TAG, "  Returned from 'Settings'. Will recreate activity.");
-                onRecreateRequired();
-            } else if ((requestCode == EXPORT_BACKUP || requestCode == EXPORT_EXTERNAL)
-                    && resultCode == Activity.RESULT_OK) {
-                if (data.getData() != null) {
-                    Uri uri = data.getData();
-                    Log.d(TAG, "EXPORT : " + uri.toString());
-                    Log.d(TAG, "EXPORT : " + mExportPuzzleType + "," + mExportPuzzleCategory);
+        if (requestCode == REQUEST_SETTING) {
+            if (DEBUG_ME) Log.d(TAG, "  Returned from 'Settings'. Will recreate activity.");
+            onRecreateRequired();
+        } else if ((requestCode == EXPORT_BACKUP || requestCode == EXPORT_EXTERNAL)
+                && resultCode == Activity.RESULT_OK) {
+            if (data.getData() != null) {
+                Uri uri = data.getData();
+                Log.d(TAG, "EXPORT : " + uri.toString());
+                Log.d(TAG, "EXPORT : " + mExportPuzzleType + "," + mExportPuzzleCategory);
 
-                    new ExportSolves(this,
-                            (requestCode == EXPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
-                                    : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
-                            uri, mExportPuzzleType, mExportPuzzleCategory)
-                            .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                }
-            } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL)
-                    && resultCode == Activity.RESULT_OK) {
-                if (data.getData() != null) {
-                    Uri uri = data.getData();
-                    Log.d(TAG, "IMPORT : " + uri.toString());
-                    Log.d(TAG, "IMPORT : " + mExportPuzzleType + "," + mExportPuzzleCategory);
+                new ExportSolves(this,
+                        (requestCode == EXPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
+                                : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
+                        uri, mExportPuzzleType, mExportPuzzleCategory)
+                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
+        } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL)
+                && resultCode == Activity.RESULT_OK) {
+            if (data.getData() != null) {
+                Uri uri = data.getData();
+                Log.d(TAG, "IMPORT : " + uri.toString());
+                Log.d(TAG, "IMPORT : " + mExportPuzzleType + "," + mExportPuzzleCategory);
 
-                    new ImportSolves(this,
-                            (requestCode == IMPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
-                                    : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
-                            uri, mExportPuzzleType, mExportPuzzleCategory)
-                            .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                }
+                new ImportSolves(this,
+                        (requestCode == IMPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
+                                : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
+                        uri, mExportPuzzleType, mExportPuzzleCategory)
+                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         }
     }
@@ -656,8 +595,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         if (DEBUG_ME) Log.d(TAG, "onDestroy(): " + this);
-        if (bp != null)
-            bp.release();
         super.onDestroy();
     }
 

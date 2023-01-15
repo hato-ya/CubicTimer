@@ -457,7 +457,7 @@
     <string name="pref_title_show_session_stats">Session stats</string>
     <string name="pref_summary_show_session_stats">Show current session stats on the statistics table</string>
     <string name="pref_title_show_todays_stats">Today\'s stats</string>
-    <string name="pref_summary_show_todays_stats">Show today\'s stats on the statistics table. The date is switched on at AM5:00</string>
+    <string name="pref_summary_show_todays_stats">Show today\'s stats on the statistics table. The date is switched on at 5:00am</string>
     <string name="pref_dialog_included_solves">Number of solves excluded from the average:</string>
     <string name="pref_dialog_trim_size">Trim size: %1$d</string>
     <string name="pref_dialog_dnf_percent">DNFs: %1$d</string>

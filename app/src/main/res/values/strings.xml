@@ -360,6 +360,7 @@
     <string name="graph_stats_label_ao100_full">Ao100</string>
 
     <string name="timer_detail_average_record_message">New average best!</string>
+    <string name="timer_recent_results">Recent results:</string>
 
     <string name="timer_serial_status_message">"Serial : "</string>
     <string name="timer_serial_status_disabled_message">disabled</string>

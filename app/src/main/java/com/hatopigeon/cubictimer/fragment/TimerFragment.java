@@ -1258,6 +1258,7 @@ public class                                                                    
         if (recentResultsEnabled) {
             // show recent result
             StringBuilder stringRecentResult = new StringBuilder();
+            stringRecentResult.append(getString(R.string.timer_recent_results)+"\n");
             long recentTimes[] = stats.getAverageOf(5, true).getRecentTimes();
             for (int i = 0; i < recentTimes.length; i++) {
                 stringRecentResult.append(convertTimeToString(recentTimes[i], FORMAT_SINGLE, currentPuzzle) + "\n");

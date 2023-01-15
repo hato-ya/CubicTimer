@@ -151,7 +151,7 @@
     <string name="pref_category_title_timer">タイマー</string>
     <string name="pref_screen_title_inspection_behavior">インスペクション時の動作</string>
     <string name="pref_screen_title_timer_behavior">タイマーの動作</string>
-    <string name="pref_screen_title_timer_appearance">タイマーの設定</string>
+    <string name="pref_screen_title_timer_appearance">タイマーの外観</string>
     <string name="pref_screen_title_stack_timer">スタックタイマー</string>
     <string name="pref_scramble_box_title">スクランブルの背景</string>
     <string name="pref_scramble_box_description">スクランブルの背景を白にする</string>
@@ -290,7 +290,7 @@
     <string name="pref_title_show_session_stats">セッションの統計</string>
     <string name="pref_summary_show_session_stats">統計表にセッションの統計を表示する</string>
     <string name="pref_title_show_todays_stats">今日の統計</string>
-    <string name="pref_summary_show_todays_stats">統計表に今日の統計を表示する。日付はAM5:00に切り替わる</string>
+    <string name="pref_summary_show_todays_stats">統計表に今日の統計を表示する。日付は午前5:00に切り替わる</string>
     <string name="pref_dialog_included_solves">平均タイムから除外するソルブ数の変更</string>
     <string name="pref_dialog_trim_size">除外する量%1$d</string>
     <string name="pref_dialog_dnf_percent">平均を失格にするDNFの量%1$d</string>

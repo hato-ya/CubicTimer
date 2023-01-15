@@ -1,5 +1,8 @@
 package com.hatopigeon.cubictimer.adapter;
 
+import static android.text.format.DateUtils.FORMAT_NUMERIC_DATE;
+import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
+
 import android.content.Context;
 import android.database.Cursor;
 import androidx.fragment.app.FragmentManager;
@@ -10,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,8 +52,6 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
     Drawable cardBackground;
     Drawable selectedCardBackground;
 
-    String mDateFormatSpec;
-
     private boolean isInSelectionMode;
 
     private List<Long> selectedItems = new ArrayList<>();
@@ -71,8 +73,6 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
                 mContext,
                 ThemeUtils.fetchAttrColor(mContext, R.attr.colorItemListBackgroundSelected),
                 Color.BLACK, 10, 2);
-
-        mDateFormatSpec = context.getString(R.string.shortDateFormat);
     }
 
     @Override
@@ -152,7 +152,8 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
 
         //Log.d("TimeCursorAdapter", "puzzle type : " + pPuzzle);
 
-        holder.dateText.setText(new DateTime(pDate).toString(mDateFormatSpec));
+        holder.dateText.setText(DateUtils.formatDateTime(mContext, pDate,
+                FORMAT_SHOW_DATE|FORMAT_NUMERIC_DATE));
 
         if (isSelected(mId))
             holder.card.setBackground(selectedCardBackground);

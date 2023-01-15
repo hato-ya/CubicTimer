@@ -1,5 +1,10 @@
 package com.hatopigeon.cubictimer.fragment.dialog;
 
+import static android.text.format.DateUtils.FORMAT_ABBREV_ALL;
+import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
+import static android.text.format.DateUtils.FORMAT_SHOW_TIME;
+import static android.text.format.DateUtils.FORMAT_SHOW_YEAR;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +23,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.widget.PopupMenu;
 import android.text.Html;
 import android.text.InputType;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -207,7 +213,9 @@ public class TimeDialog extends DialogFragment {
             solve = matchedSolve;
 
             timeText.setText(Html.fromHtml(PuzzleUtils.convertTimeToString(solve.getTime(), PuzzleUtils.FORMAT_SMALL_MILLI, solve.getPuzzle())));
-            dateText.setText(new DateTime(solve.getDate()).toString("d MMM y'\n'H':'mm"));
+            dateText.setText(DateUtils.formatDateTime(mContext, solve.getDate(),
+                    FORMAT_SHOW_YEAR|FORMAT_SHOW_DATE|FORMAT_ABBREV_ALL) + "\n"
+                    + DateUtils.formatDateTime(mContext, solve.getDate(), FORMAT_SHOW_TIME));
 
             scrambleText.setText(solve.getScramble());
 

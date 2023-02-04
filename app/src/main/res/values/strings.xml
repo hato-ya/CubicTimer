@@ -86,6 +86,7 @@
     <string name="cube_555bld_informal">5x5bld</string>
     <string name="cube_333fmc">3x3 FMC</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
+    <string name="cube_other">Other</string>
 
     <string name="delete_dialog_cancel_button">Cancel</string>
     <string name="delete_dialog_confirmation_button">Remove</string>

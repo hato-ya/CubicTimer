@@ -79,6 +79,9 @@ public class ScrambleGenerator {
             case PuzzleUtils.TYPE_333FMC:
                 puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
                 break;
+            case PuzzleUtils.TYPE_OTHER:
+                puzzle = null;
+                break;
             default:
                 puzzle = new ThreeByThreeCubePuzzle();
                 break;
@@ -129,10 +132,14 @@ public class ScrambleGenerator {
         String cubeImg = null;
         Drawable pic = null;
 
-        try {
-            cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
-        } catch (InvalidScrambleException e) {
-            e.printStackTrace();
+        if (!puzzleType.equals(PuzzleUtils.TYPE_OTHER)) {
+            try {
+                cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
+            } catch (InvalidScrambleException e) {
+                e.printStackTrace();
+            }
+        } else {
+            cubeImg = "";
         }
 
         if (cubeImg != null) {

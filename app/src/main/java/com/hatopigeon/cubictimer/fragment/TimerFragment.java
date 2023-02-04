@@ -632,8 +632,8 @@ public class                                                                    
         startCueEnabled = Prefs.getBoolean(R.string.pk_start_cue_enabled, res.getBoolean(R.bool.default_startCue));
 
         sessionStatsEnabled = Prefs.getBoolean(R.string.pk_show_session_stats, true);
-        sessionStatsMo3Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_mo3, true);
-        sessionStatsAo1000Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_ao1000, true);
+        sessionStatsMo3Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_mo3, false);
+        sessionStatsAo1000Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_ao1000, false);
         recentResultsEnabled = Prefs.getBoolean(R.string.pk_show_recent_results, true);
         bestSolveEnabled = Prefs.getBoolean(R.string.pk_show_best_time, true);
         worstSolveEnabled = Prefs.getBoolean(R.string.pk_show_worst_time, false);

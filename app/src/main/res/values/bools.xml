@@ -17,6 +17,14 @@
     <bool name="default_showHints">true</bool>
     <bool name="default_showHintsXCross">false</bool>
     <bool name="default_backCancelEnabled">true</bool>
+    <bool name="default_scrambleImageEnabled">true</bool>
+    <bool name="default_sessionStatsEnabled">true</bool>
+    <bool name="default_sessionStatsMo3Enabled">false</bool>
+    <bool name="default_sessionStatsAo1000Enabled">false</bool>
+    <bool name="default_recentResultEnabled">true</bool>
+    <bool name="default_stackTimerEnabled">true</bool>
+    <bool name="default_serialStatusEnabled">true</bool>
+    <bool name="default_inspectionByResetEnabled">true</bool>
 
     <bool name="default_crossHintTopEnabled">true</bool>
     <bool name="default_crossHintLeftEnabled">false</bool>

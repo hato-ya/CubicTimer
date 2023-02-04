@@ -275,6 +275,8 @@ public class                                                                    
     private boolean buttonsEnabled;
     private boolean scrambleImgEnabled;
     private boolean sessionStatsEnabled;
+    private boolean sessionStatsMo3Enabled;
+    private boolean sessionStatsAo1000Enabled;
     private boolean recentResultsEnabled;
     private boolean worstSolveEnabled;
     private boolean bestSolveEnabled;
@@ -630,6 +632,8 @@ public class                                                                    
         startCueEnabled = Prefs.getBoolean(R.string.pk_start_cue_enabled, res.getBoolean(R.bool.default_startCue));
 
         sessionStatsEnabled = Prefs.getBoolean(R.string.pk_show_session_stats, true);
+        sessionStatsMo3Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_mo3, true);
+        sessionStatsAo1000Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_ao1000, true);
         recentResultsEnabled = Prefs.getBoolean(R.string.pk_show_recent_results, true);
         bestSolveEnabled = Prefs.getBoolean(R.string.pk_show_best_time, true);
         worstSolveEnabled = Prefs.getBoolean(R.string.pk_show_worst_time, false);
@@ -1188,26 +1192,30 @@ public class                                                                    
             String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()),
                     PuzzleUtils.FORMAT_STATS, currentPuzzle);
 
-            long allTimeBestAvg[] = new long[4];
-            long sessionCurrentAvg[] = new long[4];
+            long allTimeBestAvg[] = new long[6];
+            long sessionCurrentAvg[] = new long[6];
 
-            allTimeBestAvg[0] = tr(stats.getAverageOf(5, false).getBestAverage());
-            allTimeBestAvg[1] = tr(stats.getAverageOf(12, false).getBestAverage());
-            allTimeBestAvg[2] = tr(stats.getAverageOf(50, false).getBestAverage());
-            allTimeBestAvg[3] = tr(stats.getAverageOf(100, false).getBestAverage());
+            allTimeBestAvg[0] = tr(stats.getAverageOf(3, false).getBestAverage());
+            allTimeBestAvg[1] = tr(stats.getAverageOf(5, false).getBestAverage());
+            allTimeBestAvg[2] = tr(stats.getAverageOf(12, false).getBestAverage());
+            allTimeBestAvg[3] = tr(stats.getAverageOf(50, false).getBestAverage());
+            allTimeBestAvg[4] = tr(stats.getAverageOf(100, false).getBestAverage());
+            allTimeBestAvg[5] = tr(stats.getAverageOf(1000, false).getBestAverage());
 
-            sessionCurrentAvg[0] = tr(stats.getAverageOf(5, true).getCurrentAverage());
-            sessionCurrentAvg[1] = tr(stats.getAverageOf(12, true).getCurrentAverage());
-            sessionCurrentAvg[2] = tr(stats.getAverageOf(50, true).getCurrentAverage());
-            sessionCurrentAvg[3] = tr(stats.getAverageOf(100, true).getCurrentAverage());
+            sessionCurrentAvg[0] = tr(stats.getAverageOf(3, true).getCurrentAverage());
+            sessionCurrentAvg[1] = tr(stats.getAverageOf(5, true).getCurrentAverage());
+            sessionCurrentAvg[2] = tr(stats.getAverageOf(12, true).getCurrentAverage());
+            sessionCurrentAvg[3] = tr(stats.getAverageOf(50, true).getCurrentAverage());
+            sessionCurrentAvg[4] = tr(stats.getAverageOf(100, true).getCurrentAverage());
+            sessionCurrentAvg[5] = tr(stats.getAverageOf(1000, true).getCurrentAverage());
 
             // detailTextNamesArray should be in the same order as shown in the timer
             // (keep R.arrays.timer_detail_stats in sync with the order!)
             StringBuilder stringDetailOther = new StringBuilder();
-            stringDetailOther.append(detailTextNamesArray[4]).append(": ").append(sessionDeviation).append("\n");
-            stringDetailOther.append(detailTextNamesArray[5]).append(": ").append(sessionMean).append("\n");
-            stringDetailOther.append(detailTextNamesArray[6]).append(": ").append(sessionBestTime).append("\n");
-            stringDetailOther.append(detailTextNamesArray[7]).append(": ").append(sessionCount);
+            stringDetailOther.append(detailTextNamesArray[6]).append(": ").append(sessionDeviation).append("\n");
+            stringDetailOther.append(detailTextNamesArray[7]).append(": ").append(sessionMean).append("\n");
+            stringDetailOther.append(detailTextNamesArray[8]).append(": ").append(sessionBestTime).append("\n");
+            stringDetailOther.append(detailTextNamesArray[9]).append(": ").append(sessionCount);
 
             detailTextOther.setText(stringDetailOther.toString());
 
@@ -1221,32 +1229,34 @@ public class                                                                    
             StringBuilder stringDetailAvg = new StringBuilder();
             // Iterate through averages and set respective TextViews
 
-            String[] avgNums = {"5", "12", "50", "100"};
-            for (int i = 0; i < 4; i++) {
-                if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
-                        sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
-                    // Create string.
-                    stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
-                            .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");
+            String[] avgNums = {"3", "5", "12", "50", "100", "1000"};
+            for (int i = 0; i < 6; i++) {
+                if ((i == 0 && sessionStatsMo3Enabled) || (1 <= i && i <= 4)
+                        || (i == 5 && sessionStatsAo1000Enabled)) {
+                    if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
+                            sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
+                        // Create string.
+                        stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                                .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");
 
-                    // Show record message, if it was not shown before
-                    if (!hasShownRecordMessage && !isRunning && !countingDown) {
-                        detailAverageRecordMesssage.setVisibility(View.VISIBLE);
-                        detailAverageRecordMesssage
-                                .animate()
-                                .alpha(1)
-                                .setDuration(mAnimationDuration);
-                        hasShownRecordMessage = true;
+                        // Show record message, if it was not shown before
+                        if (!hasShownRecordMessage && !isRunning && !countingDown) {
+                            detailAverageRecordMesssage.setVisibility(View.VISIBLE);
+                            detailAverageRecordMesssage
+                                    .animate()
+                                    .alpha(1)
+                                    .setDuration(mAnimationDuration);
+                            hasShownRecordMessage = true;
+                        }
+                    } else if (sessionStatsEnabled) {
+                        stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
+                                .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle));
                     }
-                } else if (sessionStatsEnabled) {
-                    stringDetailAvg.append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
-                            .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle));
-                }
-                // append newline to every line but the last
-                if (i < 3) {
                     stringDetailAvg.append("<br>");
                 }
             }
+            // remove last "<br>"
+            stringDetailAvg.setLength(stringDetailAvg.length()-4);
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString(), Html.FROM_HTML_MODE_LEGACY));

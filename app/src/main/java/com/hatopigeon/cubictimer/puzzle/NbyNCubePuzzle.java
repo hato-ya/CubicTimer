@@ -1,6 +1,6 @@
 package com.hatopigeon.cubictimer.puzzle;
 
-import puzzle.CubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.CubePuzzle;
 
 /**
  * The TNoodle library only provides default functions up to 4x4 cube puzzles.

@@ -8,21 +8,21 @@ import com.hatopigeon.cubictimer.puzzle.NbyNCubePuzzle;
 import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGParseException;
 
-import net.gnehzr.tnoodle.scrambles.InvalidScrambleException;
-import net.gnehzr.tnoodle.scrambles.Puzzle;
+import org.worldcubeassociation.tnoodle.scrambles.InvalidScrambleException;
+import org.worldcubeassociation.tnoodle.scrambles.Puzzle;
 
-import puzzle.ClockPuzzle;
-import puzzle.FourByFourCubePuzzle;
-import puzzle.MegaminxPuzzle;
-import puzzle.NoInspectionFiveByFiveCubePuzzle;
-import puzzle.NoInspectionFourByFourCubePuzzle;
-import puzzle.NoInspectionThreeByThreeCubePuzzle;
-import puzzle.PyraminxPuzzle;
-import puzzle.SkewbPuzzle;
-import puzzle.SquareOneUnfilteredPuzzle;
-import puzzle.ThreeByThreeCubeFewestMovesPuzzle;
-import puzzle.ThreeByThreeCubePuzzle;
-import puzzle.TwoByTwoCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.ClockPuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.FourByFourCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.MegaminxPuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.NoInspectionFiveByFiveCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.NoInspectionFourByFourCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.NoInspectionThreeByThreeCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.PyraminxPuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.SkewbPuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.SquareOnePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.ThreeByThreeCubeFewestMovesPuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.ThreeByThreeCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.TwoByTwoCubePuzzle;
 
 /**
  * Util for generating and drawing scrambles
@@ -65,7 +65,7 @@ public class ScrambleGenerator {
                 puzzle = new ClockPuzzle();
                 break;
             case PuzzleUtils.TYPE_SQUARE1:
-                puzzle = new SquareOneUnfilteredPuzzle();
+                puzzle = new SquareOnePuzzle();
                 break;
             case PuzzleUtils.TYPE_333BLD:
                 puzzle = new NoInspectionThreeByThreeCubePuzzle();

@@ -231,7 +231,7 @@ public class                                                                    
     private StringBuilder stackTimerString;
     private final Handler mainLooper;
     private boolean isExternalTimer;
-    private String previousTimerString = "";
+    private String previousTimerString = "000000";
     private boolean isSerialConnected = false;
 
     @BindView(R.id.sessionDetailTextAverage) TextView detailTextAvg;
@@ -2016,10 +2016,23 @@ public class                                                                    
         // update debug string
         serialStatusMessage.setText(str);
 
+        // for state detection
+        String strTime = str.substring(1,7);
+
+        // detect timer start
+        boolean isStart = (previousTimerString.equals("000000") && !strTime.equals("000000"));
+
+        // detect timer stop
+        boolean isStop = (strTime.equals(previousTimerString) && !strTime.equals("000000"));
+
         // detect reset trigger
-        boolean isReset = (!previousTimerString.isEmpty() && !previousTimerString.contains("000000")
-                && str.contains("000000"));
-        previousTimerString = str;
+        boolean isReset = (!previousTimerString.equals("000000") && strTime.equals("000000"));
+
+        previousTimerString = strTime;
+
+        if (isStart || isReset) {
+            Log.d(TAG, "UART detect : (start, reset) = (" + isStart + ", " + isReset + ")");
+        }
 
         // set time from stack timer to chronometer
         if (!isReset && isRunning && isExternalTimer) {
@@ -2027,7 +2040,7 @@ public class                                                                    
         }
 
         // start/stop timer
-        if (str.charAt(0) == ' ') {
+        if (isStart) {
             if (countingDown) { // "countingDown == true" => "inspectionEnabled == true"
                 stopInspectionCountdown();
                 isExternalTimer = true;
@@ -2048,29 +2061,32 @@ public class                                                                    
                     startChronometer();
                 }
             }
-        } else if (str.charAt(0) == 'I' || str.charAt(0) == 'S') {
-            if (isRunning && isExternalTimer && chronometer.getElapsedTime() >= 80) { // => "isRunning == true"
-                // Chronometer is timing a solve (running, not counting down inspection period).
-                // Stop the timer if it has been running for long enough (80 ms) for this not to
-                // be an accidental touch as the user lifted up the touch to start the timer.
-                if (!isReset) {
-                    // stop timer
-                    animationDone = false;
-                    isExternalTimer = false;
-                    stopChronometer();
-                    if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
-                        // If a user has inspection on and went past his inspection time, he has
-                        // two extra seconds do start his time, but with a +2 penalty. This penalty
-                        // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
-                        chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
-                    }
-                    addNewSolve();
-                } else {
-                    cancelChronometer();
+        } else if (isStop) {
+            if (isRunning && isExternalTimer) { // => "isRunning == true"
+                // stop timer
+                animationDone = false;
+                isExternalTimer = false;
+                stopChronometer();
+                if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
+                    // If a user has inspection on and went past his inspection time, he has
+                    // two extra seconds do start his time, but with a +2 penalty. This penalty
+                    // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
+                    chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
                 }
-            } else if (isReset && !isRunning && inspectionEnabled && !countingDown && inspectionByResetEnabled) {
+                addNewSolve();
+            }
+        } else if (isReset) {
+            if (isRunning && isExternalTimer) { // => "isRunning == true"
+                Log.d(TAG, "UART reset detected : cancel chronometer");
+                cancelChronometer();
+            } else if (!isRunning && inspectionEnabled && !countingDown && inspectionByResetEnabled) {
+                Log.d(TAG, "UART reset detected : start inspection");
                 hideToolbar();
                 startInspectionCountdown(inspectionTime);
+            } else {
+                Log.d(TAG, "UART reset detected : (isRunning, isExternalTimer, inspectionEnabled, countingDown, inspectionByResetEnabled) = ("
+                        + isRunning + ", " + isExternalTimer + ", " + inspectionEnabled + ", "
+                        + countingDown + ", " + inspectionByResetEnabled + ")");
             }
         }
     }

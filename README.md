@@ -11,12 +11,14 @@ Original description of Twisty Timer is following.
 # Stack timer suppot
 ## How to connect external stack timer
 Prepare RS232C to USB convert cable (IMPORTANT!! IT IS NOT AUDIO CABLE used by csTimer).
-Output voltage level of G4 stack timer is lower than the specification of RS232C.
-Therefore, sometimes there are compatibility problems.
+I recommend RS232 3.5mm Audio Jack Serial Adapter Cable used for the Intel Galileo Gen1 board. But the operation is not guaranteed.
+Output voltage level of G4 stack timer is lower than the specification of RS232C. Therefore, sometimes there are compatibility problems.
 
 ## Supported stack timer
+- Speed Stacks Pro Timer G5
 - Speed Stacks Pro Timer G4
 - Speed Stacks Pro Timer G3 (not confirmed, maybe)
+- YuXin Timer V2
 
 ## Supported RS232C to USB converter device
 It depends on usb-serial-for-android.

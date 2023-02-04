@@ -1064,6 +1064,7 @@ public class                                                                    
                 // This one is the same as the NxN cubes
                 return (multiplier / 4) * 3;
             case PuzzleUtils.TYPE_SQUARE1: // Square-1
+            case PuzzleUtils.TYPE_OTHER:
                 return multiplier;
         }
         return multiplier;
@@ -1661,6 +1662,8 @@ public class                                                                    
 
         @Override
         protected String doInBackground(String... params) {
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_OTHER))
+                return " ";
             try {
                 return generator.getPuzzle().generateScramble();
             } catch (Exception e) {

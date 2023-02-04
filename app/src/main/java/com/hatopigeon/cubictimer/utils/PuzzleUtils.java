@@ -39,6 +39,7 @@ public class PuzzleUtils {
     public static final String TYPE_444BLD  = "444bld";
     public static final String TYPE_555BLD  = "555bld";
     public static final String TYPE_333FMC  = "333fmc";
+    public static final String TYPE_OTHER   = "other";
 
     public static final int NO_PENALTY       = 0;
     public static final int PENALTY_PLUSTWO  = 1;
@@ -80,6 +81,7 @@ public class PuzzleUtils {
             case 12: return TYPE_444BLD;
             case 13: return TYPE_555BLD;
             case 14: return TYPE_333FMC;
+            case 15: return TYPE_OTHER;
         }
     }
 
@@ -110,6 +112,7 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return 12;
             case TYPE_555BLD:  return 13;
             case TYPE_333FMC:  return 14;
+            case TYPE_OTHER:   return 15;
         }
     }
 
@@ -139,6 +142,7 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return R.string.cube_444bld_informal;
             case TYPE_555BLD:  return R.string.cube_555bld_informal;
             case TYPE_333FMC:  return R.string.cube_333fmc_informal;
+            case TYPE_OTHER:   return R.string.cube_other;
             default:           return 0;
         }
     }
@@ -162,6 +166,7 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return R.string.cube_444bld;
             case TYPE_555BLD:  return R.string.cube_555bld;
             case TYPE_333FMC:  return R.string.cube_333fmc;
+            case TYPE_OTHER:   return R.string.cube_other;
         }
     }
 

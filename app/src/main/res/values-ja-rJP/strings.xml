@@ -55,6 +55,7 @@
     <string name="cube_444bld">4×4×4 目隠し</string>
     <string name="cube_555bld">5×5×5 目隠し</string>
     <string name="cube_333fmc">3×3×3 最小手数</string>
+    <string name="cube_other">その他</string>
     <string name="delete_dialog_cancel_button">キャンセル</string>
     <string name="delete_dialog_confirmation_button">削除</string>
     <string name="delete_dialog_confirmation_title">ソルブを消去しますか？</string>

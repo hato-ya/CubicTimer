@@ -12,8 +12,7 @@ import com.hatopigeon.cubictimer.utils.AlgUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
-import net.gnehzr.tnoodle.scrambles.InvalidScrambleException;
-import net.gnehzr.tnoodle.scrambles.Puzzle;
+import org.worldcubeassociation.tnoodle.scrambles.InvalidScrambleException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -25,8 +24,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import puzzle.CubePuzzle;
-import puzzle.ThreeByThreeCubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.CubePuzzle;
+import org.worldcubeassociation.tnoodle.puzzle.ThreeByThreeCubePuzzle;
 
 /**
  * Provides scramble algorithms to be used in the trainer

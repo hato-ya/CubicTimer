@@ -173,19 +173,33 @@
             <PreferenceCategory android:title="@string/pref_category_title_features">
 
                 <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_buttonEnabled"
+                    android:defaultValue="@bool/default_scrambleImageEnabled"
                     android:key="@string/pk_show_scramble_image"
                     android:summary="@string/scrambleImageEnabledSummary"
                     android:title="@string/scrambleImageEnabledTitle" />
 
                 <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_buttonEnabled"
+                    android:defaultValue="@bool/default_sessionStatsEnabled"
                     android:key="@string/pk_show_session_stats"
                     android:summary="@string/sessionStatsEnabledSummary"
                     android:title="@string/sessionStatsEnabledTitle" />
 
                 <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_buttonEnabled"
+                    android:defaultValue="@bool/default_sessionStatsMo3Enabled"
+                    android:dependency="@string/pk_show_session_stats"
+                    android:key="@string/pk_show_session_stats_mo3"
+                    android:summary="@string/sessionStatsMo3EnabledSummary"
+                    android:title="@string/sessionStatsMo3EnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_sessionStatsAo1000Enabled"
+                    android:dependency="@string/pk_show_session_stats"
+                    android:key="@string/pk_show_session_stats_ao1000"
+                    android:summary="@string/sessionStatsAo1000EnabledSummary"
+                    android:title="@string/sessionStatsAo1000EnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_recentResultEnabled"
                     android:key="@string/pk_show_recent_results"
                     android:summary="@string/recentResultEnabledSummary"
                     android:title="@string/recentResultEnabledTitle" />
@@ -261,19 +275,19 @@
             android:title="@string/pref_screen_title_stack_timer">
 
             <SwitchPreferenceCompat
-                android:defaultValue="@bool/default_buttonEnabled"
+                android:defaultValue="@bool/default_stackTimerEnabled"
                 android:key="@string/pk_stack_timer_enabled"
                 android:summary="@string/stackTimerEnabledSummary"
                 android:title="@string/stackTimerEnabledTitle" />
 
             <SwitchPreferenceCompat
-                android:defaultValue="@bool/default_buttonEnabled"
+                android:defaultValue="@bool/default_serialStatusEnabled"
                 android:key="@string/pk_show_serial_status"
                 android:summary="@string/serialStatusEnabledSummary"
                 android:title="@string/serialStatusEnabledTitle" />
 
             <SwitchPreferenceCompat
-                android:defaultValue="@bool/default_buttonEnabled"
+                android:defaultValue="@bool/default_inspectionByResetEnabled"
                 android:key="@string/pk_inspection_by_reset_enabled"
                 android:summary="@string/inspectionByResetEnabledSummary"
                 android:title="@string/inspectionByResetEnabledTitle" />

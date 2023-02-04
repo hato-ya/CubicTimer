@@ -73,6 +73,8 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_timer_animation_duration">timerAnimationDuration</string>
 
     <string translatable="false" name="pk_show_session_stats">sessionStatsEnabled</string>
+    <string translatable="false" name="pk_show_session_stats_mo3">sessionStatsMo3Enabled</string>
+    <string translatable="false" name="pk_show_session_stats_ao1000">sessionStatsAo1000Enabled</string>
     <string translatable="false" name="pk_show_recent_results">recentResultsEnabled</string>
     <string translatable="false" name="pk_show_best_time">bestSolveEnabled</string>
     <string translatable="false" name="pk_show_average_record_enabled">averageRecordsEnabled</string>

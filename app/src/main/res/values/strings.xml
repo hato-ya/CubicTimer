@@ -147,6 +147,7 @@
 
     <string name="graph_legend_all_times">Everything</string>
     <string name="graph_legend_avg_prefix">Ao</string>
+    <string name="graph_legend_mean_prefix">Mo</string>
     <string name="graph_legend_best_times">Best</string>
     <string name="graph_mean">Mean</string>
 
@@ -294,6 +295,14 @@
     <string name="sessionStatsEnabledSummary">Show current session statistics on the timer</string>
 
     <string name="sessionStatsEnabledTitle">Session stats</string>
+
+    <string name="sessionStatsMo3EnabledSummary">Show Mo3 on current session statistics</string>
+
+    <string name="sessionStatsMo3EnabledTitle">Session stats : Mo3</string>
+
+    <string name="sessionStatsAo1000EnabledSummary">Show Ao1000 on current session statistics</string>
+
+    <string name="sessionStatsAo1000EnabledTitle">Session stats : Ao1000</string>
 
     <string name="recentResultEnabledSummary">Show current session recent results on the timer</string>
 

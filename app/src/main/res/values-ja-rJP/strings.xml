@@ -95,6 +95,7 @@
     <string name="generating_scramble">スクランブル生成中</string>
     <string name="graph_legend_all_times">全て</string>
     <string name="graph_legend_avg_prefix">Ao</string>
+    <string name="graph_legend_mean_prefix">Mo</string>
     <string name="graph_legend_best_times">ベスト</string>
     <string name="graph_mean">Mean</string>
     <string name="hideTimeSummary">ソルブ中タイムを非表示にし、ソルブ終了時にタイムを再表示する</string>
@@ -190,6 +191,10 @@
     <string name="sent_to_session">セッションに移動</string>
     <string name="sessionStatsEnabledSummary">今のセッションの状況を表示する</string>
     <string name="sessionStatsEnabledTitle">セッションの状況</string>
+    <string name="sessionStatsMo3EnabledSummary">セッションの状況にMo3を表示する</string>
+    <string name="sessionStatsMo3EnabledTitle">セッションの状況 : Mo3</string>
+    <string name="sessionStatsAo1000EnabledSummary">セッションの状況にAo1000を表示する</string>
+    <string name="sessionStatsAo1000EnabledTitle">セッションの状況 : Ao1000</string>
     <string name="recentResultEnabledSummary">今のセッションの直近の結果を表示する</string>
     <string name="recentResultEnabledTitle">直近の結果</string>
     <string name="showHintsSummary">3×3×3でクロスのヒントを表示する</string>

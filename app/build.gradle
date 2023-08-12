@@ -6,7 +6,6 @@ android {
         }
     }
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.hatopigeon.cubictimer"
         minSdkVersion 19
@@ -32,14 +31,14 @@ android {
     }
     productFlavors {
     }
-    lintOptions {
-        disable 'MissingTranslation'
-        disable 'ExtraTranslation'
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lint {
+        disable 'MissingTranslation', 'ExtraTranslation'
+    }
+    namespace 'com.hatopigeon.cubicify'
 }
 
 dependencies {
@@ -94,6 +93,6 @@ dependencies {
 
 repositories {
     jcenter()
-    maven { url 'http://maven.google.com' }
+    maven { url 'https://maven.google.com' }
     maven { url 'https://jitpack.io' }
 }

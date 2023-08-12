@@ -624,9 +624,10 @@ public final class AverageCalculator {
                 mCurrentAverage = DNF;
             } else {
                 // If the number of DNF is lower than the number of acceptable DNFs (= trim size)
-                // Calculate a truncated arithmetic mean. "mMiddleTrim.getSum" is the sum of all
+                // Calculate a rounded arithmetic mean. "mMiddleTrim.getSum" is the sum of all
                 // times except the upper and lower trims including DNFs.
                 mCurrentAverage = mMiddleTrim.getSum() / (mN - (mTrimSize * 2));
+                mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
             }
         } else { // mN < MIN_N_TO_ALLOW_ONE_DNF
             // NOTE: "mN" could be as low as 1, but will not be zero (see the constructor).
@@ -636,8 +637,9 @@ public final class AverageCalculator {
             } else {
                 // There is no DNF, or there are DNFs, but that will not cause automatic
                 // disqualification. There is at least one non-DNF time present. Calculate the
-                // (not truncated) arithmetic mean.
+                // rounded arithmetic mean.
                 mCurrentAverage = mCurrentSum / (mN - mNumCurrentDNFs);
+                mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
             }
         }
     }

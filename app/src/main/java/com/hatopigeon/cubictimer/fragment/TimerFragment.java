@@ -1952,7 +1952,8 @@ public class                                                                    
             Log.d(TAG, "UART connect : no permission");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disconnect_no_permission_message));
-            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(getActivity(), 0, new Intent(INTENT_ACTION_GRANT_USB), 0);
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_MUTABLE : 0;
+            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(getActivity(), 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
             usbManager.requestPermission(driver.getDevice(), usbPermissionIntent);
             return;
         }

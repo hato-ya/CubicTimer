@@ -344,7 +344,8 @@ public class Statistics {
             throws IllegalArgumentException {
 
         // Cutting off last digit to fix rounding errors
-        time = time - (time % 10);
+        if (time != DNF)
+            time = time - (time % 10);
 
         // "time" is validated on the first call to "AverageCalculator.addTime".
         for (final AverageCalculator allTimeAC : mAllTimeACs.values()) {

@@ -623,14 +623,10 @@ public final class AverageCalculator {
                 // Disqualify the average: the number of current DNFs is above the acceptable threshold
                 mCurrentAverage = DNF;
             } else {
-                // There is no more than one DNF, or there is more than one DNF, but that will not
-                // cause automatic disqualification. There are at least two non-DNF times present.
-                // Calculate a truncated arithmetic mean. "mCurrentSum" is the sum of all non-DNF
-                // times. Discard the upper and lower trims, discard all other DNFs, if any.
-                // One DNF may already have been discarded as the worst time; do not discard it twice.
-                mCurrentAverage = mMiddleTrim.getSum() /
-                                  (mN - (mTrimSize * 2) -
-                                   (mNumCurrentDNFs > 1 ? mNumCurrentDNFs - 1 : 0));
+                // If the number of DNF is lower than the number of acceptable DNFs (= trim size)
+                // Calculate a truncated arithmetic mean. "mMiddleTrim.getSum" is the sum of all
+                // times except the upper and lower trims including DNFs.
+                mCurrentAverage = mMiddleTrim.getSum() / (mN - (mTrimSize * 2));
             }
         } else { // mN < MIN_N_TO_ALLOW_ONE_DNF
             // NOTE: "mN" could be as low as 1, but will not be zero (see the constructor).
@@ -691,7 +687,7 @@ public final class AverageCalculator {
      * stored values, not a truncated mean. If any currently recorded solve is a {@link #DNF},
      * the average is disqualified as a DNF unless configured so that DNFs do not automatically
      * disqualify averages (by passing {@code false} as the value of the {@code disqualifyDNFs}
-     * parameter to {@link #AverageCalculator(int, boolean)}). If DNFs are allowed, then the
+     * parameter to {@link #AverageCalculator(int, int)}). If DNFs are allowed, then the
      * average is the average time of all non-DNF solves, but will still be a DNF average if all
      * solves are DNFs.
      * </p>

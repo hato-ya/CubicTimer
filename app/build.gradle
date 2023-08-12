@@ -74,7 +74,7 @@ dependencies {
     // Progress
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     // Joda-time
-    implementation 'net.danlew:android.joda:2.9.4.1'
+    implementation 'net.danlew:android.joda:2.12.5'
     // Android SVG
     implementation 'com.caverock:androidsvg:1.2.1'
     // MPAndroidChart

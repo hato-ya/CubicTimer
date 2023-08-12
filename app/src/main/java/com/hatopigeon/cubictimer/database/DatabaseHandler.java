@@ -392,10 +392,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public int updateSolve(Solve solve) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        // Cutting off last digit to fix rounding errors
+        int time = solve.getTime();
+        time = time - (time % 10);
+
         ContentValues values = new ContentValues();
         values.put(KEY_TYPE, solve.getPuzzle());
         values.put(KEY_SUBTYPE, solve.getSubtype());
-        values.put(KEY_TIME, solve.getTime());
+        values.put(KEY_TIME, time);
         values.put(KEY_DATE, solve.getDate());
         values.put(KEY_SCRAMBLE, solve.getScramble());
         values.put(KEY_PENALTY, solve.getPenalty());

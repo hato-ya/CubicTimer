@@ -5,11 +5,11 @@ android {
         config {
         }
     }
-    compileSdkVersion 29
     defaultConfig {
         applicationId "com.hatopigeon.cubictimer"
         minSdkVersion 19
-        targetSdkVersion 31
+        compileSdk 33
+        targetSdkVersion 33
         versionCode 54
         versionName "1.2.0"
         vectorDrawables.useSupportLibrary = true

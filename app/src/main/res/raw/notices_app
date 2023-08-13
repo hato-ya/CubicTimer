@@ -60,9 +60,9 @@
         <copyright>Copyright 2013 Philip Schiffer - Apache Software License 2.0</copyright>
     </notice>
     <notice>
-        <name>TNoodle</name>
-        <url>https://github.com/cubing/tnoodle</url>
-        <copyright>Copyright 2016 Jeremy Fleischman - GNU General Public License 3.0</copyright>
+        <name>TNoodle-LIB</name>
+        <url>https://github.com/thewca/tnoodle-lib</url>
+        <copyright>Copyright 2022 Gregor Billing - GNU General Public License 3.0</copyright>
     </notice>
     <notice>
         <name>PlusTimer</name>

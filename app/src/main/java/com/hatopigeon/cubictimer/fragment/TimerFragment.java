@@ -262,6 +262,25 @@ public class TimerFragment extends BaseFragment
     private String previousTimerString = "000000";
     private boolean isSerialConnected = false;
 
+    // Smart Timer support
+    public static final int REQUEST_BLE_PERMISSION = 9801;
+    private BleClientManager bleClientManager;
+    private MaterialDialog dialogBleScan;
+    private ArrayList<BluetoothDevice> bleDevices;
+    private long bleScanPeriod;
+
+    // definitions for GAN Smart Timer / GAN Halo Timer
+    private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+    private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
+
+    private static final int GANTIMER_STATE_IDLE = 5;
+    private static final int GANTIMER_STATE_HANDS_ON = 6;
+    private static final int GANTIMER_STATE_HANDS_OFF = 2;
+    private static final int GANTIMER_STATE_GET_SET = 1;
+    private static final int GANTIMER_STATE_RUNNIG = 3;
+    private static final int GANTIMER_STATE_STOPPED = 4;
+    private static final int GANTIMER_STATE_FINISHED = 7;
+
     @BindView(R.id.sessionDetailTextAverage)
     TextView detailTextAvg;
 
@@ -2242,24 +2261,6 @@ public class TimerFragment extends BaseFragment
         });
     }
 
-    public static final int REQUEST_BLE_PERMISSION = 9801;
-    private BleClientManager bleClientManager;
-    private MaterialDialog dialogBleScan;
-    private ArrayList<BluetoothDevice> bleDevices;
-    private long bleScanPeriod;
-
-    // definitions for GAN Smart Timer / GAN Halo Timer
-    private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
-    private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
-
-    private static final int GANTIMER_STATE_IDLE = 5;
-    private static final int GANTIMER_STATE_HANDS_ON = 6;
-    private static final int GANTIMER_STATE_HANDS_OFF = 2;
-    private static final int GANTIMER_STATE_GET_SET = 1;
-    private static final int GANTIMER_STATE_RUNNIG = 3;
-    private static final int GANTIMER_STATE_STOPPED = 4;
-    private static final int GANTIMER_STATE_FINISHED = 7;
-
     private void startBleScan() {
         if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Log.d(TAG, "BLE Scan : " + "No support");
@@ -2381,9 +2382,9 @@ public class TimerFragment extends BaseFragment
             ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
             for (ScanResult result : results) {
                 devices.add(result.getDevice());
-                Log.d(TAG, "BLE Scan : Name = " + result.getDevice().getName());
-                Log.d(TAG, "BLE Scan : Name = " + result.getScanRecord().getDeviceName());
-                Log.d(TAG, "BLE Scan : Addr = " + result.getDevice().getAddress());
+                //Log.d(TAG, "BLE Scan : Name = " + result.getDevice().getName());
+                //Log.d(TAG, "BLE Scan : Name = " + result.getScanRecord().getDeviceName());
+                //Log.d(TAG, "BLE Scan : Addr = " + result.getDevice().getAddress());
             }
             Collections.sort(devices, new Comparator<BluetoothDevice>() {
                 @SuppressLint("MissingPermission")
@@ -2530,7 +2531,6 @@ public class TimerFragment extends BaseFragment
         // Here you may add some high level methods for your device:
     }
 
-
     private void updateGanTimer(int state, String str) {
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
                 && PuzzleUtils.isInspectionEnabled(currentPuzzle);
@@ -2592,14 +2592,14 @@ public class TimerFragment extends BaseFragment
             }
         } else if (isReset) {
             if (isRunning && isExternalTimer) { // => "isRunning == true"
-                Log.d(TAG, "UART reset detected : cancel chronometer");
+                Log.d(TAG, "GAN Timer reset detected : cancel chronometer");
                 cancelChronometer();
             } else if (!isRunning && inspectionEnabled && !countingDown && inspectionByResetEnabled) {
-                Log.d(TAG, "UART reset detected : start inspection");
+                Log.d(TAG, "GAN Timer reset detected : start inspection");
                 hideToolbar();
                 startInspectionCountdown(inspectionTime);
             } else {
-                Log.d(TAG, "UART reset detected : (isRunning, isExternalTimer, inspectionEnabled, countingDown, inspectionByResetEnabled) = ("
+                Log.d(TAG, "GAN Timer reset detected : (isRunning, isExternalTimer, inspectionEnabled, countingDown, inspectionByResetEnabled) = ("
                         + isRunning + ", " + isExternalTimer + ", " + inspectionEnabled + ", "
                         + countingDown + ", " + inspectionByResetEnabled + ")");
             }

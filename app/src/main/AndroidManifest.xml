@@ -5,6 +5,26 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- permission for BLE -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <uses-feature android:name="android.hardware.bluetooth"
+        android:required="false"
+        tools:node="replace" />
+    <uses-feature android:name="android.hardware.bluetooth_le"
+        android:required="false"
+        tools:node="replace" />
+
     <application
         android:name="com.hatopigeon.cubictimer.CubicTimer"
         android:allowBackup="true"

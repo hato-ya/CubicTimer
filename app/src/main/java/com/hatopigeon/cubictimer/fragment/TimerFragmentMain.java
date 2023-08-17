@@ -64,6 +64,9 @@ import butterknife.Unbinder;
 
 import static com.hatopigeon.cubictimer.fragment.TimerFragment.TIMER_MODE_TIMER;
 import static com.hatopigeon.cubictimer.fragment.TimerFragment.TIMER_MODE_TRAINER;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_CATEGORY;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_THEME;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_DELETE_SELECTED_TIMES;
@@ -134,6 +137,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
     @BindView(R.id.puzzleSpinner)View            puzzleSpinnerLayout;
 
     @BindView(R.id.nav_button_settings) View      navButtonSettings;
+    @BindView(R.id.nav_button_bluetooth) ImageView navButtonBluetooth;
     @BindView(R.id.nav_button_category) View      navButtonCategory;
     @BindView(R.id.nav_button_history) ImageView navButtonHistory;
 
@@ -156,6 +160,8 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
 
     int currentPage = TIMER_PAGE;
     private boolean pagerEnabled;
+    private boolean smartTimerEnabled;
+
 
     private int selectCount = 0;
 
@@ -180,6 +186,9 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     break;
                 case R.id.nav_button_settings:
                     getMainActivity().openDrawer();
+                    break;
+                case R.id.nav_button_bluetooth:
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECT);
                     break;
             }
         }
@@ -311,10 +320,20 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     viewPager.setCurrentItem(currentPage);
                     updatePuzzleSpinnerHeader();
                     handleStatisticsLoader();
+                    updateBluetoothButton();
 
                     if (currentTimerMode.equals(TIMER_MODE_TRAINER))
                         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
                     break;
+
+                case ACTION_BLUETOOTH_CONNECTED:
+                    navButtonBluetooth.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+                    break;
+
+                case ACTION_BLUETOOTH_DISCONNECTED:
+                    navButtonBluetooth.setImageResource(R.drawable.ic_outline_bluetooth_24px);
+                    break;
+
             }
         }
     };
@@ -420,6 +439,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         navButtonCategory.setOnClickListener(clickListener);
         navButtonHistory.setOnClickListener(clickListener);
         navButtonSettings.setOnClickListener(clickListener);
+        navButtonBluetooth.setOnClickListener(clickListener);
 
         if (savedInstanceState == null) {
             // Remember last used puzzle
@@ -431,6 +451,11 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                 getString(R.string.pk_tab_swiping_enabled), true);
 
         viewPager.setPagingEnabled(pagerEnabled);
+
+        smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
+        if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            navButtonBluetooth.setVisibility(View.GONE);
+        }
 
         // Menu bar background
         if (Prefs.getBoolean(R.string.pk_menu_background, false)) {
@@ -613,6 +638,16 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                             })
                             .start();
                 }
+
+                if (navButtonBluetooth != null && smartTimerEnabled
+                        && !currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                    navButtonBluetooth.setVisibility(View.VISIBLE);
+                    navButtonBluetooth.animate()
+                            .withStartAction(() -> navButtonBluetooth.setEnabled(true))
+                            .alpha(1)
+                            .setDuration(200)
+                            .start();
+                }
                 break;
 
             case LIST_PAGE:
@@ -623,6 +658,18 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                             .withStartAction(() -> navButtonHistory.setEnabled(true))
                             .alpha(1)
                             .setDuration(200)
+                            .start();
+                }
+                if (navButtonBluetooth != null) {
+                    navButtonBluetooth.animate()
+                            .withStartAction(() -> navButtonBluetooth.setEnabled(false))
+                            .alpha(0)
+                            .setDuration(200)
+                            .withEndAction(() -> {
+                                // navButtonBluetooth may already be destroyed by the time we get
+                                // to the end action, so we have to check if it still exists
+                                if (navButtonBluetooth != null) navButtonBluetooth.setVisibility(View.GONE);
+                            })
                             .start();
                 }
                 break;
@@ -665,7 +712,31 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         });
 
         updatePuzzleSpinnerHeader();
+        updateBluetoothButton();
+    }
 
+    private void updateBluetoothButton() {
+        if (currentPage == TIMER_PAGE) {
+            if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                navButtonBluetooth.animate()
+                        .withStartAction(() -> navButtonBluetooth.setEnabled(false))
+                        .alpha(0)
+                        .setDuration(200)
+                        .withEndAction(() -> {
+                            // navButtonBluetooth may already be destroyed by the time we get
+                            // to the end action, so we have to check if it still exists
+                            if (navButtonBluetooth != null) navButtonBluetooth.setVisibility(View.GONE);
+                        })
+                        .start();
+            } else {
+                navButtonBluetooth.setVisibility(View.VISIBLE);
+                navButtonBluetooth.animate()
+                        .withStartAction(() -> navButtonBluetooth.setEnabled(true))
+                        .alpha(1)
+                        .setDuration(200)
+                        .start();
+            }
+        }
     }
 
     // A new puzzle has been selected
@@ -684,6 +755,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         //// update titles
         updatePuzzleSpinnerHeader();
         handleStatisticsLoader();
+        updateBluetoothButton();
     }
 
     protected class NavigationAdapter extends CacheFragmentStatePagerAdapter {

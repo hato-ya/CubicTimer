@@ -198,6 +198,13 @@ public final class TTIntent {
     public static final String ACTION_STATISTICS_LOADED = ACTION_PREFIX + "STATISTICS_LOADED";
 
     /**
+     * Bluetooth connection
+     */
+    public static final String ACTION_BLUETOOTH_CONNECT = ACTION_PREFIX + "BLUETOOTH_CONNECT";
+    public static final String ACTION_BLUETOOTH_CONNECTED = ACTION_PREFIX + "BLUETOOTH_CONNECTED";
+    public static final String ACTION_BLUETOOTH_DISCONNECTED = ACTION_PREFIX + "BLUETOOTH_DISCONNECTED";
+
+    /**
      * The name of an intent extra that can hold the name of the puzzle type.
      */
     public static final String EXTRA_PUZZLE_TYPE = EXTRA_PREFIX + "PUZZLE_TYPE";
@@ -264,7 +271,10 @@ public final class TTIntent {
                 ACTION_SCROLLED_PAGE,
                 ACTION_CHANGED_CATEGORY,
                 ACTION_CHANGED_THEME,
-                ACTION_TIME_ADDED_MANUALLY
+                ACTION_TIME_ADDED_MANUALLY,
+                ACTION_BLUETOOTH_CONNECT,
+                ACTION_BLUETOOTH_CONNECTED,
+                ACTION_BLUETOOTH_DISCONNECTED
         });
     }};
 

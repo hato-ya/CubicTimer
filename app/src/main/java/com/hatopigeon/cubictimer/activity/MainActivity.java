@@ -84,8 +84,10 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_SUBTYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMES_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGES;
+import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_UI_INTERACTIONS;
 import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 
 public class MainActivity extends AppCompatActivity
@@ -1054,6 +1056,33 @@ public class MainActivity extends AppCompatActivity
 
         public void runWhenIdle(Runnable runnable) {
             this.runnable = runnable;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult");
+        switch(requestCode) {
+            case TimerFragment.REQUEST_BLE_PERMISSION:
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission is granted. Continue the action or workflow
+                    // in your app.
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECT);
+                }  else {
+                    // Explain to the user that the feature is unavailable because
+                    // the feature requires a permission that the user has denied.
+                    // At the same time, respect the user's decision. Don't link to
+                    // system settings in an effort to convince the user to change
+                    // their decision.
+                    MaterialDialog dialog = ThemeUtils.roundDialog(this, new MaterialDialog.Builder(this)
+                            .title(getString(R.string.ble_permission2_title))
+                            .content(getString(R.string.ble_permission2_content))
+                            .positiveText(getString(R.string.ble_permission2_OK))
+                            .show());
+                }
+                break;
         }
     }
 }

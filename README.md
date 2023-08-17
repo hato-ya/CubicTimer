@@ -8,7 +8,16 @@ Original description of Twisty Timer is following.
 > If you would like to add a new feature or fix something, just send a pull request.  
 > Special thanks to Prisma Puzzle Timer, TNoodle and PlusTimer for being my inspirations to create this project :).
 
-# Stack timer suppot
+# Smart timer support
+## How to connect external smart timer
+Tap the Bluetooth icon and the app will scan for Bluetooth devices.
+Tap the found device name/address to connect to Smart Timer.
+
+## Supported smart timer
+- Gan Smart Timer
+- Gan Halo Timer
+
+# Stack timer support
 ## How to connect external stack timer
 Prepare RS232C to USB convert cable (IMPORTANT!! IT IS NOT AUDIO CABLE used by csTimer).
 I recommend RS232 3.5mm Audio Jack Serial Adapter Cable used for the Intel Galileo Gen1 board. But the operation is not guaranteed.
@@ -19,6 +28,8 @@ Output voltage level of G4 stack timer is lower than the specification of RS232C
 - Speed Stacks Pro Timer G4
 - Speed Stacks Pro Timer G3 (not confirmed, maybe)
 - YuXin Timer V2
+- Gan Halo Timer
+- QiYi Smart Timer (only via RS232C-USB cable)
 
 ## Supported RS232C to USB converter device
 It depends on usb-serial-for-android.
@@ -29,7 +40,7 @@ I confirmed USB-RS232 cable using FT232R.
 TBD
 
 # How to fork this project
-This project is licensed by GPL. So, you can fork this project and re-distribute/publish it as anoter application.
+This project is licensed by GPL. So, you can fork this project and re-distribute/publish it as another application.
 But I would like you to change application name, icon and ID to distinguish it from Cubic Timer.
 
 # License (GNU GPL v3)

@@ -36,6 +36,17 @@
         <item>1000</item>
     </string-array>
 
+    <string-array name="timer_gan_timer_state">
+        <item></item>
+        <item>@string/timer_gan_timer_state_get_set</item>
+        <item>@string/timer_gan_timer_state_hands_off</item>
+        <item>@string/timer_gan_timer_state_running</item>
+        <item>@string/timer_gan_timer_state_stopped</item>
+        <item>@string/timer_gan_timer_state_idle</item>
+        <item>@string/timer_gan_timer_state_hands_on</item>
+        <item>@string/timer_gan_timer_state_finished</item>
+    </string-array>
+
     <string-array name="stats_column_improvement">
         <item>@string/graph_stats_label_deviation</item>
         <item>@string/graph_stats_label_ao12_full</item>

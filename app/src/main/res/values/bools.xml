@@ -24,6 +24,8 @@
     <bool name="default_recentResultEnabled">true</bool>
     <bool name="default_stackTimerEnabled">true</bool>
     <bool name="default_serialStatusEnabled">true</bool>
+    <bool name="default_smartTimerEnabled">true</bool>
+    <bool name="default_bleStatusEnabled">true</bool>
     <bool name="default_inspectionByResetEnabled">true</bool>
 
     <bool name="default_crossHintTopEnabled">true</bool>

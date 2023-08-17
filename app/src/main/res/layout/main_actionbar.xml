@@ -124,5 +124,20 @@
             android:tint="?colorActionBarText"
             app:srcCompat="@drawable/ic_outline_settings_24px" />
 
+        <ImageView
+            android:id="@+id/nav_button_bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="4dp"
+            android:layout_toRightOf="@id/nav_button_settings"
+            android:alpha="1"
+            android:background="?selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:tint="?colorActionBarText"
+            app:srcCompat="@drawable/ic_outline_bluetooth_24px" />
+
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

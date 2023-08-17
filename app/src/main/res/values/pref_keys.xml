@@ -49,6 +49,8 @@ THESE KEYS MUST NOT BE LOCALIZED!
 
     <string translatable="false" name="pk_stack_timer_enabled">stackTimerEnabled</string>
     <string translatable="false" name="pk_show_serial_status">showSerialStatus</string>
+    <string translatable="false" name="pk_smart_timer_enabled">smartTimerEnabled</string>
+    <string translatable="false" name="pk_show_ble_status">showBleStatus</string>
     <string translatable="false" name="pk_inspection_by_reset_enabled">inspectionByResetEnabled</string>
 
     <string translatable="false" name="pk_stat_trim_size">pk_stat_trim_size</string>

@@ -1,6 +1,7 @@
 package com.hatopigeon.cubictimer.fragment;
 
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -8,9 +9,14 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -26,8 +32,10 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.os.Process;
 import android.preference.PreferenceManager;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
@@ -55,6 +63,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubicify.BuildConfig;
@@ -85,15 +94,29 @@ import com.skyfishjy.library.RippleBackground;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
+import no.nordicsemi.android.ble.BleManager;
+import no.nordicsemi.android.ble.callback.DataReceivedCallback;
+import no.nordicsemi.android.ble.data.Data;
+import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanCallback;
+import no.nordicsemi.android.support.v18.scanner.ScanFilter;
+import no.nordicsemi.android.support.v18.scanner.ScanResult;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
@@ -103,7 +126,11 @@ import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_PLUSTWO;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.TYPE_333;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_DELETE_SELECTED_TIMES;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCROLLED_PAGE;
@@ -121,8 +148,9 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 import static com.hatopigeon.cubictimer.utils.TTIntent.registerReceiver;
 import static com.hatopigeon.cubictimer.utils.TTIntent.unregisterReceiver;
 
-public class                                                                                                                                                                               TimerFragment extends BaseFragment
-        implements OnBackPressedInFragmentListener, StatisticsCache.StatisticsObserver, SerialInputOutputManager.Listener {
+public class TimerFragment extends BaseFragment
+        implements OnBackPressedInFragmentListener, StatisticsCache.StatisticsObserver
+        , SerialInputOutputManager.Listener {
 
 
     // Specifies the timer mode
@@ -141,7 +169,7 @@ public class                                                                    
      */
     private static final String TAG = TimerFragment.class.getSimpleName();
 
-    private static final String PUZZLE         = "puzzle";
+    private static final String PUZZLE = "puzzle";
     private static final String PUZZLE_SUBTYPE = "puzzle_type";
     private static final String TRAINER_SUBSET = "trainer_subset";
     private static final String TIMER_MODE = "timer_mode";
@@ -170,7 +198,7 @@ public class                                                                    
      */
     private String realScramble = null;
 
-    private Solve  currentSolve    = null;
+    private Solve currentSolve = null;
 
     CountDownTimer countdown;
     boolean countingDown = false;
@@ -234,43 +262,91 @@ public class                                                                    
     private String previousTimerString = "000000";
     private boolean isSerialConnected = false;
 
-    @BindView(R.id.sessionDetailTextAverage) TextView detailTextAvg;
+    // Smart Timer support
+    public static final int REQUEST_BLE_PERMISSION = 9801;
+    private BleClientManager bleClientManager;
+    private MaterialDialog dialogBleScan;
+    private ArrayList<BluetoothDevice> bleDevices;
+    private long bleScanPeriod;
 
-    @BindView(R.id.sessionDetailTextOther) TextView detailTextOther;
+    // definitions for GAN Smart Timer / GAN Halo Timer
+    private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+    private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
-    @BindView(R.id.detail_average_record_message) View detailAverageRecordMesssage;
+    private static final int GANTIMER_STATE_IDLE = 5;
+    private static final int GANTIMER_STATE_HANDS_ON = 6;
+    private static final int GANTIMER_STATE_HANDS_OFF = 2;
+    private static final int GANTIMER_STATE_GET_SET = 1;
+    private static final int GANTIMER_STATE_RUNNIG = 3;
+    private static final int GANTIMER_STATE_STOPPED = 4;
+    private static final int GANTIMER_STATE_FINISHED = 7;
 
-    @BindView(R.id.sessionRecentResultText) TextView recentResultText;
+    @BindView(R.id.sessionDetailTextAverage)
+    TextView detailTextAvg;
 
-    @BindView(R.id.chronometer)      ChronometerMilli    chronometer;
-    @BindView(R.id.scramble_box)     CardView                scrambleBox;
+    @BindView(R.id.sessionDetailTextOther)
+    TextView detailTextOther;
+
+    @BindView(R.id.detail_average_record_message)
+    View detailAverageRecordMesssage;
+
+    @BindView(R.id.sessionRecentResultText)
+    TextView recentResultText;
+
+    @BindView(R.id.chronometer)
+    ChronometerMilli chronometer;
+    @BindView(R.id.scramble_box)
+    CardView scrambleBox;
     @BindView(R.id.scramble_text)
-                                     AppCompatTextView   scrambleText;
-    @BindView(R.id.scramble_img)     ImageView           scrambleImg;
-    @BindView(R.id.expanded_image)   ImageView           expandedImageView;
-    @BindView(R.id.inspection_text)  TextView            inspectionText;
-    @BindView(R.id.progressSpinner)  MaterialProgressBar progressSpinner;
-    @BindView(R.id.scramble_progress)MaterialProgressBar scrambleProgress;
+    AppCompatTextView scrambleText;
+    @BindView(R.id.scramble_img)
+    ImageView scrambleImg;
+    @BindView(R.id.expanded_image)
+    ImageView expandedImageView;
+    @BindView(R.id.inspection_text)
+    TextView inspectionText;
+    @BindView(R.id.progressSpinner)
+    MaterialProgressBar progressSpinner;
+    @BindView(R.id.scramble_progress)
+    MaterialProgressBar scrambleProgress;
 
-    @BindView(R.id.scramble_button_hint)  AppCompatImageView        scrambleButtonHint;
-    @BindView(R.id.scramble_button_reset) AppCompatImageView        scrambleButtonReset;
-    @BindView(R.id.scramble_button_edit)  AppCompatImageView        scrambleButtonEdit;
-    @BindView(R.id.scramble_button_manual_entry) AppCompatImageView scrambleButtonManualEntry;
+    @BindView(R.id.scramble_button_hint)
+    AppCompatImageView scrambleButtonHint;
+    @BindView(R.id.scramble_button_reset)
+    AppCompatImageView scrambleButtonReset;
+    @BindView(R.id.scramble_button_edit)
+    AppCompatImageView scrambleButtonEdit;
+    @BindView(R.id.scramble_button_manual_entry)
+    AppCompatImageView scrambleButtonManualEntry;
 
-    @BindView(R.id.qa_remove)        ImageView        deleteButton;
-    @BindView(R.id.qa_dnf)           ImageView        dnfButton;
-    @BindView(R.id.qa_plustwo)       ImageView        plusTwoButton;
-    @BindView(R.id.qa_comment)       ImageView        commentButton;
-    @BindView(R.id.qa_undo)          View        undoButton;
-    @BindView(R.id.qa_layout) LinearLayout     quickActionButtons;
-    @BindView(R.id.rippleBackground)     RippleBackground rippleBackground;
+    @BindView(R.id.qa_remove)
+    ImageView deleteButton;
+    @BindView(R.id.qa_dnf)
+    ImageView dnfButton;
+    @BindView(R.id.qa_plustwo)
+    ImageView plusTwoButton;
+    @BindView(R.id.qa_comment)
+    ImageView commentButton;
+    @BindView(R.id.qa_undo)
+    View undoButton;
+    @BindView(R.id.qa_layout)
+    LinearLayout quickActionButtons;
+    @BindView(R.id.rippleBackground)
+    RippleBackground rippleBackground;
 
-    @BindView(R.id.root)                  RelativeLayout       rootLayout;
-    @BindView(R.id.startTimerLayout)      FrameLayout          startTimerLayout;
+    @BindView(R.id.root)
+    RelativeLayout rootLayout;
+    @BindView(R.id.startTimerLayout)
+    FrameLayout startTimerLayout;
 
-    @BindView(R.id.congratsText) TextView congratsText;
+    @BindView(R.id.congratsText)
+    TextView congratsText;
 
-    @BindView(R.id.serial_status_message) TextView serialStatusMessage;
+    @BindView(R.id.serial_status_message)
+    TextView serialStatusMessage;
+
+    @BindView(R.id.ble_status_message)
+    TextView bleStatusMessage;
 
     private boolean buttonsEnabled;
     private boolean scrambleImgEnabled;
@@ -290,6 +366,8 @@ public class                                                                    
     private boolean averageRecordsEnabled;
     private boolean stackTimerEnabled;
     private boolean serialStatusEnabled;
+    private boolean smartTimerEnabled;
+    private boolean bleStatusEnabled;
     private boolean inspectionByResetEnabled;
 
     /**
@@ -367,15 +445,20 @@ public class                                                                    
                 case ACTION_GENERATE_SCRAMBLE:
                     generateNewScramble();
                     break;
+
+                case ACTION_BLUETOOTH_CONNECT:
+                    Log.d(TAG, "BLE : clicked");
+                    startBleScan();
+                    break;
             }
         }
     };
 
-    private Runnable       holdRunnable;
-    private Handler        holdHandler;
+    private Runnable holdRunnable;
+    private Handler holdHandler;
     private CountDownTimer plusTwoCountdown;
 
-    private RubiksCubeOptimalCross  optimalCross;
+    private RubiksCubeOptimalCross optimalCross;
     private RubiksCubeOptimalXCross optimalXCross;
     private BottomSheetDetailDialog scrambleDialog;
     private FragmentManager mFragManager;
@@ -649,6 +732,8 @@ public class                                                                    
 
         stackTimerEnabled = Prefs.getBoolean(R.string.pk_stack_timer_enabled, true);
         serialStatusEnabled = Prefs.getBoolean(R.string.pk_show_serial_status, true);
+        smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
+        bleStatusEnabled = Prefs.getBoolean(R.string.pk_show_ble_status, true);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -668,7 +753,7 @@ public class                                                                    
                 inspectionSoundAlertEnabled = true;
             }
         }
-        
+
         if (!scrambleEnabled) {
             // CongratsText is by default aligned to below the scramble box. If it's missing, we have
             // to add an extra margin to account for the title header
@@ -707,18 +792,29 @@ public class                                                                    
             isLocked = false;
         }
 
-        if (! scrambleImgEnabled)
+        if (!scrambleImgEnabled)
             scrambleImg.setVisibility(View.GONE);
-        if (! sessionStatsEnabled) {
+        if (!sessionStatsEnabled) {
             detailTextAvg.setVisibility(View.INVISIBLE);
             detailTextOther.setVisibility(View.INVISIBLE);
         }
-        if (! recentResultsEnabled) {
+        if (!recentResultsEnabled) {
             recentResultText.setVisibility(View.INVISIBLE);
         }
 
         if (!serialStatusEnabled) {
             serialStatusMessage.setVisibility(View.GONE);
+        }
+
+        if (!bleStatusEnabled) {
+            bleStatusMessage.setVisibility(View.GONE);
+        }
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_no_support_message));
+        } else if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disabled_message));
+        } else {
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
         }
 
         // Preferences //
@@ -802,7 +898,7 @@ public class                                                                    
                 isReady = true;
                 // Indicate to the user that the hold was long enough.
                 chronometer.setHighlighted(true);
-                if (! inspectionEnabled) {
+                if (!inspectionEnabled) {
                     // If inspection is enabled, the toolbar is already hidden.
                     hideToolbar();
                 }
@@ -858,7 +954,7 @@ public class                                                                    
                             }
                             return false;
                     }
-                } else if (! isRunning) { // Not running and not counting down.
+                } else if (!isRunning) { // Not running and not counting down.
                     switch (motionEvent.getAction()) {
                         case MotionEvent.ACTION_DOWN:
 
@@ -954,6 +1050,7 @@ public class                                                                    
             }
         }
         mainLooper.post(this::connect);
+        bleClientManager = new BleClientManager(mContext);
     }
 
     @Override
@@ -961,6 +1058,9 @@ public class                                                                    
         if (DEBUG_ME) Log.d(TAG, "onPause()");
         super.onPause();
         disconnect();
+        disconnectBle();
+        if (bleClientManager != null)
+            bleClientManager = null;
     }
 
     /**
@@ -1117,7 +1217,7 @@ public class                                                                    
         if (solve.getPenalty() == PENALTY_DNF || newTime <= 0
                 || mRecentStatistics == null
                 || mRecentStatistics.getAllTimeNumSolves()
-                   - mRecentStatistics.getAllTimeNumDNFSolves() < 4) {
+                - mRecentStatistics.getAllTimeNumDNFSolves() < 4) {
             // Not a valid time, or there are no previous statistics, or not enough previous times
             // to make reporting meaningful (or non-annoying), so cannot check for a new PB.
             return;
@@ -1128,7 +1228,7 @@ public class                                                                    
 
             // If "previousBestTime" is a DNF or UNKNOWN, it will be less than zero, so the new
             // solve time cannot better (i.e., lower).
-            if (newTime < previousBestTime ) {
+            if (newTime < previousBestTime) {
                 rippleBackground.startRippleAnimation();
                 congratsText.setText(getString(R.string.personal_best_message,
                         PuzzleUtils.convertTimeToString(previousBestTime - newTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
@@ -1151,8 +1251,8 @@ public class                                                                    
                         PuzzleUtils.convertTimeToString(newTime - previousWorstTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
 
                 congratsText.setCompoundDrawablesWithIntrinsicBounds(
-                            poopDrawable, null,
-                            poopDrawable, null);
+                        poopDrawable, null,
+                        poopDrawable, null);
 
                 congratsText.setVisibility(View.VISIBLE);
             }
@@ -1257,7 +1357,7 @@ public class                                                                    
                 }
             }
             // remove last "<br>"
-            stringDetailAvg.setLength(stringDetailAvg.length()-4);
+            stringDetailAvg.setLength(stringDetailAvg.length() - 4);
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 detailTextAvg.setText(Html.fromHtml(stringDetailAvg.toString(), Html.FROM_HTML_MODE_LEGACY));
@@ -1269,7 +1369,7 @@ public class                                                                    
         if (recentResultsEnabled) {
             // show recent result
             StringBuilder stringRecentResult = new StringBuilder();
-            stringRecentResult.append(getString(R.string.timer_recent_results)+"\n");
+            stringRecentResult.append(getString(R.string.timer_recent_results) + "\n");
             long recentTimes[] = stats.getAverageOf(5, true).getRecentTimes();
             for (int i = 0; i < recentTimes.length; i++) {
                 stringRecentResult.append(convertTimeToString(recentTimes[i], FORMAT_SINGLE, currentPuzzle) + "\n");
@@ -1319,7 +1419,7 @@ public class                                                                    
                 showImage();
             }
         }
-        if (buttonsEnabled && ! isCanceled) {
+        if (buttonsEnabled && !isCanceled) {
             quickActionButtons.setEnabled(true);
             quickActionButtons.setVisibility(View.VISIBLE);
             quickActionButtons.animate()
@@ -1525,10 +1625,10 @@ public class                                                                    
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         } else {
-            Display display         = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-            int     rotation        = display.getRotation();
-            int     tempOrientation = activity.getResources().getConfiguration().orientation;
-            int     orientation     = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+            Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+            int rotation = display.getRotation();
+            int tempOrientation = activity.getResources().getConfiguration().orientation;
+            int orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 
             switch (tempOrientation) {
                 case Configuration.ORIENTATION_LANDSCAPE:
@@ -1556,10 +1656,10 @@ public class                                                                    
             if (optimalCrossAsync != null)
                 optimalCrossAsync.cancel(true);
             optimalCrossAsync = new GetOptimalCross(realScramble,
-                                                    optimalCross, optimalXCross,
-                                                    showHintsXCrossEnabled,
-                                                    isRunning,
-                                                    scrambleDialog);
+                    optimalCross, optimalXCross,
+                    showHintsXCrossEnabled,
+                    isRunning,
+                    scrambleDialog);
             optimalCrossAsync.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
@@ -1606,7 +1706,7 @@ public class                                                                    
         @Override
         protected void onPreExecute() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
-            Log.d("OptimalCross onPre:",System.currentTimeMillis()+"");
+            Log.d("OptimalCross onPre:", System.currentTimeMillis() + "");
             super.onPreExecute();
         }
 
@@ -1626,7 +1726,7 @@ public class                                                                    
             super.onPostExecute(text);
             if (!isRunning) {
                 // Set the hint text
-                if(scrambleDialog != null) {
+                if (scrambleDialog != null) {
                     scrambleDialog.setHintText(text);
                     scrambleDialog.setHintVisibility(View.VISIBLE);
                 }
@@ -1655,7 +1755,7 @@ public class                                                                    
             scrambleProgress.setVisibility(View.VISIBLE);
 
             hideImage();
-            if (! isRunning)
+            if (!isRunning)
                 progressSpinner.setVisibility(View.VISIBLE);
             isLocked = true;
         }
@@ -1691,36 +1791,36 @@ public class                                                                    
         realScramble = scramble;
         scrambleText.setText(scramble);
         scrambleText.post(() -> chronometer.post(() -> {
-                    if (scrambleText != null) {
-                        // Calculate surrounding layouts to make sure the scramble text doesn't intersect any element
-                        // If it does, show only a "tap here to see more" hint instead of the scramble
-                            Rect scrambleRect = new Rect(scrambleBox.getLeft(), scrambleBox.getTop(), scrambleBox.getRight(), scrambleBox.getBottom());
-                            // The top line calculation is a bit tricky
-                            // We first get the top of the bounding box (which isn't necessarily
-                            // the top of the actual, visible text. To that, we add the baseline,
-                        // which is the measure from the top of the box to the actual baseline
-                        // of the text. Then, we add the text size, which gets us to the visible
-                        // top.
-                            Rect chronometerRect = new Rect(chronometer.getLeft(),
-                                                            (int) (chronometer.getTop()
-                                                                    + chronometer.getBaseline()
-                                                                    - chronometer.getTextSize()
-                                                                    + ThemeUtils.dpToPix(mContext, 28)),
-                                                            chronometer.getRight(),
-                                                            chronometer.getBottom());
-                            Rect congratsRect = new Rect(congratsText.getLeft(), congratsText.getTop(), congratsText.getRight(), congratsText.getBottom());
+            if (scrambleText != null) {
+                // Calculate surrounding layouts to make sure the scramble text doesn't intersect any element
+                // If it does, show only a "tap here to see more" hint instead of the scramble
+                Rect scrambleRect = new Rect(scrambleBox.getLeft(), scrambleBox.getTop(), scrambleBox.getRight(), scrambleBox.getBottom());
+                // The top line calculation is a bit tricky
+                // We first get the top of the bounding box (which isn't necessarily
+                // the top of the actual, visible text. To that, we add the baseline,
+                // which is the measure from the top of the box to the actual baseline
+                // of the text. Then, we add the text size, which gets us to the visible
+                // top.
+                Rect chronometerRect = new Rect(chronometer.getLeft(),
+                        (int) (chronometer.getTop()
+                                + chronometer.getBaseline()
+                                - chronometer.getTextSize()
+                                + ThemeUtils.dpToPix(mContext, 28)),
+                        chronometer.getRight(),
+                        chronometer.getBottom());
+                Rect congratsRect = new Rect(congratsText.getLeft(), congratsText.getTop(), congratsText.getRight(), congratsText.getBottom());
 
-                            if ((Rect.intersects(scrambleRect, chronometerRect)) ||
-                                (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect))) {
-                                scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
-                                scrambleBox.setClickable(true);
-                                scrambleBox.setOnClickListener(scrambleDetailClickListener);
-                            } else {
-                                scrambleBox.setOnClickListener(null);
-                                scrambleBox.setClickable(false);
-                                scrambleBox.setFocusable(false);
-                            }
-                            scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
+                if ((Rect.intersects(scrambleRect, chronometerRect)) ||
+                        (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect))) {
+                    scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
+                    scrambleBox.setClickable(true);
+                    scrambleBox.setOnClickListener(scrambleDetailClickListener);
+                } else {
+                    scrambleBox.setOnClickListener(null);
+                    scrambleBox.setClickable(false);
+                    scrambleBox.setFocusable(false);
+                }
+                scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
             }
         }));
 
@@ -1774,7 +1874,7 @@ public class                                                                    
         @Override
         protected void onPostExecute(Drawable drawable) {
             super.onPostExecute(drawable);
-            if (! isRunning) {
+            if (!isRunning) {
                 if (scrambleImg != null)
                     showImage();
             }
@@ -1807,9 +1907,9 @@ public class                                                                    
         // properties (X, Y).
         thumbView.getGlobalVisibleRect(startBounds);
         rootLayout.getGlobalVisibleRect(finalBounds, globalOffset);
-        startBounds.offset(- globalOffset.x, - globalOffset.y);
+        startBounds.offset(-globalOffset.x, -globalOffset.y);
         globalOffset.y -= scrambleBox.getHeight();
-        finalBounds.offset(- globalOffset.x, - globalOffset.y);
+        finalBounds.offset(-globalOffset.x, -globalOffset.y);
 
         // Adjust the start bounds to be the same aspect ratio as the final
         // bounds using the "center crop" technique. This prevents undesirable
@@ -1855,7 +1955,7 @@ public class                                                                    
                         startBounds.top, finalBounds.top))
                 .with(ObjectAnimator.ofFloat(expandedImageView, View.SCALE_X,
                         startScale, 1f)).with(ObjectAnimator.ofFloat(expandedImageView,
-                View.SCALE_Y, startScale, 1f));
+                        View.SCALE_Y, startScale, 1f));
         set.setDuration(mAnimationDuration);
         set.setInterpolator(new DecelerateInterpolator());
         set.addListener(new AnimatorListenerAdapter() {
@@ -1885,7 +1985,7 @@ public class                                                                    
             // back to their original values.
             AnimatorSet set1 = new AnimatorSet();
             set1.play(ObjectAnimator
-                    .ofFloat(expandedImageView, View.X, startBounds.left))
+                            .ofFloat(expandedImageView, View.X, startBounds.left))
                     .with(ObjectAnimator
                             .ofFloat(expandedImageView,
                                     View.Y, startBounds.top))
@@ -1927,6 +2027,13 @@ public class                                                                    
             return;
         }
 
+        // In general, TimerFragment goes onPause->onResume when USB connected and bluetooth is disconnected.
+        // So, following condition is not taken.
+        if (bleClientManager != null && bleClientManager.isConnected()) {
+            Log.d(TAG, "UART connect : BLE connected");
+            return;
+        }
+
         serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                 + getString(R.string.timer_serial_status_disconnect_message));
         // Find all available drivers from attached devices.
@@ -1948,7 +2055,7 @@ public class                                                                    
             return;
         }
         UsbDeviceConnection usbConnection = usbManager.openDevice(driver.getDevice());
-        if(usbConnection == null && !usbManager.hasPermission(driver.getDevice())) {
+        if (usbConnection == null && !usbManager.hasPermission(driver.getDevice())) {
             Log.d(TAG, "UART connect : no permission");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disconnect_no_permission_message));
@@ -1980,7 +2087,7 @@ public class                                                                    
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_connect_message));
             isSerialConnected = true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             Log.d(TAG, "UART connect : open exception");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disconnect_open_exception_message));
@@ -1999,7 +2106,7 @@ public class                                                                    
         serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                 + getString(R.string.timer_serial_status_disconnect_message));
 
-        if(usbIoManager != null) {
+        if (usbIoManager != null) {
             usbIoManager.setListener(null);
             usbIoManager.stop();
         }
@@ -2031,7 +2138,7 @@ public class                                                                    
         serialStatusMessage.setText(str);
 
         // for state detection
-        String strTime = str.substring(1,7);
+        String strTime = str.substring(1, 7);
 
         // detect timer start
         boolean isStart = (previousTimerString.equals("000000") && !strTime.equals("000000"));
@@ -2059,7 +2166,7 @@ public class                                                                    
                 stopInspectionCountdown();
                 isExternalTimer = true;
                 startChronometer(); // Tool-bar is already hidden and remains so.
-            } else if (! isRunning) { // Not running and not counting down.
+            } else if (!isRunning) { // Not running and not counting down.
                 if (holdingDNF) {
                     // Checks if the user was holding the screen when the inspection
                     // timed out and saved a DNF
@@ -2113,7 +2220,7 @@ public class                                                                    
             } else if (data[i] == 0x0A) {
                 if (stackTimerString.length() > 8) {
                     String org = stackTimerString.toString();
-                    stackTimerString.delete(0, stackTimerString.length()-8);
+                    stackTimerString.delete(0, stackTimerString.length() - 8);
                     Log.d(TAG, "UART str       : " + org + " -> " + stackTimerString.toString());
                 }
 
@@ -2127,7 +2234,7 @@ public class                                                                    
                     for (int j = 1; j < 7; j++) {
                         check_sum += bytes[j] - '0';
                     }
-                    if (bytes[7] == check_sum && valid_status.contains(str.substring(0,1))) {
+                    if (bytes[7] == check_sum && valid_status.contains(str.substring(0, 1))) {
                         mainLooper.post(() -> {
                             updateStackTimer(str);
                         });
@@ -2152,5 +2259,355 @@ public class                                                                    
         mainLooper.post(() -> {
             disconnect();
         });
+    }
+
+    private void startBleScan() {
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Log.d(TAG, "BLE Scan : " + "No support");
+            return;
+        }
+
+        if (isSerialConnected) {
+            Log.d(TAG, "BLE Scan : " + "serial connected");
+            return;
+        }
+
+        if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            Log.d(TAG, "BLE Scan : " + "disabled");
+            return;
+        }
+
+        if (bleClientManager != null && bleClientManager.isConnected()) {
+            disconnectBle();
+            return;
+        }
+
+        ArrayList<String> requestPermissions = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // BLUETOOTH_CONNECT and BLUETOOTH_SCAN only for upper API31(S)
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "BLE Scan : " + "No BLUETOOTH_CONNECT");
+                requestPermissions.add(Manifest.permission.BLUETOOTH_CONNECT);
+            }
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "BLE Scan : " + "No BLUETOOTH_SCAN");
+                requestPermissions.add(Manifest.permission.BLUETOOTH_SCAN);
+            }
+        } else {
+            // ACCESS_FINE_LOCATION only for lower API30(R)
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "BLE Scan : " + "No ACCESS_FINE_LOCATION");
+                MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
+                        .title(getString(R.string.ble_permission_title))
+                        .content(getString(R.string.ble_permission_content))
+                        .positiveText(getString(R.string.ble_permission_next))
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                ActivityCompat.requestPermissions(getActivity(),
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        REQUEST_BLE_PERMISSION);
+                            }
+                        })
+                        .show());
+                return;
+            }
+        }
+
+        // request permissions. onRequestPermissionsResult is at MainActivity
+        if (!requestPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(getActivity(),
+                    requestPermissions.toArray(new String[0]), REQUEST_BLE_PERMISSION);
+            return;
+        }
+
+        // First, start scanning with short period
+        startBleScanInternal(500);
+
+        dialogBleScan = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
+                .title(getString(R.string.ble_scan_title))
+                .content(getString(R.string.ble_scan_content))
+                .items(new ArrayList<CharSequence>())
+                .itemsCallback(new MaterialDialog.ListCallback() {
+                    @Override
+                    public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                        scanner.stopScan(mLeScanCallback);
+                        Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+                        bleClientManager.connect(bleDevices.get(which)).enqueue();
+                    }
+                })
+                .negativeText(getString(R.string.ble_scan_cancel))
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                        scanner.stopScan(mLeScanCallback);
+                    }
+                })
+                .show());
+    }
+
+    private void startBleScanInternal(long reportDelayMillis) {
+        bleScanPeriod = reportDelayMillis;
+
+        // scan bluetooth devices
+        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+        ScanSettings settings = new ScanSettings.Builder()
+                .setLegacy(false)
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(reportDelayMillis)
+                .setUseHardwareBatchingIfSupported(false)   // The use of hardware batch sometimes results in larger delays
+                .build();
+        List<ScanFilter> filters = new ArrayList<>();
+        filters.add(new ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
+                .build());
+        scanner.startScan(filters, settings, mLeScanCallback);
+    }
+
+    private ScanCallback mLeScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+        }
+
+        @SuppressLint("MissingPermission")
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+            Log.d(TAG, "BLE Scan : " + "onBatchScanResults");
+
+            ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
+            for (ScanResult result : results) {
+                devices.add(result.getDevice());
+                //Log.d(TAG, "BLE Scan : Name = " + result.getDevice().getName());
+                //Log.d(TAG, "BLE Scan : Name = " + result.getScanRecord().getDeviceName());
+                //Log.d(TAG, "BLE Scan : Addr = " + result.getDevice().getAddress());
+            }
+            Collections.sort(devices, new Comparator<BluetoothDevice>() {
+                @SuppressLint("MissingPermission")
+                @Override
+                public int compare(BluetoothDevice personFirst, BluetoothDevice personSecond) {
+                    return personFirst.getAddress().compareTo(personSecond.getAddress());
+                }});
+
+            bleDevices = devices;
+
+            ArrayList<CharSequence> items = new ArrayList<CharSequence>();
+            for (BluetoothDevice device : bleDevices) {
+                if (device.getName() != null)
+                    items.add(device.getName() + " (" + device.getAddress() + ")");
+                else
+                    items.add(device.getAddress());
+            }
+            String[] array = items.toArray(new String[items.size()]);
+            dialogBleScan.setItems(array);
+
+            // Slow down scanning period after first device found
+            if (bleScanPeriod == 500 && !results.isEmpty()) {
+                BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                scanner.stopScan(mLeScanCallback);
+                startBleScanInternal(5000);
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            super.onScanFailed(errorCode);
+            Log.d(TAG, "BLE Scan : " + "onScanFailed");
+            BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+            scanner.stopScan(mLeScanCallback);
+        }
+    };
+
+    private void disconnectBle() {
+        if (bleClientManager != null && bleClientManager.isConnected()) {
+            Log.d(TAG, "BLE disconnect");
+            bleClientManager.disconnect().enqueue();
+        }
+    }
+
+    class BleClientManager extends BleManager {
+        private static final String TAG = "BleClientManager";
+
+        public BleClientManager(@NonNull final Context context) {
+            super(context);
+        }
+
+        // ==== Logging =====
+
+        @Override
+        public int getMinLogPriority() {
+            // Use to return minimal desired logging priority.
+            return Log.VERBOSE;
+        }
+
+        @Override
+        public void log(int priority, @NonNull String message) {
+            // Log from here.
+            Log.println(priority, TAG, message);
+        }
+
+        // ==== Required implementation ====
+
+        // This is a reference to a characteristic that the manager will use internally.
+        private BluetoothGattCharacteristic stateCharacteristic;
+
+        @Override
+        protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
+            // Here obtain instances of your characteristics.
+            // Return false if a required service has not been discovered.
+            BluetoothGattService timerService = gatt.getService(UUID.fromString(GANTIMER_TIMER_SERVICE_UUID));
+            if (timerService != null) {
+                stateCharacteristic = timerService.getCharacteristic(UUID.fromString(GANTIMER_STATE_CHARACTERISTIC_UUID));
+            }
+            return stateCharacteristic != null;
+        }
+
+        @Override
+        protected void initialize() {
+            // Initialize your device.
+            // This means e.g. enabling notifications, setting notification callbacks, or writing
+            // something to a Control Point characteristic.
+            // Kotlin projects should not use suspend methods here, as this method does not suspend.
+            requestMtu(517)
+                    .enqueue();
+
+            // GAN Smart/Halo Timer state characteristic notification
+            setNotificationCallback(stateCharacteristic)
+                    .with(
+                            new DataReceivedCallback() {
+                                @Override
+                                public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
+                                    final int header = data.getIntValue(Data.FORMAT_UINT8, 0);
+                                    final int length = data.getIntValue(Data.FORMAT_UINT8, 1);
+                                    final int prefix = data.getIntValue(Data.FORMAT_UINT8, 2);
+                                    final int state =  data.getIntValue(Data.FORMAT_UINT8, 3);
+                                    int min = 0;
+                                    int sec = 0;
+                                    int milli = 0;
+                                    String timerStr = "";
+
+                                    if ((state == GANTIMER_STATE_STOPPED || state == GANTIMER_STATE_IDLE)
+                                            && length == 0x08) {
+                                        min = data.getIntValue(Data.FORMAT_UINT8, 4);
+                                        sec = data.getIntValue(Data.FORMAT_UINT8, 5);
+                                        milli = data.getIntValue(Data.FORMAT_UINT16_LE, 6);
+                                        timerStr = String.format(" %01d%02d%03d", min, sec, milli);
+                                    }
+                                    if (header == 0xFE && prefix == 0x01) {
+                                        Log.d(TAG, "BLE data notify OK : " + state + ", " + min + ":" + sec + ":" + milli);
+                                        updateGanTimer(state, timerStr);
+                                    } else {
+                                        Log.d(TAG, "BLE data notify NG : " + data.toString());
+                                    }
+
+                                }
+                            }
+                    );
+            enableNotifications(stateCharacteristic).enqueue();
+
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_connect_message));
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECTED);
+        }
+
+        @Override
+        protected void onServicesInvalidated() {
+            // This method is called when the services get invalidated, i.e. when the device
+            // disconnects.
+            // References to characteristics should be nullified here.
+            stateCharacteristic = null;
+            // sometime this callback called after fragment detached, so checking bleStatusMessage
+            if (bleStatusMessage != null)
+                bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
+            Log.d(TAG, "BLE disconnected");
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_DISCONNECTED);
+        }
+
+        // ==== Public API ====
+
+        // Here you may add some high level methods for your device:
+    }
+
+    private void updateGanTimer(int state, String str) {
+        final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
+                && PuzzleUtils.isInspectionEnabled(currentPuzzle);
+        final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
+
+        // update debug string
+        String[] strState = getResources().getStringArray(R.array.timer_gan_timer_state);
+        if (state < strState.length)
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + str);
+
+        // detect timer start
+        boolean isStart = (state == GANTIMER_STATE_RUNNIG);
+
+        // detect timer stop
+        boolean isStop = (state == GANTIMER_STATE_STOPPED);
+
+        // detect reset trigger
+        boolean isReset = (state == GANTIMER_STATE_IDLE);
+
+        // detect timer ready
+        boolean isReady = (state == GANTIMER_STATE_GET_SET);
+
+        // start/stop timer
+        if (isStart) {
+            if (countingDown) { // "countingDown == true" => "inspectionEnabled == true"
+                stopInspectionCountdown();
+                isExternalTimer = true;
+                startChronometer(); // Tool-bar is already hidden and remains so.
+            } else if (!isRunning) { // Not running and not counting down.
+                if (holdingDNF) {
+                    // Checks if the user was holding the screen when the inspection
+                    // timed out and saved a DNF
+                    holdingDNF = false;
+                }
+
+                if (!inspectionEnabled) {
+                    // Inspection disabled. Hold-for-start disabled, or hold-for-start
+                    // enabled, but the hold time was long enough. In the latter case,
+                    // the tool-bar will already have been hidden. Start timing!
+                    hideToolbar();
+                    isExternalTimer = true;
+                    startChronometer();
+                }
+            }
+        } else if (isStop) {
+            if (isRunning && isExternalTimer) { // => "isRunning == true"
+                // stop timer
+                animationDone = false;
+                isExternalTimer = false;
+                chronometer.setExternalTime(str);
+                stopChronometer();
+                if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
+                    // If a user has inspection on and went past his inspection time, he has
+                    // two extra seconds do start his time, but with a +2 penalty. This penalty
+                    // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
+                    chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
+                }
+                addNewSolve();
+            }
+        } else if (isReset) {
+            if (isRunning && isExternalTimer) { // => "isRunning == true"
+                Log.d(TAG, "GAN Timer reset detected : cancel chronometer");
+                cancelChronometer();
+            } else if (!isRunning && inspectionEnabled && !countingDown && inspectionByResetEnabled) {
+                Log.d(TAG, "GAN Timer reset detected : start inspection");
+                hideToolbar();
+                startInspectionCountdown(inspectionTime);
+            } else {
+                Log.d(TAG, "GAN Timer reset detected : (isRunning, isExternalTimer, inspectionEnabled, countingDown, inspectionByResetEnabled) = ("
+                        + isRunning + ", " + isExternalTimer + ", " + inspectionEnabled + ", "
+                        + countingDown + ", " + inspectionByResetEnabled + ")");
+            }
+        } else if (isReady) {
+            if (countingDown) { // "countingDown == true" => "inspectionEnabled == true"
+                // Indicate to the user that the hold was long enough.
+                chronometer.setHighlighted(true);
+            }
+        }
     }
 }

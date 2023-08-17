@@ -173,6 +173,18 @@
     <string name="import_progress_content_successful_imports">successful imports</string>
     <string name="import_progress_title">Importing solves…</string>
 
+    <string name="ble_permission_title">Permission request for Bluetooth</string>
+    <string name="ble_permission_content">To scan Bluetooth devices under Android 11, it is necessary to grant access to fine locations.</string>
+    <string name="ble_permission_next">Next</string>
+
+    <string name="ble_permission2_title">Permission request for Bluetooth</string>
+    <string name="ble_permission2_content">To scan Bluetooth devices, this app needs some access permission. If the permission dialog is not shown, adding permission by Android Setting is necessary.</string>
+    <string name="ble_permission2_OK">OK</string>
+
+    <string name="ble_scan_title">Bluetooth devices</string>
+    <string name="ble_scan_content">Scanning...</string>
+    <string name="ble_scan_cancel">Cancel</string>
+
     <string name="inspectionEnabledTitle">Inspection</string>
 
     <string name="inspectionTimeSummary">Default duration: 15 seconds</string>
@@ -231,6 +243,9 @@
     <string name="pref_category_title_other">Other</string>
     <string name="pref_category_title_scramble">Scramble</string>
     <string name="pref_category_title_timer">Timer</string>
+    <string name="pref_category_title_stack_timer">Stack timer</string>
+    <string name="pref_category_title_smart_timer">Smart timer</string>
+    <string name="pref_category_title_stack_timer_behavior">Behavior</string>
     <string name="pref_screen_title_inspection_behavior">Inspection behavior</string>
     <string name="pref_screen_title_timer_behavior">Timer behavior</string>
     <string name="pref_screen_title_timer_appearance">Timer appearance</string>
@@ -270,6 +285,12 @@
 
     <string name="serialStatusEnabledSummary">Show serial status and stack timer strings</string>
     <string name="serialStatusEnabledTitle">Show serial status</string>
+
+    <string name="smartTimerEnabledSummary">Use external smart timer that connected by Bluetooth</string>
+    <string name="smartTimerEnabledTitle">Use smart timer</string>
+
+    <string name="bleStatusEnabledSummary">Show bluetooth status</string>
+    <string name="bleStatusEnabledTitle">Show bluetooth status</string>
 
     <string name="inspectionByResetEnabledSummary">Start inspection when the reset button is pressed</string>
     <string name="inspectionByResetEnabledTitle">Inspection start by reset</string>
@@ -382,6 +403,19 @@
     <string name="timer_serial_status_disconnect_open_failed_message">open failed</string>
     <string name="timer_serial_status_disconnect_open_exception_message">open exception</string>
     <string name="timer_serial_status_connect_message">connected</string>
+
+    <string name="timer_ble_status_message">"Bluetooth : "</string>
+    <string name="timer_ble_status_no_support_message">not supported</string>
+    <string name="timer_ble_status_disabled_message">disabled</string>
+    <string name="timer_ble_status_connect_message">connected</string>
+    <string name="timer_ble_status_disconnect_message">disconnected</string>
+    <string name="timer_gan_timer_state_get_set">GET_SET</string>
+    <string name="timer_gan_timer_state_hands_off">HANDS_OFF</string>
+    <string name="timer_gan_timer_state_running">RUNNING</string>
+    <string name="timer_gan_timer_state_stopped">STOPPED</string>
+    <string name="timer_gan_timer_state_idle">IDLE</string>
+    <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
+    <string name="timer_gan_timer_state_finished">FINISHED</string>
 
     <string name="pref_inspection_alert_type_title">Alert type</string>
     <string name="pref_inspection_alert_type_summary">Choose how the timer will alert you</string>

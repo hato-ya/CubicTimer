@@ -2364,6 +2364,9 @@ public class TimerFragment extends BaseFragment
         filters.add(new ScanFilter.Builder()
                 .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
                 .build());
+        filters.add(new ScanFilter.Builder()
+                .setManufacturerData(0x4147, new byte[]{}, new byte[]{})
+                .build());
         scanner.startScan(filters, settings, mLeScanCallback);
     }
 

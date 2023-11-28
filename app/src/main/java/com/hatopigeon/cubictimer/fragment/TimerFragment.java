@@ -2329,24 +2329,17 @@ public class TimerFragment extends BaseFragment
                 .title(getString(R.string.ble_scan_title))
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                        scanner.stopScan(mLeScanCallback);
-                        Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
-                        bleClientManager.connect(bleDevices.get(which)).enqueue();
-                    }
+                .itemsCallback((dialog, view, which, text) -> {
+                    Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+                    bleClientManager.connect(bleDevices.get(which)).enqueue();
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                        scanner.stopScan(mLeScanCallback);
-                    }
+                .onAny((dialog, which) -> {
+                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                    scanner.stopScan(mLeScanCallback);
                 })
                 .show());
+        dialogBleScan.setOnCancelListener(dialog -> BluetoothLeScannerCompat.getScanner().stopScan(mLeScanCallback));
     }
 
     private void startBleScanInternal(long reportDelayMillis) {

@@ -270,6 +270,7 @@ public class TimerFragment extends BaseFragment
     private long bleScanPeriod;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
+    private static final int GAN_MANUFACTUREID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -2360,7 +2361,7 @@ public class TimerFragment extends BaseFragment
                 .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
                 .build());
         filters.add(new ScanFilter.Builder()
-                .setManufacturerData(0x4147, new byte[]{}, new byte[]{})
+                .setManufacturerData(GAN_MANUFACTUREID, new byte[]{}, new byte[]{})
                 .build());
         scanner.startScan(filters, settings, mLeScanCallback);
     }

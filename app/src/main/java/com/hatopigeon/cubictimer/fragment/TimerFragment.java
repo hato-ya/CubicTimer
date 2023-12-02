@@ -270,6 +270,7 @@ public class TimerFragment extends BaseFragment
     private long bleScanPeriod;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
+    private static final int GAN_MANUFACTUREID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -2329,24 +2330,19 @@ public class TimerFragment extends BaseFragment
                 .title(getString(R.string.ble_scan_title))
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                        scanner.stopScan(mLeScanCallback);
-                        Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
-                        bleClientManager.connect(bleDevices.get(which)).enqueue();
-                    }
+                .itemsCallback((dialog, view, which, text) -> {
+                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                    scanner.stopScan(mLeScanCallback);
+                    Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+                    bleClientManager.connect(bleDevices.get(which)).enqueue();
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                        scanner.stopScan(mLeScanCallback);
-                    }
+                .onAny((dialog, which) -> {
+                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                    scanner.stopScan(mLeScanCallback);
                 })
                 .show());
+        dialogBleScan.setOnCancelListener(dialog -> BluetoothLeScannerCompat.getScanner().stopScan(mLeScanCallback));
     }
 
     private void startBleScanInternal(long reportDelayMillis) {
@@ -2363,6 +2359,9 @@ public class TimerFragment extends BaseFragment
         List<ScanFilter> filters = new ArrayList<>();
         filters.add(new ScanFilter.Builder()
                 .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
+                .build());
+        filters.add(new ScanFilter.Builder()
+                .setManufacturerData(GAN_MANUFACTUREID, new byte[]{}, new byte[]{})
                 .build());
         scanner.startScan(filters, settings, mLeScanCallback);
     }

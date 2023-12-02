@@ -2330,6 +2330,8 @@ public class TimerFragment extends BaseFragment
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
                 .itemsCallback((dialog, view, which, text) -> {
+                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                    scanner.stopScan(mLeScanCallback);
                     Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
                     bleClientManager.connect(bleDevices.get(which)).enqueue();
                 })

@@ -84,6 +84,7 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_SUBTYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
+import static com.hatopigeon.cubictimer.fragment.TimerFragmentMain.TIMER_PAGE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMES_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGES;
@@ -214,7 +215,7 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState == null) {
             fragmentManager
                 .beginTransaction()
-                .replace(R.id.main_activity_container, TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL), "fragment_main")
+                .replace(R.id.main_activity_container, TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
                 .commit();
         }
 
@@ -362,7 +363,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL), "fragment_main")
+                                                         TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });
@@ -375,7 +376,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.OLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.OLL), "fragment_main")
+                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.OLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });
@@ -388,7 +389,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.PLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.PLL), "fragment_main")
+                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.PLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });

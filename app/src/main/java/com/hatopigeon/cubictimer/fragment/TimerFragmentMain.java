@@ -317,17 +317,10 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     break;
 
                 case ACTION_CHANGED_CATEGORY:
-                    updatePuzzleSpinnerHeader();
-                    handleStatisticsLoader();
-                    updateBluetoothButton();
-
-                    if (currentTimerMode.equals(TIMER_MODE_TRAINER))
-                        broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
-
                     mFragmentManager
                             .beginTransaction()
                             .replace(R.id.main_activity_container,
-                                    TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, currentPage), "fragment_main")
+                                    TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
                             .commit();
 
                     break;
@@ -768,15 +761,10 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         if (selectDialog != null)
             selectDialog.dismiss();
 
-        //// update titles
-        updatePuzzleSpinnerHeader();
-        handleStatisticsLoader();
-        updateBluetoothButton();
-
         mFragmentManager
                 .beginTransaction()
                 .replace(R.id.main_activity_container,
-                        TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, currentPage), "fragment_main")
+                        TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
                 .commit();
     }
 

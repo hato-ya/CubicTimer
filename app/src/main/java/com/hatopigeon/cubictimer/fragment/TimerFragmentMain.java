@@ -26,6 +26,7 @@ import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.viewpager.widget.ViewPager;
@@ -54,7 +55,6 @@ import com.hatopigeon.cubictimer.stats.StatisticsCache;
 import com.hatopigeon.cubictimer.stats.StatisticsLoader;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
-import com.github.ksoichiro.android.observablescrollview.CacheFragmentStatePagerAdapter;
 
 import java.util.List;
 
@@ -123,6 +123,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
     private static final String PUZZLE_SUBTYPE = "puzzle_type";
     private static final String TIMER_MODE     = "timer_mode";
     private static final String TRAINER_SUBSET    = "trainer_subset";
+    private static final String PAGE = "page";
 
     private static final String TAG_CATEGORY_DIALOG = "select_category_dialog";
     private static final String TAG_PUZZLE_DIALOG   = "puzzle_spinner_dialog_fragment";
@@ -316,14 +317,19 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     break;
 
                 case ACTION_CHANGED_CATEGORY:
-                    viewPager.setAdapter(viewPagerAdapter);
-                    viewPager.setCurrentItem(currentPage);
                     updatePuzzleSpinnerHeader();
                     handleStatisticsLoader();
                     updateBluetoothButton();
 
                     if (currentTimerMode.equals(TIMER_MODE_TRAINER))
                         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
+
+                    mFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.main_activity_container,
+                                    TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, currentPage), "fragment_main")
+                            .commit();
+
                     break;
 
                 case ACTION_BLUETOOTH_CONNECTED:
@@ -358,13 +364,14 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         // Required empty public constructor
     }
 
-    public static TimerFragmentMain newInstance(String puzzle, String category, String mode, TrainerScrambler.TrainerSubset subset) {
+    public static TimerFragmentMain newInstance(String puzzle, String category, String mode, TrainerScrambler.TrainerSubset subset, int page) {
         final TimerFragmentMain fragment = new TimerFragmentMain();
         Bundle args = new Bundle();
         args.putString(PUZZLE, puzzle);
         args.putString(PUZZLE_SUBTYPE, category);
         args.putString(TIMER_MODE, mode);
         args.putSerializable(TRAINER_SUBSET, subset);
+        args.putInt(PAGE, page);
         fragment.setArguments(args);
         if (DEBUG_ME) Log.d(TAG, "newInstance() -> " + fragment);
         return fragment;
@@ -395,6 +402,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
             currentPuzzleCategory = getArguments().getString(PUZZLE_SUBTYPE);
             currentTimerMode = getArguments().getString(TIMER_MODE);
             currentPuzzleSubset = (TrainerScrambler.TrainerSubset) getArguments().getSerializable(TRAINER_SUBSET);
+            currentPage = getArguments().getInt(PAGE);
         }
 
         // Retrieve instance state
@@ -466,6 +474,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         viewPagerAdapter = new NavigationAdapter(getChildFragmentManager());
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setOffscreenPageLimit(NUM_PAGES - 1);
+        viewPager.setCurrentItem(currentPage);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setSelectedTabIndicator(0);
         tabLayout.setTabIconTint(AppCompatResources.getColorStateList(mContext, R.color.tab_color));
@@ -575,7 +584,16 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
     public boolean onBackPressedInFragment() {
         if (DEBUG_ME) Log.d(TAG, "onBackPressedInFragment()");
 
-        return viewPagerAdapter != null && viewPagerAdapter.dispatchOnBackPressedInFragment();
+        for (Fragment fragment : getChildFragmentManager().getFragments()) {
+            if (DEBUG_ME) Log.d(TAG, "getFragments() " + fragment);
+
+            if (fragment instanceof OnBackPressedInFragmentListener) {
+                if (((OnBackPressedInFragmentListener)fragment).onBackPressedInFragment())
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -745,8 +763,6 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         currentPuzzle = text;
         Prefs.edit().putString(R.string.pk_last_used_puzzle, currentPuzzle).apply();
         updateCurrentCategory();
-        viewPager.setAdapter(viewPagerAdapter);
-        viewPager.setCurrentItem(currentPage);
 
         PuzzleSelectDialog selectDialog = (PuzzleSelectDialog) mFragmentManager.findFragmentByTag(TAG_PUZZLE_DIALOG);
         if (selectDialog != null)
@@ -756,16 +772,23 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         updatePuzzleSpinnerHeader();
         handleStatisticsLoader();
         updateBluetoothButton();
+
+        mFragmentManager
+                .beginTransaction()
+                .replace(R.id.main_activity_container,
+                        TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, currentPage), "fragment_main")
+                .commit();
     }
 
-    protected class NavigationAdapter extends CacheFragmentStatePagerAdapter {
+    protected class NavigationAdapter extends FragmentPagerAdapter {
 
         public NavigationAdapter(FragmentManager fm) {
             super(fm);
         }
 
+        @NonNull
         @Override
-        protected Fragment createItem(int position) {
+        public Fragment getItem(int position) {
             if (DEBUG_ME) Log.d(TAG, "NavigationAdapter.createItem(" + position + ")");
 
             switch (position) {
@@ -780,29 +803,6 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                             currentPuzzle, currentPuzzleCategory, history);
             }
             return TimerFragment.newInstance(PuzzleUtils.TYPE_333, "Normal", TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL);
-        }
-
-        /**
-         * Notifies each fragment (that is listening) that the "Back" button has been pressed.
-         * Stops when the first fragment consumes the event.
-         *
-         * @return {@code true} if any fragment consumed the "Back" button press event; or {@code false}
-         * if the event was not consumed by any fragment.
-         */
-        public boolean dispatchOnBackPressedInFragment() {
-            if (DEBUG_ME) Log.d(TAG, "NavigationAdapter.dispatchOnBackPressedInFragment()");
-            boolean isConsumed = false;
-
-            for (int p = 0; p < NUM_PAGES && !isConsumed; p++) {
-                final Fragment fragment = getItemAt(p);
-
-                if (fragment instanceof OnBackPressedInFragmentListener) { // => not null
-                    isConsumed = ((OnBackPressedInFragmentListener) fragment)
-                            .onBackPressedInFragment();
-                }
-            }
-
-            return isConsumed;
         }
 
         @Override

@@ -2020,6 +2020,11 @@ public class TimerFragment extends BaseFragment
 
     // Stack Timer Support
     private void connect() {
+        // to avoid IllegalStateException on getString that reported by Android Vitals
+        if (getActivity() == null) {
+            return;
+        }
+
         Log.d(TAG, "UART connect : start");
         if (!stackTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
             Log.d(TAG, "UART connect : disabled");

@@ -82,12 +82,12 @@
     <notice>
         <name>Android BLE Library</name>
         <url>https://github.com/NordicSemiconductor/Android-BLE-Library</url>
-        <copyright>Copyright (c) 2015 Nordic Semiconductor - 3-Clause BSD License</copyright>
+        <copyright>Copyright (c) 2015 Nordic Semiconductor - BSD 3-Clause License</copyright>
     </notice>
     <notice>
         <name>Android BLE Scanner Compat library</name>
         <url>https://github.com/NordicSemiconductor/Android-Scanner-Compat-Library</url>
-        <copyright>Copyright (c) 2015 Nordic Semiconductor - 3-Clause BSD License</copyright>
+        <copyright>Copyright (c) 2015 Nordic Semiconductor - BSD 3-Clause License</copyright>
     </notice>
     <notice>
         <name>Apache Software License 2.0</name>
@@ -105,8 +105,8 @@
         <license>GNU General Public License 3.0</license>
     </notice>
     <notice>
-        <name>3-Clause BSD License</name>
+        <name>BSD 3-Clause License</name>
         <url>https://opensource.org/license/bsd-3-clause/</url>
-        <license>3-Clause BSD License</license>
+        <license>BSD 3-Clause License</license>
     </notice>
 </notices>

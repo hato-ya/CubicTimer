@@ -1,6 +1,8 @@
 package com.hatopigeon.cubictimer.fragment;
 
 
+import static android.app.Activity.RESULT_OK;
+
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -9,6 +11,7 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -264,6 +267,7 @@ public class TimerFragment extends BaseFragment
 
     // Smart Timer support
     public static final int REQUEST_BLE_PERMISSION = 9801;
+    public static final int REQUEST_ENABLE_BT = 9802;
     private BleClientManager bleClientManager;
     private MaterialDialog dialogBleScan;
     private ArrayList<BluetoothDevice> bleDevices;
@@ -1082,6 +1086,17 @@ public class TimerFragment extends BaseFragment
             }
         }
         return false;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == TimerFragment.REQUEST_ENABLE_BT) {
+            Log.d(TAG,"BLE : onActivityResult " + resultCode);
+            if (resultCode == RESULT_OK) {
+                startBleScan();
+            }
+        }
     }
 
     /**
@@ -2325,6 +2340,21 @@ public class TimerFragment extends BaseFragment
         if (!requestPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(getActivity(),
                     requestPermissions.toArray(new String[0]), REQUEST_BLE_PERMISSION);
+            return;
+        }
+
+        // check whether Bluetooth is enabled or not
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            // Device doesn't support Bluetooth
+            Log.d(TAG, "BLE Scan : " + "No BluetoothAdapter");
+            return;
+        }
+        if (!bluetoothAdapter.isEnabled()) {
+            Log.d(TAG, "BLE Scan : " + "Bluetooth disabled");
+            // if Bluetooth is disabled by setting send enable request
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             return;
         }
 

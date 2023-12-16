@@ -59,8 +59,8 @@
     <string name="delete_dialog_cancel_button">キャンセル</string>
     <string name="delete_dialog_confirmation_button">削除</string>
     <string name="delete_dialog_confirmation_title">ソルブを消去しますか？</string>
-    <string name="dialog_export_import_export">エクスポート中</string>
-    <string name="dialog_export_import_import">インポート中</string>
+    <string name="dialog_export_import_export">エクスポート</string>
+    <string name="dialog_export_import_import">インポート</string>
     <string name="dialog_revert_content_confirmation">この手順をリセットしデフォルトに戻しますか？</string>
     <string name="dialog_revert_title_confirmation">手順をリセットする</string>
     <string name="dialog_set_progress">進捗の設定</string>
@@ -80,6 +80,7 @@
     <string name="export_import_dialog_for_other_timers">他のタイマー用</string>
     <string name="export_import_dialog_from_backup">バックアップからインポート</string>
     <string name="export_import_dialog_from_txt_file">.txt ファイルからインポート</string>
+    <string name="export_import_dialog_import_to_archive">アーカイブにインポート</string>
     <string name="export_progress_complete">エクスポートに成功</string>
     <string name="export_progress_complete_wo_to">エクスポートに成功</string>
     <string name="export_progress_error">エラーが発生しました。\n確認し直してください。</string>

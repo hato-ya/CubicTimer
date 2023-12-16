@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.CheckBox;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
@@ -72,8 +73,11 @@ public class ExportImportDialog extends DialogFragment
          *     The category (subtype) of the puzzle whose times will be imported. This is required
          *     when {@code fileFormat} is {@code EXIM_FORMAT_EXTERNAL}. It may be {@code null} if
          *     the format is {@code EXIM_FORMAT_BACKUP}, as it will not be used.
+         * @param isToArchive
+         *     True  : import to archive
+         *     False : import to current
          */
-        void onImportSolveTimes(int fileFormat, String puzzleType, String puzzleCategory);
+        void onImportSolveTimes(int fileFormat, String puzzleType, String puzzleCategory, boolean isToArchive);
 
         /**
          * Instructs the listener to begin exporting solve times to a file. The export file name and
@@ -100,6 +104,7 @@ public class ExportImportDialog extends DialogFragment
     @BindView(R.id.export_external) View exportExternal;
     @BindView(R.id.import_backup)   View importBackup;
     @BindView(R.id.import_external) View importExternal;
+    @BindView(R.id.import_to_archive) View importToArchive;
     @BindView(R.id.import_button)   View importButton;
     @BindView(R.id.export_button)   View exportButton;
 
@@ -137,7 +142,8 @@ public class ExportImportDialog extends DialogFragment
                     break;
 
                 case R.id.import_backup:
-                    getExImActivity().onImportSolveTimes(EXIM_FORMAT_BACKUP, null, null);
+                    boolean isToArchive = ((CheckBox)importToArchive).isChecked();
+                    getExImActivity().onImportSolveTimes(EXIM_FORMAT_BACKUP, null, null, isToArchive);
                     dismiss();
                     break;
 
@@ -155,7 +161,7 @@ public class ExportImportDialog extends DialogFragment
                     break;
 
                 case R.id.import_button:
-                    AnimUtils.toggleContentVisibility(importBackup, importExternal);
+                    AnimUtils.toggleContentVisibility(importBackup, importExternal, importToArchive);
                     break;
 
                 //case R.id.help_button:
@@ -217,13 +223,14 @@ public class ExportImportDialog extends DialogFragment
             // from that puzzle chooser is received ("onPuzzleTypeSelected"), this dialog
             // will exit and hand control back to the activity to perform the import.
             ExportImportCallbacks activityMain = getExImActivity();
+            boolean isToArchive = ((CheckBox)importToArchive).isChecked();
             ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
                     .title(R.string.import_external_title)
                     .content(R.string.import_external_content_first)
                     .positiveText(R.string.action_ok)
                     .onPositive((dialog, which) ->
                             activityMain.onImportSolveTimes(EXIM_FORMAT_EXTERNAL, puzzleType,
-                                    puzzleCategory))
+                                    puzzleCategory, isToArchive))
                     .build());
         }
         dismiss();

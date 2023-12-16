@@ -1806,39 +1806,42 @@ public class TimerFragment extends BaseFragment
     private void setScramble(final String scramble) {
         realScramble = scramble;
         scrambleText.setText(scramble);
-        scrambleText.post(() -> chronometer.post(() -> {
-            if (scrambleText != null) {
-                // Calculate surrounding layouts to make sure the scramble text doesn't intersect any element
-                // If it does, show only a "tap here to see more" hint instead of the scramble
-                Rect scrambleRect = new Rect(scrambleBox.getLeft(), scrambleBox.getTop(), scrambleBox.getRight(), scrambleBox.getBottom());
-                // The top line calculation is a bit tricky
-                // We first get the top of the bounding box (which isn't necessarily
-                // the top of the actual, visible text. To that, we add the baseline,
-                // which is the measure from the top of the box to the actual baseline
-                // of the text. Then, we add the text size, which gets us to the visible
-                // top.
-                Rect chronometerRect = new Rect(chronometer.getLeft(),
-                        (int) (chronometer.getTop()
-                                + chronometer.getBaseline()
-                                - chronometer.getTextSize()
-                                + ThemeUtils.dpToPix(mContext, 28)),
-                        chronometer.getRight(),
-                        chronometer.getBottom());
-                Rect congratsRect = new Rect(congratsText.getLeft(), congratsText.getTop(), congratsText.getRight(), congratsText.getBottom());
+        scrambleText.post(() -> {
+            if (chronometer != null)
+                chronometer.post(() -> {
+                    if (scrambleText != null) {
+                        // Calculate surrounding layouts to make sure the scramble text doesn't intersect any element
+                        // If it does, show only a "tap here to see more" hint instead of the scramble
+                        Rect scrambleRect = new Rect(scrambleBox.getLeft(), scrambleBox.getTop(), scrambleBox.getRight(), scrambleBox.getBottom());
+                        // The top line calculation is a bit tricky
+                        // We first get the top of the bounding box (which isn't necessarily
+                        // the top of the actual, visible text. To that, we add the baseline,
+                        // which is the measure from the top of the box to the actual baseline
+                        // of the text. Then, we add the text size, which gets us to the visible
+                        // top.
+                        Rect chronometerRect = new Rect(chronometer.getLeft(),
+                                (int) (chronometer.getTop()
+                                        + chronometer.getBaseline()
+                                        - chronometer.getTextSize()
+                                        + ThemeUtils.dpToPix(mContext, 28)),
+                                chronometer.getRight(),
+                                chronometer.getBottom());
+                        Rect congratsRect = new Rect(congratsText.getLeft(), congratsText.getTop(), congratsText.getRight(), congratsText.getBottom());
 
-                if ((Rect.intersects(scrambleRect, chronometerRect)) ||
-                        (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect))) {
-                    scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
-                    scrambleBox.setClickable(true);
-                    scrambleBox.setOnClickListener(scrambleDetailClickListener);
-                } else {
-                    scrambleBox.setOnClickListener(null);
-                    scrambleBox.setClickable(false);
-                    scrambleBox.setFocusable(false);
-                }
-                scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
-            }
-        }));
+                        if ((Rect.intersects(scrambleRect, chronometerRect)) ||
+                                (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect))) {
+                            scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
+                            scrambleBox.setClickable(true);
+                            scrambleBox.setOnClickListener(scrambleDetailClickListener);
+                        } else {
+                            scrambleBox.setOnClickListener(null);
+                            scrambleBox.setClickable(false);
+                            scrambleBox.setFocusable(false);
+                        }
+                        scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
+                    }
+                });
+        });
 
         if (showHintsEnabled && currentPuzzle.equals(PuzzleUtils.TYPE_333))
             scrambleButtonHint.setVisibility(View.VISIBLE);

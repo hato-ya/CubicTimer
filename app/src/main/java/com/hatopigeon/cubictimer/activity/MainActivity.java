@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity
 
     private String mExportPuzzleType = "";
     private String mExportPuzzleCategory = "";
+    private boolean mIsToArchive = false;
 
     /**
      * Sets drawer lock mode
@@ -531,7 +532,7 @@ public class MainActivity extends AppCompatActivity
                 new ImportSolves(this,
                         (requestCode == IMPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
                                 : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
-                        uri, mExportPuzzleType, mExportPuzzleCategory)
+                        uri, mExportPuzzleType, mExportPuzzleCategory, mIsToArchive)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         }
@@ -617,7 +618,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onImportSolveTimes(int fileFormat, String puzzleType, String puzzleCategory) {
+    public void onImportSolveTimes(int fileFormat, String puzzleType, String puzzleCategory, boolean isToArchive) {
 
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -625,6 +626,7 @@ public class MainActivity extends AppCompatActivity
 
         mExportPuzzleType = puzzleType;
         mExportPuzzleCategory = puzzleCategory;
+        mIsToArchive = isToArchive;
 
         if (fileFormat == ExportImportDialog.EXIM_FORMAT_BACKUP) {
             startActivityForResult(intent, IMPORT_BACKUP);
@@ -877,6 +879,7 @@ public class MainActivity extends AppCompatActivity
         private final Uri      mUri;
         private final String   mPuzzleType;
         private final String   mPuzzleCategory;
+        private final boolean  mIsToArchive;
 
         private MaterialDialog mProgressDialog;
         private int parseErrors = 0;
@@ -901,14 +904,18 @@ public class MainActivity extends AppCompatActivity
          *     The category (subtype) of the puzzle whose times will be imported. Required when
          *     {@code fileFormat} is {@code EXIM_FORMAT_EXTERNAL}. For {@code EXIM_FORMAT_BACKUP},
          *     it may be {@code null}, as it will not be used.
+         * @param isToArchive
+         *     True  : import to archive
+         *     False : import to current
          */
         public ImportSolves(Context context, int fileFormat, Uri uri,
-                            String puzzleType, String puzzleCategory) {
+                            String puzzleType, String puzzleCategory, boolean isToArchive) {
             mContext = context;
             mFileFormat = fileFormat;
             mUri = uri;
             mPuzzleType = puzzleType;
             mPuzzleCategory = puzzleCategory;
+            mIsToArchive = isToArchive;
         }
 
         @Override
@@ -952,7 +959,7 @@ public class MainActivity extends AppCompatActivity
                         try {
                             solveList.add(new Solve(
                                 Integer.parseInt(line[2]), line[0], line[1], Long.parseLong(line[3]),
-                                line[4], Integer.parseInt(line[5]), line[6], true));
+                                line[4], Integer.parseInt(line[5]), line[6], mIsToArchive));
                         } catch (Exception e) {
                             parseErrors++;
                         }
@@ -989,7 +996,7 @@ public class MainActivity extends AppCompatActivity
 
                                 solveList.add(new Solve(
                                         time, mPuzzleType, mPuzzleCategory,
-                                        date, scramble, penalty, "", true));
+                                        date, scramble, penalty, "", mIsToArchive));
                             } catch (Exception e) {
                                 parseErrors++;
                             }

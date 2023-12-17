@@ -272,9 +272,15 @@ public class ChartStatistics {
                 mChartStyle.getBestTimesLabel(), mChartStyle.getBestTimesColor());
 
         for (int nIndex = 0; nIndex < mNsOfAverages.length; nIndex++) {
-            addAoNDataSets(mChartData,
-                    mChartStyle.getAverageOfNLabelPrefix() + mNsOfAverages[nIndex],
-                    mChartStyle.getExtraColor(nIndex));
+            if (mNsOfAverages[nIndex] == 3) {
+                addAoNDataSets(mChartData,
+                        mChartStyle.getMeanOfNLabelPrefix() + mNsOfAverages[nIndex],
+                        mChartStyle.getExtraColor(nIndex));
+            } else {
+                addAoNDataSets(mChartData,
+                        mChartStyle.getAverageOfNLabelPrefix() + mNsOfAverages[nIndex],
+                        mChartStyle.getExtraColor(nIndex));
+            }
         }
     }
 
@@ -415,9 +421,9 @@ public class ChartStatistics {
      * @return
      *     The collector for chart statistics.
      */
-    public static ChartStatistics newCurrentSessionChartStatistics(ChartStyle chartStyle) {
+    public static ChartStatistics newCurrentSessionChartStatistics(ChartStyle chartStyle, String currentPuzzle) {
         return new ChartStatistics(
-                Statistics.newCurrentSessionAveragesChartStatistics(), true, chartStyle);
+                Statistics.newCurrentSessionAveragesChartStatistics(currentPuzzle), true, chartStyle);
     }
 
     /**

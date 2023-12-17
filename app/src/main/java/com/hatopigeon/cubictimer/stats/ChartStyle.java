@@ -70,6 +70,8 @@ public class ChartStyle {
      */
     private final String mAvgLabelPrefix;
 
+    private final String mMeanLabelPrefix;
+
     /**
      * The label to use for a limit line shown on the chart.
      */
@@ -102,6 +104,7 @@ public class ChartStyle {
         mAllTimesLabel  = context.getString(R.string.graph_legend_all_times);
         mBestTimesLabel = context.getString(R.string.graph_legend_best_times);
         mAvgLabelPrefix = context.getString(R.string.graph_legend_avg_prefix);
+        mMeanLabelPrefix = context.getString(R.string.graph_legend_mean_prefix);
         mLimitLineLabel = context.getString(R.string.graph_mean);
         mDateFormatSpec = context.getString(R.string.shortDateFormat);
     }
@@ -184,6 +187,10 @@ public class ChartStyle {
      */
     public String getAverageOfNLabelPrefix() {
         return mAvgLabelPrefix;
+    }
+
+    public String getMeanOfNLabelPrefix() {
+        return mMeanLabelPrefix;
     }
 
     /**

@@ -244,7 +244,7 @@ public class ChartStatisticsLoader extends AsyncTaskLoader<Wrapper<ChartStatisti
             // Unlike the "StatisticsLoader", the chart statistics cannot load statistics for all
             // times and for the current session in the same instance.
             mChartStats = isForCurrentSessionOnly
-                    ? ChartStatistics.newCurrentSessionChartStatistics(mChartStyle)
+                    ? ChartStatistics.newCurrentSessionChartStatistics(mChartStyle, mPuzzleType)
                     : ChartStatistics.newAllTimeChartStatistics(mChartStyle);
 
             // Wrapper remains empty until the first load is attempted. This allows a distinction

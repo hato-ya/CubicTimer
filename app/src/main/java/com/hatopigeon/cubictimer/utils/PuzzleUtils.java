@@ -611,4 +611,10 @@ public class PuzzleUtils {
         return !(puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
                 || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC));
     }
+
+    public static boolean isForceMo3Enabled (String puzzleType) {
+        return puzzleType.equals(TYPE_666) || puzzleType.equals(TYPE_777)
+                || puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
+                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC);
+    }
 }

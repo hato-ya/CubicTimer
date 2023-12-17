@@ -708,7 +708,8 @@ public class TimerFragment extends BaseFragment
         startCueEnabled = Prefs.getBoolean(R.string.pk_start_cue_enabled, res.getBoolean(R.bool.default_startCue));
 
         sessionStatsEnabled = Prefs.getBoolean(R.string.pk_show_session_stats, true);
-        sessionStatsMo3Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_mo3, false);
+        sessionStatsMo3Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_mo3, false)
+                || PuzzleUtils.isForceMo3Enabled(currentPuzzle);
         sessionStatsAo1000Enabled = Prefs.getBoolean(R.string.pk_show_session_stats_ao1000, false);
         recentResultsEnabled = Prefs.getBoolean(R.string.pk_show_recent_results, true);
         bestSolveEnabled = Prefs.getBoolean(R.string.pk_show_best_time, true);

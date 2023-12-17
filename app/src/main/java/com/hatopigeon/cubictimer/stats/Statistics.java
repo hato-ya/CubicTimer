@@ -2,6 +2,7 @@ package com.hatopigeon.cubictimer.stats;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.Prefs;
+import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -162,10 +163,13 @@ public class Statistics {
      *
      * @return The solve time statistics for graphing the current session averages.
      */
-    static Statistics newCurrentSessionAveragesChartStatistics() {
+    static Statistics newCurrentSessionAveragesChartStatistics(String currentPuzzle) {
         final Statistics stats = new Statistics();
 
-        stats.addAverageOf(5, 5, true);
+        if (PuzzleUtils.isForceMo3Enabled(currentPuzzle))
+            stats.addAverageOf(3, 0, true);
+        else
+            stats.addAverageOf(5, 5, true);
         stats.addAverageOf(12, 5, true);
 
         return stats;

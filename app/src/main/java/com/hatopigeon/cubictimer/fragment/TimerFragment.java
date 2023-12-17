@@ -74,6 +74,7 @@ import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.fragment.dialog.AddTimeDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetDetailDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CommentDialog;
 import com.hatopigeon.cubictimer.items.Solve;
 import com.hatopigeon.cubictimer.layout.ChronometerMilli;
 import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
@@ -133,7 +134,6 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_DELETE_SELECTED_TIMES;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCROLLED_PAGE;
@@ -522,28 +522,22 @@ public class TimerFragment extends BaseFragment
                     hideButtons(true, false);
                     break;
                 case R.id.qa_comment:
-                    MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
-                            .title(R.string.add_comment)
-                            .input("", "", (dialog12, input) -> {
-                                currentSolve.setComment(input.toString());
-                                dbHandler.updateSolve(currentSolve);
+                    {
+                        CommentDialog commentDialog = CommentDialog.newInstance(
+                                CommentDialog.COMMENT_DIALOG_TYPE_COMMENT, currentPuzzle,
+                                currentSolve.getComment());
+                        commentDialog.setCallback((str) -> {
+                            currentSolve.setComment(str.toString());
+                            dbHandler.updateSolve(currentSolve);
 
-                                broadcast(CATEGORY_TIME_DATA_CHANGES, ACTION_COMMENT_ADDED);
-                                Toast.makeText(mContext, getString(R.string.added_comment), Toast.LENGTH_SHORT).show();
-                                hideButtons(false, true);
-                            })
-                            .inputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE)
-                            .positiveText(R.string.action_done)
-                            .negativeText(R.string.action_cancel)
-                            .build());
-                    EditText editText = dialog.getInputEditText();
-                    if (editText != null) {
-                        editText.setSingleLine(false);
-                        editText.setLines(3);
-                        editText.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                        editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                            broadcast(CATEGORY_TIME_DATA_CHANGES, ACTION_COMMENT_ADDED);
+                            Toast.makeText(mContext, getString(R.string.added_comment), Toast.LENGTH_SHORT).show();
+                            hideButtons(false, true);
+                        });
+                        FragmentManager manager = getFragmentManager();
+                        if (manager != null)
+                            commentDialog.show(manager, "dialog_comment");
                     }
-                    dialog.show();
                     break;
                 case R.id.qa_undo:
                     // Undo the setting of a DNF or +2 penalty (does not undo a delete or comment).
@@ -557,36 +551,30 @@ public class TimerFragment extends BaseFragment
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
                     break;
                 case R.id.scramble_button_edit:
-                    MaterialDialog editScrambleDialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(getContext())
-                            .title(R.string.edit_scramble)
-                            .input("", "", (dialog1, input) -> {
+                    {
+                        CommentDialog commentDialog = CommentDialog.newInstance(
+                                CommentDialog.COMMENT_DIALOG_TYPE_SCRAMBLE, currentPuzzle, "");
+                        commentDialog.setCallback((str) -> {
+                            setScramble(str.toString());
 
-                                setScramble(input.toString());
-
-                                // The hint solver will crash if you give it invalid scrambles,
-                                // so we shouldn't calculate hints for custom scrambles.
-                                // TODO: We can use the scramble image generator (which has a scramble validity checker) to check a scramble before calling a hint
-                                canShowHint = false;
-                                hideButtons(true, true);
-                            })
-                            .inputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE)
-                            .positiveText(R.string.action_done)
-                            .negativeText(R.string.action_cancel)
-                            .build());
-                    EditText scrambleEditText = editScrambleDialog.getInputEditText();
-                    if (scrambleEditText != null) {
-                        scrambleEditText.setLines(3);
-                        scrambleEditText.setSingleLine(false);
-                        scrambleEditText.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                        scrambleEditText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                            // The hint solver will crash if you give it invalid scrambles,
+                            // so we shouldn't calculate hints for custom scrambles.
+                            // TODO: We can use the scramble image generator (which has a scramble validity checker) to check a scramble before calling a hint
+                            canShowHint = false;
+                            hideButtons(true, true);
+                        });
+                        FragmentManager manager = getFragmentManager();
+                        if (manager != null)
+                            commentDialog.show(manager, "dialog_comment");
                     }
-                    editScrambleDialog.show();
                     break;
                 case R.id.scramble_button_manual_entry:
-                    AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, realScramble);
-                    FragmentManager manager = getFragmentManager();
-                    if (manager != null)
-                        addTimeDialog.show(manager, "dialog_add_time");
+                    {
+                        AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, realScramble);
+                        FragmentManager manager = getFragmentManager();
+                        if (manager != null)
+                            addTimeDialog.show(manager, "dialog_add_time");
+                    }
                     break;
             }
         }

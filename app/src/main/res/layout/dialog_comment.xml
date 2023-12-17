@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/outline_background_card_smoother">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <TextView
+                android:id="@+id/commentDlgTitle"
+                style="@style/DialogTitleTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:text="@string/add_comment" />
+
+            <EditText
+                android:id="@+id/commentDlgText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/commentDlgTitle">
+                <requestFocus/></EditText>
+
+            <TextView
+                android:id="@+id/commentDlgCancel"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/commentDlgText"
+                android:layout_toLeftOf="@+id/commentDlgDone"
+                android:text="@string/action_cancel" />
+
+            <TextView
+                android:id="@+id/commentDlgDone"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:textColor="@color/md_blue_A700"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/commentDlgText"
+                android:layout_alignParentRight="true"
+                android:layout_marginLeft="16dp"
+                android:text="@string/action_done" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/commentDlgNxNxN"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
+            android:layout_centerHorizontal="true">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_prime"
+                style="@style/NotationButtonTextStyle"
+                android:text="'"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_B"
+                style="@style/NotationButtonTextStyle"
+                android:layout_toRightOf="@+id/notation_prime"
+                android:text="B"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_U"
+                style="@style/NotationButtonTextStyle"
+                android:layout_toRightOf="@+id/notation_B"
+                android:text="U"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_y"
+                style="@style/NotationButtonTextStyle"
+                android:layout_toRightOf="@+id/notation_R"
+                android:text="y"/>
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_two"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_prime"
+                android:text="2"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_L"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_prime"
+                android:layout_toRightOf="@+id/notation_two"
+                android:text="L"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_space"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_prime"
+                android:layout_toRightOf="@+id/notation_L"
+                android:text=" "/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_R"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_prime"
+                android:layout_toRightOf="@+id/notation_space"
+                android:text="R"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_x"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_prime"
+                android:layout_toRightOf="@+id/notation_R"
+                android:text="x"/>
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_w"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_two"
+                android:text="w"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_D"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_two"
+                android:layout_toRightOf="@+id/notation_L"
+                android:text="D"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_F"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_two"
+                android:layout_toRightOf="@+id/notation_D"
+                android:text="F"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_z"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_two"
+                android:layout_toRightOf="@+id/notation_F"
+                android:text="z"/>
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_three"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_w"
+                android:text="3"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_M"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_w"
+                android:layout_toRightOf="@+id/notation_w"
+                android:text="M"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_E"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_w"
+                android:layout_toRightOf="@+id/notation_M"
+                android:text="E"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_S"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_w"
+                android:layout_toRightOf="@+id/notation_E"
+                android:text="S"/>
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_LP"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_M"
+                android:layout_toRightOf="@+id/notation_w"
+                android:text="("/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_RP"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_M"
+                android:layout_toRightOf="@+id/notation_M"
+                android:text=")"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_COMMENT"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_M"
+                android:layout_toRightOf="@+id/notation_E"
+                android:text="//"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/notation_BS"
+                style="@style/NotationButtonTextStyle"
+                android:layout_below="@+id/notation_M"
+                android:layout_toRightOf="@+id/notation_F"
+                android:text="BS"/>
+
+        </RelativeLayout>
+    </LinearLayout>
+</ScrollView>

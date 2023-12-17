@@ -21,6 +21,8 @@ import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.FragmentManager;
+
 import android.text.Html;
 import android.text.InputType;
 import android.text.format.DateUtils;
@@ -155,26 +157,18 @@ public class TimeDialog extends DialogFragment {
                             .build());
                     break;
                 case R.id.commentButton:
-                    MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
-                            .title(R.string.edit_comment)
-                            .input("", solve.getComment(), (dialog1, input) -> {
-                                solve.setComment(input.toString());
-                                dbHandler.updateSolve(solve);
-                                Toast.makeText(getContext(), getString(R.string.added_comment), Toast.LENGTH_SHORT).show();
-                                updateList();
-                            })
-                            .inputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE)
-                            .positiveText(R.string.action_done)
-                            .negativeText(R.string.action_cancel)
-                            .build());
-                    EditText editText = dialog.getInputEditText();
-                    if (editText != null) {
-                        editText.setSingleLine(false);
-                        editText.setLines(3);
-                        editText.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                        editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                    {
+                        CommentDialog commentDialog = CommentDialog.newInstance(CommentDialog.COMMENT_DIALOG_TYPE_COMMENT, solve.getPuzzle(), solve.getComment());
+                        commentDialog.setCallback((str) -> {
+                            solve.setComment(str.toString());
+                            dbHandler.updateSolve(solve);
+                            Toast.makeText(getContext(), getString(R.string.added_comment), Toast.LENGTH_SHORT).show();
+                            updateList();
+                        });
+                        FragmentManager manager = getFragmentManager();
+                        if (manager != null)
+                            commentDialog.show(manager, "dialog_comment");
                     }
-                    dialog.show();
                     break;
                 case R.id.scrambleText:
                     AnimUtils.toggleContentVisibility(scrambleImage);

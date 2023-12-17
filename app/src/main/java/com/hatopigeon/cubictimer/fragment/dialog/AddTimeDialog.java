@@ -16,6 +16,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 import android.text.InputFilter;
 import android.text.InputType;
@@ -153,23 +154,15 @@ public class AddTimeDialog extends DialogFragment {
                                         .build());
                                 break;
                             case R.id.comment:
-                                MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
-                                        .title(R.string.edit_comment)
-                                        .input("", mCurrentComment, (dialog1, input) -> {
-                                            mCurrentComment = input.toString();
-                                        })
-                                        .inputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE)
-                                        .positiveText(R.string.action_done)
-                                        .negativeText(R.string.action_cancel)
-                                        .build());
-                                EditText editText = dialog.getInputEditText();
-                                if (editText != null) {
-                                    editText.setSingleLine(false);
-                                    editText.setLines(3);
-                                    editText.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-                                    editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                                {
+                                    CommentDialog commentDialog = CommentDialog.newInstance(CommentDialog.COMMENT_DIALOG_TYPE_COMMENT, currentPuzzle, mCurrentComment);
+                                    commentDialog.setCallback((str) -> {
+                                        mCurrentComment = str.toString();
+                                    });
+                                    FragmentManager manager = getFragmentManager();
+                                    if (manager != null)
+                                        commentDialog.show(manager, "dialog_comment");
                                 }
-                                dialog.show();
                                 break;
                         }
                         return true;

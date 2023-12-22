@@ -243,26 +243,24 @@ public class PuzzleUtils {
         }
 
         // Restrict millis to 2 digits
-        long millis = time % 1000;
-        if (millis >= 10)
-            millis /= 10;
+        String millis = String.format("%02d", (time % 1000) / 10);
 
         // Append millis
         switch (format) {
             case FORMAT_SINGLE:
                 if (!puzzleType.equals(TYPE_333FMC)) {
                     formattedString.append(".");
-                    formattedString.append(millis >= 10 ? millis : "0" + millis);
+                    formattedString.append(millis);
                 }
                 break;
             case FORMAT_STATS:
                 formattedString.append(".");
-                formattedString.append(millis >= 10 ? millis : "0" + millis);
+                formattedString.append(millis);
                 break;
             case FORMAT_SMALL_MILLI:
                 if (!puzzleType.equals(TYPE_333FMC)) {
                     formattedString.append("<small>.");
-                    formattedString.append(millis >= 10 ? millis : "0" + millis);
+                    formattedString.append(millis);
                     formattedString.append("</small>");
                 }
                 break;

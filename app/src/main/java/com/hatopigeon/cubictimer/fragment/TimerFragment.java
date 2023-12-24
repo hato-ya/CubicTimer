@@ -1298,15 +1298,15 @@ public class TimerFragment extends BaseFragment
             String sessionMean = convertTimeToString(tr(stats.getSessionMeanTime()),
                     PuzzleUtils.FORMAT_STATS, currentPuzzle);
 
-            long allTimeBestAvg[] = new long[6];
             long sessionCurrentAvg[] = new long[6];
+            boolean isAllTimeBestAvgUpdate[] = new boolean[6];
 
-            allTimeBestAvg[0] = tr(stats.getAverageOf(3, false).getBestAverage());
-            allTimeBestAvg[1] = tr(stats.getAverageOf(5, false).getBestAverage());
-            allTimeBestAvg[2] = tr(stats.getAverageOf(12, false).getBestAverage());
-            allTimeBestAvg[3] = tr(stats.getAverageOf(50, false).getBestAverage());
-            allTimeBestAvg[4] = tr(stats.getAverageOf(100, false).getBestAverage());
-            allTimeBestAvg[5] = tr(stats.getAverageOf(1000, false).getBestAverage());
+            isAllTimeBestAvgUpdate[0] = stats.getAverageOf(3, false).getIsBestAverageUpdated();
+            isAllTimeBestAvgUpdate[1] = stats.getAverageOf(5, false).getIsBestAverageUpdated();
+            isAllTimeBestAvgUpdate[2] = stats.getAverageOf(12, false).getIsBestAverageUpdated();
+            isAllTimeBestAvgUpdate[3] = stats.getAverageOf(50, false).getIsBestAverageUpdated();
+            isAllTimeBestAvgUpdate[4] = stats.getAverageOf(100, false).getIsBestAverageUpdated();
+            isAllTimeBestAvgUpdate[5] = stats.getAverageOf(1000, false).getIsBestAverageUpdated();
 
             sessionCurrentAvg[0] = tr(stats.getAverageOf(3, true).getCurrentAverage());
             sessionCurrentAvg[1] = tr(stats.getAverageOf(5, true).getCurrentAverage());
@@ -1340,7 +1340,7 @@ public class TimerFragment extends BaseFragment
                 if ((i == 0 && sessionStatsMo3Enabled) || (1 <= i && i <= 4)
                         || (i == 5 && sessionStatsAo1000Enabled)) {
                     if (sessionStatsEnabled && averageRecordsEnabled && hasStoppedTimerOnce &&
-                            sessionCurrentAvg[i] > 0 && sessionCurrentAvg[i] <= allTimeBestAvg[i]) {
+                            sessionCurrentAvg[i] > 0 && isAllTimeBestAvgUpdate[i]) {
                         // Create string.
                         stringDetailAvg.append("<u><b>").append(detailTextNamesArray[i]).append(avgNums[i]).append(": ")
                                 .append(convertTimeToString(sessionCurrentAvg[i], FORMAT_STATS, currentPuzzle)).append("</b></u>");

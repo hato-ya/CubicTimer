@@ -198,6 +198,11 @@ public final class AverageCalculator {
     private long mAllTimeBestAverage;
 
     /**
+     * The best average is updated or not
+     */
+    private boolean mIsAllTimeBestAverageUpdated = false;
+
+    /**
      * Creates a new calculator for the "average of <i>n</i>" solve times.
      *
      * @param n
@@ -260,6 +265,7 @@ public final class AverageCalculator {
         mAllTimeWorstTime = UNKNOWN;
         mAllTimeBestAverage = UNKNOWN;
         mVariance = UNKNOWN;
+        mIsAllTimeBestAverageUpdated = false;
     }
 
     /**
@@ -675,6 +681,11 @@ public final class AverageCalculator {
             // Therefore, we never set "mAllTimeBestAverage" to a value worse than it already has.
             mAllTimeBestAverage = mCurrentAverage;
         } else if (mCurrentAverage != DNF) {
+            if (mCurrentAverage < mAllTimeBestAverage) {
+                mIsAllTimeBestAverageUpdated = true;
+            } else {
+                mIsAllTimeBestAverageUpdated = false;
+            }
             mAllTimeBestAverage = Math.min(mAllTimeBestAverage, mCurrentAverage);
         }
     }
@@ -728,6 +739,15 @@ public final class AverageCalculator {
      */
     public long getBestAverage() {
         return mAllTimeBestAverage;
+    }
+
+    /**
+     * Gets the best average is updated or not
+     * @return
+     *      true : The best average is updated
+     */
+    public boolean getIsBestAverageUpdated() {
+        return mIsAllTimeBestAverageUpdated;
     }
 
     /**

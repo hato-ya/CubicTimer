@@ -216,7 +216,12 @@ public class PuzzleUtils {
             // PeriodFormatter ignores appends (and suffixes) if time is not enough to convert.
             // If the time ir smaller than 10_000 milliseconds (10 seconds), do not pad it with
             // a zero
-            Period period = new Period(time);
+            Period period;
+            try {
+                period = new Period(time);
+            } catch (ArithmeticException e) {
+                return "";
+            }
             PeriodFormatterBuilder periodFormatterBuilder = new PeriodFormatterBuilder();
             PeriodFormatter periodFormatter;
 

@@ -1507,7 +1507,7 @@ public class TimerFragment extends BaseFragment
                     .alpha(0)
                     .translationY(-scrambleBox.getHeight())
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> scrambleBox.setVisibility(View.INVISIBLE)); // FIXME: Attempt to invoke virtual method 'void androidx.cardview.widget.CardView.setVisibility(int)' on a null object reference
+                    .withEndAction(() -> {if(scrambleBox!=null) scrambleBox.setVisibility(View.INVISIBLE);}); // FIXME: Attempt to invoke virtual method 'void androidx.cardview.widget.CardView.setVisibility(int)' on a null object reference
             if (scrambleImgEnabled) {
                 scrambleImg.setEnabled(false);
                 hideImage();
@@ -1518,19 +1518,19 @@ public class TimerFragment extends BaseFragment
                     .alpha(0)
                     .translationY(detailTextAvg.getHeight())
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> detailTextAvg.setVisibility(View.INVISIBLE));
+                    .withEndAction(() -> {if(detailTextAvg!=null) detailTextAvg.setVisibility(View.INVISIBLE);});
             detailTextOther.animate()
                     .alpha(0)
                     .translationY(detailTextOther.getHeight())
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> detailTextOther.setVisibility(View.INVISIBLE));
+                    .withEndAction(() -> {if(detailTextOther!=null) detailTextOther.setVisibility(View.INVISIBLE);});
         }
         if (recentResultsEnabled) {
             recentResultText.animate()
                     .alpha(0)
                     .translationY(recentResultText.getHeight())
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> recentResultText.setVisibility(View.INVISIBLE));
+                    .withEndAction(() -> {if(recentResultText!=null) recentResultText.setVisibility(View.INVISIBLE);});
         }
         if (buttonsEnabled) {
             undoButton.setVisibility(View.GONE);
@@ -1538,14 +1538,14 @@ public class TimerFragment extends BaseFragment
             quickActionButtons.animate()
                     .alpha(0)
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> quickActionButtons.setVisibility(View.GONE));
+                    .withEndAction(() -> {if(quickActionButtons!=null) quickActionButtons.setVisibility(View.GONE);});
         }
         if (averageRecordsEnabled) {
             detailAverageRecordMesssage
                     .animate()
                     .alpha(0)
                     .setDuration(mAnimationDuration)
-                    .withEndAction(() -> detailAverageRecordMesssage.setVisibility(View.GONE));
+                    .withEndAction(() -> {if(detailAverageRecordMesssage!=null) detailAverageRecordMesssage.setVisibility(View.GONE);});
         }
     }
 

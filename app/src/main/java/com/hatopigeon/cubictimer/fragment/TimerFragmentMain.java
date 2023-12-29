@@ -753,6 +753,11 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
     // A new puzzle has been selected
     @Override
     public void onUpdateDialog(String text) {
+        // to avoid IllegalStateException on getString that reported by Android Vitals
+        if (getActivity() == null) {
+            return;
+        }
+
         currentPuzzle = text;
         Prefs.edit().putString(R.string.pk_last_used_puzzle, currentPuzzle).apply();
         updateCurrentCategory();

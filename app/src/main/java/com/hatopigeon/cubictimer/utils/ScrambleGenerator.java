@@ -133,6 +133,10 @@ public class ScrambleGenerator {
         Drawable pic = null;
 
         if (!puzzleType.equals(PuzzleUtils.TYPE_OTHER)) {
+            // To draw old clock scramble, remove pin moves at the end of scramble
+            if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
+                scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
+            }
             try {
                 cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
             } catch (InvalidScrambleException e) {

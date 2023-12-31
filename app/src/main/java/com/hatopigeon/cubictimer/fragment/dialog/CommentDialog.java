@@ -169,7 +169,7 @@ public class CommentDialog  extends DialogFragment {
         String lastchar = " ";
         if (length > 0)
             lastchar = text.getText().subSequence(length - 1, length).toString();
-        if (!lastchar.equals(" ") && !lastchar.equals("\n") && !lastchar.equals("3"))
+        if (!lastchar.equals(" ") && !lastchar.equals("\n") && !lastchar.equals("3") && !lastchar.equals("("))
             text.setText(text.getText()+" ");
     }
 

@@ -878,6 +878,8 @@ public class TimerFragment extends BaseFragment
                     currentPenalty = PuzzleUtils.PENALTY_DNF;
                     chronometer.setPenalty(PuzzleUtils.PENALTY_DNF);
                     stopChronometer();
+                    currentScramble = realScramble;
+                    generateNewScramble();
                     addNewSolve();
                     inspectionText.setVisibility(View.GONE);
                 }

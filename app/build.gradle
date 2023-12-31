@@ -39,14 +39,15 @@ android {
         disable 'MissingTranslation', 'ExtraTranslation'
     }
     namespace 'com.hatopigeon.cubicify'
-    packagingOptions {
-        exclude "META-INF/INDEX.LIST"
-    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'org.worldcubeassociation.tnoodle:lib-scrambles:0.19.0'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'com.github.tony19:logback-android:3.0.0'
+    implementation ('org.worldcubeassociation.tnoodle:lib-scrambles:0.19.0') {
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
     implementation 'com.opencsv:opencsv:3.7'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation "androidx.appcompat:appcompat-resources:1.1.0"

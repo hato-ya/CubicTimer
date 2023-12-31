@@ -38,6 +38,15 @@ android {
     lint {
         disable 'MissingTranslation', 'ExtraTranslation'
     }
+    bundle {
+        language {
+            // Specifies that the app bundle should not support
+            // configuration APKs for language resources. These
+            // resources are instead packaged with each base and
+            // feature APK.
+            enableSplit = false
+        }
+    }
     namespace 'com.hatopigeon.cubicify'
 }
 

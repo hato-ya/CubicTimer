@@ -164,13 +164,36 @@ public class CommentDialog  extends DialogFragment {
         mUnbinder.unbind();
     }
 
-    public void addSpace(TextView text) {
-        int length = text.getText().length();
+    public void insertText(TextView editText, String str, boolean isAddSpace) {
+        int start = editText.getSelectionStart();
+        int end = editText.getSelectionEnd();
+        int cursor = Math.min(start, end);
+
+        Editable editable = editText.getEditableText();
+
         String lastchar = " ";
-        if (length > 0)
-            lastchar = text.getText().subSequence(length - 1, length).toString();
-        if (!lastchar.equals(" ") && !lastchar.equals("\n") && !lastchar.equals("3") && !lastchar.equals("("))
-            text.setText(text.getText()+" ");
+        if (cursor > 0 && editable.length() > 0)
+            lastchar = editable.subSequence(cursor-1, cursor).toString();
+
+        if (isAddSpace&& !lastchar.equals(" ") && !lastchar.equals("\n") && !lastchar.equals("3")
+                && !lastchar.equals("("))
+            editable.replace(cursor, Math.max(start, end), " " + str);
+        else
+            editable.replace(cursor, Math.max(start, end), str);
+    }
+
+    public void backspaceText(TextView editText) {
+        int start = editText.getSelectionStart();
+        int end = editText.getSelectionEnd();
+        int from = Math.min(start, end);
+        int to = Math.max(start, end);
+
+        Editable editable = editText.getEditableText();
+
+        if (from == to && from > 0 && editable.length() > 0)
+            editable.replace(from-1, from, "");
+        else
+            editable.replace(from, to, "");
     }
 
     private View.OnClickListener clickListener = new View.OnClickListener() {
@@ -186,105 +209,67 @@ public class CommentDialog  extends DialogFragment {
                     dismiss();
                     break;
                 case R.id.notation_prime:
-                    commentDlgText.setText(commentDlgText.getText()+"'");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "'", false);
                     break;
                 case R.id.notation_B:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"B");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "B", true);
                     break;
                 case R.id.notation_U:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"U");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "U", true);
                     break;
                 case R.id.notation_y:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"y");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "y", true);
                     break;
                 case R.id.notation_two:
-                    commentDlgText.setText(commentDlgText.getText()+"2");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "2", false);
                     break;
                 case R.id.notation_L:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"L");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "L", true);
                     break;
                 case R.id.notation_space:
-                    commentDlgText.setText(commentDlgText.getText()+" ");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, " ", false);
                     break;
                 case R.id.notation_R:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"R");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "R", true);
                     break;
                 case R.id.notation_x:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"x");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "x", true);
                     break;
                 case R.id.notation_w:
-                    commentDlgText.setText(commentDlgText.getText()+"w");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "w", false);
                     break;
                 case R.id.notation_D:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"D");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "D", true);
                     break;
                 case R.id.notation_F:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"F");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "F", true);
                     break;
                 case R.id.notation_z:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"z");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "z", true);
                     break;
                 case R.id.notation_three:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"3");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "3", true);
                     break;
                 case R.id.notation_M:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"M");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "M", true);
                     break;
                 case R.id.notation_E:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"E");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "E", true);
                     break;
                 case R.id.notation_S:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"S");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "S", true);
                     break;
                 case R.id.notation_LP:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"(");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "(", true);
                     break;
                 case R.id.notation_RP:
-                    commentDlgText.setText(commentDlgText.getText()+")");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, ")", false);
                     break;
                 case R.id.notation_COMMENT:
-                    addSpace(commentDlgText);
-                    commentDlgText.setText(commentDlgText.getText()+"// ");
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    insertText(commentDlgText, "//", true);
                     break;
                 case R.id.notation_BS:
-                    int length = commentDlgText.getText().length();
-                    if (length > 0)
-                        commentDlgText.setText(commentDlgText.getText().subSequence(0, length-1));
-                    commentDlgText.setSelection(commentDlgText.getText().length());
+                    backspaceText(commentDlgText);
                     break;
             }
         }

@@ -12,10 +12,7 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/commentDlgTitle"
@@ -27,10 +24,22 @@
 
             <EditText
                 android:id="@+id/commentDlgText"
+                android:inputType="textMultiLine"
+                android:maxLines="5"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/commentDlgTitle">
                 <requestFocus/></EditText>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
 
             <TextView
                 android:id="@+id/commentDlgCancel"
@@ -43,7 +52,6 @@
                 android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/commentDlgText"
                 android:layout_toLeftOf="@+id/commentDlgDone"
                 android:text="@string/action_cancel" />
 
@@ -58,7 +66,6 @@
                 android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/commentDlgText"
                 android:layout_alignParentRight="true"
                 android:layout_marginLeft="16dp"
                 android:text="@string/action_done" />

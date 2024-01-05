@@ -79,6 +79,9 @@ public class ScrambleGenerator {
             case PuzzleUtils.TYPE_333FMC:
                 puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
                 break;
+            case PuzzleUtils.TYPE_333MBLD:
+                puzzle = new NoInspectionThreeByThreeCubePuzzle();
+                break;
             case PuzzleUtils.TYPE_OTHER:
                 puzzle = null;
                 break;
@@ -132,7 +135,7 @@ public class ScrambleGenerator {
         String cubeImg = null;
         Drawable pic = null;
 
-        if (!puzzleType.equals(PuzzleUtils.TYPE_OTHER)) {
+        if (!(puzzleType.equals(PuzzleUtils.TYPE_OTHER) || puzzleType.equals(PuzzleUtils.TYPE_333MBLD))) {
             // To draw old clock scramble, remove pin moves at the end of scramble
             if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
                 scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");

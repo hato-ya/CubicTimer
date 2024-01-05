@@ -310,8 +310,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     private long addSolveInternal(SQLiteDatabase db, Solve solve) {
         // Cutting off last digit to fix rounding errors
-        int time = solve.getTime();
-        time = time - (time % 10);
+        long time = solve.getTime();
+        if (!solve.getPuzzle().equals(PuzzleUtils.TYPE_333MBLD))
+            time = time - (time % 10);
 
         ContentValues values = new ContentValues();
 
@@ -393,8 +394,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Cutting off last digit to fix rounding errors
-        int time = solve.getTime();
-        time = time - (time % 10);
+        long time = solve.getTime();
+        if (!solve.getPuzzle().equals(PuzzleUtils.TYPE_333MBLD))
+            time = time - (time % 10);
 
         ContentValues values = new ContentValues();
         values.put(KEY_TYPE, solve.getPuzzle());
@@ -432,8 +434,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 return new Solve(
-                        cursor.getInt(0),
-                        cursor.getInt(1),
+                        cursor.getLong(0),
+                        cursor.getLong(1),
                         cursor.getString(2),
                         cursor.getString(3),
                         cursor.getLong(4),

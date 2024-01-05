@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CategorySelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetTrainerDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.PuzzleSelectDialog;
@@ -23,6 +24,7 @@ import com.google.android.material.tabs.TabLayout;
 
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -31,8 +33,12 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.viewpager.widget.ViewPager;
 
+import android.text.InputFilter;
+import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,6 +46,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -64,6 +72,7 @@ import butterknife.Unbinder;
 
 import static com.hatopigeon.cubictimer.fragment.TimerFragment.TIMER_MODE_TIMER;
 import static com.hatopigeon.cubictimer.fragment.TimerFragment.TIMER_MODE_TRAINER;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
@@ -121,6 +130,8 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
 
     private static final String PUZZLE         = "puzzle";
     private static final String PUZZLE_SUBTYPE = "puzzle_type";
+    private static final String MBLD_NUM       = "mbld_num";
+    private static final String SCRAMBLE       = "scramble";
     private static final String TIMER_MODE     = "timer_mode";
     private static final String TRAINER_SUBSET    = "trainer_subset";
     private static final String PAGE = "page";
@@ -144,6 +155,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
 
     @BindView(R.id.puzzleCategory) TextView puzzleCategoryText;
     @BindView(R.id.puzzleName) TextView puzzleNameText;
+    @BindView(R.id.puzzleNumber) TextView puzzleNumber;
 
     ActionMode actionMode;
 
@@ -155,6 +167,8 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
     private String                         currentPuzzleCategory;
     private TrainerScrambler.TrainerSubset currentPuzzleSubset;
     private String                         currentTimerMode;
+    private int                            currentMbldNum;
+    private String                         currentScramble;
 
     // Stores the current state of the list switch
     boolean history = false;
@@ -190,6 +204,32 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     break;
                 case R.id.nav_button_bluetooth:
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECT);
+                    break;
+                case R.id.puzzleNumber:
+                    MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
+                            .title(R.string.input_number_of_puzzles)
+                            .inputType(InputType.TYPE_CLASS_NUMBER)
+                            .input(null, String.valueOf(currentMbldNum), false, (dialog1, input) -> {
+                                currentMbldNum = Math.max(Integer.parseInt(input.toString()), 2);
+                                Prefs.edit().putInt(R.string.pk_last_used_mbld_num, currentMbldNum).apply();
+
+                                mFragmentManager
+                                        .beginTransaction()
+                                        .replace(R.id.main_activity_container,
+                                                TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, "reset", currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
+                                        .commit();
+                            })
+                            .positiveText(R.string.action_ok)
+                            .negativeText(R.string.action_cancel)
+                            .build());
+                    EditText editText = dialog.getInputEditText();
+                    if (editText != null) {
+                        editText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(2)});
+                        editText.setGravity(Gravity.CENTER_HORIZONTAL);
+                        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+                    }
+                    dialog.show();
+
                     break;
             }
         }
@@ -320,7 +360,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                     mFragmentManager
                             .beginTransaction()
                             .replace(R.id.main_activity_container,
-                                    TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
+                                    TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, "reset", currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
                             .commit();
 
                     break;
@@ -351,17 +391,20 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
             puzzleNameText.setText(getString(R.string.title_trainer, currentPuzzleSubset.name()));
         else
             puzzleNameText.setText(PuzzleUtils.getPuzzleNameFromType(currentPuzzle));
+        puzzleNumber.setText(String.valueOf(currentMbldNum));
     }
 
     public TimerFragmentMain() {
         // Required empty public constructor
     }
 
-    public static TimerFragmentMain newInstance(String puzzle, String category, String mode, TrainerScrambler.TrainerSubset subset, int page) {
+    public static TimerFragmentMain newInstance(String puzzle, String category, int mbldNum, String scramble, String mode, TrainerScrambler.TrainerSubset subset, int page) {
         final TimerFragmentMain fragment = new TimerFragmentMain();
         Bundle args = new Bundle();
         args.putString(PUZZLE, puzzle);
         args.putString(PUZZLE_SUBTYPE, category);
+        args.putInt(MBLD_NUM, mbldNum);
+        args.putString(SCRAMBLE, scramble);
         args.putString(TIMER_MODE, mode);
         args.putSerializable(TRAINER_SUBSET, subset);
         args.putInt(PAGE, page);
@@ -376,6 +419,8 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         super.onSaveInstanceState(outState);
         outState.putString("puzzle", currentPuzzle);
         outState.putString("subtype", currentPuzzleCategory);
+        outState.putInt("mbld_num", currentMbldNum);
+        outState.putString("scramble", currentScramble);
         outState.putSerializable("subset", currentPuzzleSubset);
         outState.putString("mode", currentTimerMode);
         outState.putBoolean("history", history);
@@ -393,6 +438,9 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         if (getArguments() != null) {
             currentPuzzle = getArguments().getString(PUZZLE);
             currentPuzzleCategory = getArguments().getString(PUZZLE_SUBTYPE);
+            currentMbldNum = getArguments().getInt(MBLD_NUM);
+            currentScramble = getArguments().getString(SCRAMBLE);
+
             currentTimerMode = getArguments().getString(TIMER_MODE);
             currentPuzzleSubset = (TrainerScrambler.TrainerSubset) getArguments().getSerializable(TRAINER_SUBSET);
             currentPage = getArguments().getInt(PAGE);
@@ -402,6 +450,8 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         if (savedInstanceState != null) {
             currentPuzzle = savedInstanceState.getString("puzzle");
             currentPuzzleCategory = savedInstanceState.getString("subtype");
+            currentMbldNum = savedInstanceState.getInt("mbld_num");
+            currentScramble = savedInstanceState.getString("scramble");
             currentTimerMode = savedInstanceState.getString("mode", TimerFragment.TIMER_MODE_TIMER);
             currentPuzzleSubset = (TrainerScrambler.TrainerSubset) savedInstanceState.getSerializable("subset");
             history = savedInstanceState.getBoolean("history");
@@ -441,11 +491,24 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         navButtonHistory.setOnClickListener(clickListener);
         navButtonSettings.setOnClickListener(clickListener);
         navButtonBluetooth.setOnClickListener(clickListener);
+        puzzleNumber.setOnClickListener(clickListener);
 
         if (savedInstanceState == null) {
             // Remember last used puzzle
             currentPuzzle = Prefs.getString(R.string.pk_last_used_puzzle, PuzzleUtils.TYPE_333);
             updateCurrentCategory();
+            currentMbldNum = Prefs.getInt(R.string.pk_last_used_mbld_num, 5);
+            if (currentScramble.equals("reset")) {
+                currentScramble = "";
+                Prefs.edit().putString(R.string.pk_last_used_scramble, "").apply();
+            } else {
+                currentScramble = Prefs.getString(R.string.pk_last_used_scramble, "");
+            }
+        }
+        if (currentScramble.equals("reset")) {
+            // not reachable, just in case
+            currentScramble = "";
+            Prefs.edit().putString(R.string.pk_last_used_scramble, "").apply();
         }
 
         pagerEnabled = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(
@@ -454,8 +517,12 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         viewPager.setPagingEnabled(pagerEnabled);
 
         smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
-        if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+        if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
             navButtonBluetooth.setVisibility(View.GONE);
+        }
+
+        if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+            puzzleNumber.setVisibility(View.VISIBLE);
         }
 
         // Menu bar background
@@ -526,7 +593,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                                              public Loader<Wrapper<Statistics>> onCreateLoader(int id, Bundle args) {
                                                  if (DEBUG_ME)
                                                      Log.d(TAG, "onCreateLoader: STATISTICS_LOADER_ID");
-                                                 return new StatisticsLoader(mContext, Statistics.newAllTimeStatistics(),
+                                                 return new StatisticsLoader(mContext, Statistics.newAllTimeStatistics(currentPuzzle),
                                                                              currentPuzzle, currentPuzzleCategory);
                                              }
 
@@ -651,10 +718,19 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                 }
 
                 if (navButtonBluetooth != null && smartTimerEnabled
-                        && !currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                        && !isTimeDisabled(currentPuzzle)) {
                     navButtonBluetooth.setVisibility(View.VISIBLE);
                     navButtonBluetooth.animate()
                             .withStartAction(() -> navButtonBluetooth.setEnabled(true))
+                            .alpha(1)
+                            .setDuration(200)
+                            .start();
+                }
+
+                if (puzzleNumber != null && currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                    puzzleNumber.setVisibility(View.VISIBLE);
+                    puzzleNumber.animate()
+                            .withStartAction(() -> puzzleNumber.setEnabled(true))
                             .alpha(1)
                             .setDuration(200)
                             .start();
@@ -680,6 +756,18 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                                 // navButtonBluetooth may already be destroyed by the time we get
                                 // to the end action, so we have to check if it still exists
                                 if (navButtonBluetooth != null) navButtonBluetooth.setVisibility(View.GONE);
+                            })
+                            .start();
+                }
+                if (puzzleNumber != null) {
+                    puzzleNumber.animate()
+                            .withStartAction(() -> puzzleNumber.setEnabled(false))
+                            .alpha(0)
+                            .setDuration(200)
+                            .withEndAction(() -> {
+                                // puzzleNumber may already be destroyed by the time we get
+                                // to the end action, so we have to check if it still exists
+                                if (puzzleNumber != null) puzzleNumber.setVisibility(View.GONE);
                             })
                             .start();
                 }
@@ -728,7 +816,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
 
     private void updateBluetoothButton() {
         if (currentPage == TIMER_PAGE) {
-            if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
                 navButtonBluetooth.animate()
                         .withStartAction(() -> navButtonBluetooth.setEnabled(false))
                         .alpha(0)
@@ -769,7 +857,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         mFragmentManager
                 .beginTransaction()
                 .replace(R.id.main_activity_container,
-                        TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
+                        TimerFragmentMain.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, "reset", currentTimerMode, currentPuzzleSubset, currentPage), "fragment_main")
                 .commit();
     }
 
@@ -787,15 +875,15 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
             switch (position) {
                 case TIMER_PAGE:
                     return TimerFragment.newInstance(
-                            currentPuzzle, currentPuzzleCategory, currentTimerMode, currentPuzzleSubset);
+                            currentPuzzle, currentPuzzleCategory, currentMbldNum, currentScramble, currentTimerMode, currentPuzzleSubset);
                 case LIST_PAGE:
                     return TimerListFragment.newInstance(
-                            currentPuzzle, currentPuzzleCategory, history);
+                            currentPuzzle, currentPuzzleCategory, currentMbldNum, currentScramble, history);
                 case GRAPH_PAGE:
                     return TimerGraphFragment.newInstance(
                             currentPuzzle, currentPuzzleCategory, history);
             }
-            return TimerFragment.newInstance(PuzzleUtils.TYPE_333, "Normal", TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL);
+            return TimerFragment.newInstance(PuzzleUtils.TYPE_333, "Normal", 5, "", TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL);
         }
 
         @Override

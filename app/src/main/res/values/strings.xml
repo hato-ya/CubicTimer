@@ -20,9 +20,13 @@
     <string name="action_update">Update</string>
 
     <string name="add_comment">Add comment</string>
-    <string name="add_time">Add time</string>
+    <string name="add_time">Time</string>
     <string name="add_time_hint" translatable="false">1:23.45</string>
-    <string name="add_move_count">Add move count</string>
+    <string name="add_move_count">Move count</string>
+    <string name="add_number_of_puzzles_solved">Solved (including with a penalty)</string>
+    <string name="add_number_of_penalty">Solved with a penalty</string>
+
+    <string name="input_number_of_puzzles">number of puzzles</string>
 
     <string name="added_comment">Comment added</string>
 
@@ -31,6 +35,11 @@
     <string-array name="array_penalties" translatable="false">
         <item>@string/no_penalty</item>
         <item>+2</item>
+        <item>DNF</item>
+    </string-array>
+
+    <string-array name="array_penalties_wo_plus2" translatable="false">
+        <item>@string/no_penalty</item>
         <item>DNF</item>
     </string-array>
 
@@ -86,6 +95,8 @@
     <string name="cube_555bld_informal">5x5bld</string>
     <string name="cube_333fmc">3x3 FMC</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
+    <string name="cube_333mbld">3x3 MBLD</string>
+    <string name="cube_333mbld_informal">3x3MBLD</string>
     <string name="cube_other">Other</string>
 
     <string name="delete_dialog_cancel_button">Cancel</string>
@@ -234,6 +245,9 @@
 
     <string name="personal_best_message">Congratulations!\nYou\'ve just beaten your previous personal best by %1$s</string>
     <string name="personal_worst_message">Congratulations!\nThat\'s the worst solve you\'ve done so far, beating your record by %1$s</string>
+    <string name="personal_best_points">%1$s points</string>
+    <string name="personal_best_seconds">%1$s</string>
+    <string name="personal_best_failed">%1$s failures</string>
 
     <string name="pref_category_title_advanced">Advanced</string>
     <string name="pref_category_title_alerts">Alerts</string>

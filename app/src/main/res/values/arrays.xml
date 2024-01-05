@@ -24,6 +24,7 @@
         <item>@string/cube_444bld</item>
         <item>@string/cube_555bld</item>
         <item>@string/cube_333fmc</item>
+        <item>@string/cube_333mbld</item>
         <item>@string/cube_other</item>
     </string-array>
 

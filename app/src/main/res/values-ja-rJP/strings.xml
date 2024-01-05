@@ -20,9 +20,12 @@
     <string name="action_settings">設定</string>
     <string name="action_update">更新</string>
     <string name="add_comment">コメントを追加する</string>
-    <string name="add_time">タイムを入力する</string>
-    <string name="add_move_count">手数を入力する</string>
+    <string name="add_time">タイム</string>
+    <string name="add_move_count">手数</string>
     <string name="added_comment">追加されたコメント</string>
+    <string name="add_number_of_puzzles_solved">完成した個数（ペナルティ含む）</string>
+    <string name="add_number_of_penalty">ペナルティが必要な個数</string>
+    <string name="input_number_of_puzzles">パズルの個数</string>
     <string name="advanced_pref_summary">この設定変更は問題を引き起こす恐れがあります。</string>
     <string name="backCancelEnabledSummary">ソルブ中に戻るボタンを押したとき、ソルブを中止する。</string>
     <string name="backCancelEnabledTitle">ソルブをキャンセルする</string>
@@ -55,6 +58,7 @@
     <string name="cube_444bld">4×4×4 目隠し</string>
     <string name="cube_555bld">5×5×5 目隠し</string>
     <string name="cube_333fmc">3×3×3 最小手数</string>
+    <string name="cube_333mbld">3×3×3 複数目隠し</string>
     <string name="cube_other">その他</string>
     <string name="delete_dialog_cancel_button">キャンセル</string>
     <string name="delete_dialog_confirmation_button">削除</string>
@@ -151,7 +155,10 @@
     <string name="panel_swipe_down_to_hide">下にスワップしてヒントを隠す</string>
     <string name="permission_denied_explanation">エクスポート/インポート機能を実行するには、Cubic Timerに、外部ストレージにアクセスする権限を付与する必要があります。</string>
     <string name="personal_best_message">おめでとうございます‼ \n自己ベストから %1$sの更新です</string>
-    <string name="personal_worst_message">残念！\n ワーストタイムを%1$s更新！</string>
+    <string name="personal_worst_message">残念！\n ワーストを %1$s更新！</string>
+    <string name="personal_best_points">%1$sポイント</string>
+    <string name="personal_best_seconds">%1$s</string>
+    <string name="personal_best_failed">失敗 %1$s個</string>
     <string name="pref_category_title_advanced">詳細</string>
     <string name="pref_category_title_alerts">アラート</string>
     <string name="pref_category_title_control">操作</string>

@@ -19,17 +19,12 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
 import android.text.InputFilter;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
@@ -40,6 +35,7 @@ import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.TTIntent;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.watcher.SolveTimeNumberTextWatcher;
+import com.hatopigeon.cubictimer.watcher.SolveTimeNumberTextWatcherSecond;
 
 import org.joda.time.DateTime;
 
@@ -48,9 +44,7 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIME_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIME_ADDED_MANUALLY;
-import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGES;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_UI_INTERACTIONS;
 import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 
@@ -70,6 +64,18 @@ public class AddTimeDialog extends DialogFragment {
     @BindView(R.id.button_more)
     View moreButton;
 
+    @BindView(R.id.solvedText)
+    AppCompatTextView solvedText;
+
+    @BindView(R.id.edit_text_solved)
+    AppCompatEditText solvedEditText;
+
+    @BindView(R.id.penaltyText)
+    AppCompatTextView penaltyText;
+
+    @BindView(R.id.edit_text_penalty)
+    AppCompatEditText penaltyEditText;
+
     @BindView(R.id.check_scramble)
     AppCompatCheckBox useCurrentScramble;
 
@@ -81,6 +87,8 @@ public class AddTimeDialog extends DialogFragment {
     private String currentPuzzle;
     private String currentScramble;
     private String currentPuzzleSubtype;
+    private int currentMbldNum;
+    private long currentTime;
 
     private int mCurrentPenalty = PuzzleUtils.NO_PENALTY;
     private String mCurrentComment = "";
@@ -95,12 +103,30 @@ public class AddTimeDialog extends DialogFragment {
             switch (view.getId()) {
                 case R.id.button_save:
                     if (timeEditText.getText().toString().length() > 0) {
-                        int time;
-                        if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
-                            time = (int) PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
-                        } else {
+                        long time = 0;
+                        if (currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
                             // set move count as second (time is milli-second units)
                             time = Integer.parseInt(timeEditText.getText().toString()) * 1000;
+                        } else if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                            if (solvedEditText.getText().toString().length() > 0
+                                    && penaltyEditText.getText().toString().length() > 0) {
+                                // set number of puzzles solved as second and number of puzzles as milli-second
+                                time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString() + ".00");
+                                int solved = Integer.parseInt(solvedEditText.getText().toString());
+                                int penalty = Math.min(Integer.parseInt(penaltyEditText.getText().toString()), currentMbldNum);
+
+                                PuzzleUtils.MbldRecord record =
+                                        new PuzzleUtils.MbldRecord(solved, currentMbldNum,
+                                                time / 1000 + penalty * 2);
+
+                                time = record.getLong();
+                                if (record.isDNF())
+                                    mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
+                            } else {
+                                dismiss();
+                            }
+                        } else {
+                            time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
                         }
                         final Solve solve = new Solve(
                                 mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time,
@@ -133,25 +159,45 @@ public class AddTimeDialog extends DialogFragment {
                     popupMenu.setOnMenuItemClickListener(item -> {
                         switch (item.getItemId()) {
                             case R.id.penalty:
-                                ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
-                                        .title(R.string.select_penalty)
-                                        .items(R.array.array_penalties)
-                                        .itemsCallbackSingleChoice(mCurrentPenalty, (dialog, itemView, which, text) -> {
-                                            switch (which) {
-                                                case 0: // No penalty
-                                                    mCurrentPenalty = PuzzleUtils.NO_PENALTY;
-                                                    break;
-                                                case 1: // +2
-                                                    mCurrentPenalty = PuzzleUtils.PENALTY_PLUSTWO;
-                                                    break;
-                                                case 2: // DNF
-                                                    mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
-                                                    break;
-                                            }
-                                            return true;
-                                        })
-                                        .negativeText(R.string.action_cancel)
-                                        .build());
+                                if (PuzzleUtils.isTimeDisabled(currentPuzzle)) {
+                                    int selectedPenalty = mCurrentPenalty == PuzzleUtils.PENALTY_DNF ? 1 : 0;
+                                    ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                                            .title(R.string.select_penalty)
+                                            .items(R.array.array_penalties_wo_plus2)
+                                            .itemsCallbackSingleChoice(selectedPenalty, (dialog, itemView, which, text) -> {
+                                                switch (which) {
+                                                    case 0: // No penalty
+                                                        mCurrentPenalty = PuzzleUtils.NO_PENALTY;
+                                                        break;
+                                                    case 1: // DNF
+                                                        mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
+                                                        break;
+                                                }
+                                                return true;
+                                            })
+                                            .negativeText(R.string.action_cancel)
+                                            .build());
+                                } else {
+                                    ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                                            .title(R.string.select_penalty)
+                                            .items(R.array.array_penalties)
+                                            .itemsCallbackSingleChoice(mCurrentPenalty, (dialog, itemView, which, text) -> {
+                                                switch (which) {
+                                                    case 0: // No penalty
+                                                        mCurrentPenalty = PuzzleUtils.NO_PENALTY;
+                                                        break;
+                                                    case 1: // +2
+                                                        mCurrentPenalty = PuzzleUtils.PENALTY_PLUSTWO;
+                                                        break;
+                                                    case 2: // DNF
+                                                        mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
+                                                        break;
+                                                }
+                                                return true;
+                                            })
+                                            .negativeText(R.string.action_cancel)
+                                            .build());
+                                }
                                 break;
                             case R.id.comment:
                                 {
@@ -176,12 +222,18 @@ public class AddTimeDialog extends DialogFragment {
         }
     };
 
-    public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, String currentScramble) {
+    public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble) {
+        return newInstance(currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, 0);
+    }
+
+    public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime) {
         AddTimeDialog timeDialog = new AddTimeDialog();
         Bundle args = new Bundle();
         args.putString("puzzle", currentPuzzle);
         args.putString("category", currentPuzzleSubtype);
+        args.putInt("mbldnum", currentMbldNum);
         args.putString("scramble", currentScramble);
+        args.putLong("time", currentTime);
         timeDialog.setArguments(args);
         return timeDialog;
     }
@@ -191,7 +243,9 @@ public class AddTimeDialog extends DialogFragment {
         super.onCreate(savedInstanceState);
         currentPuzzle = getArguments().getString("puzzle");
         currentPuzzleSubtype = getArguments().getString("category");
+        currentMbldNum = getArguments().getInt("mbldnum");
         currentScramble = getArguments().getString("scramble");
+        currentTime = getArguments().getLong("time");
         mContext = getContext();
     }
 
@@ -206,13 +260,26 @@ public class AddTimeDialog extends DialogFragment {
         saveButton.setOnClickListener(clickListener);
         moreButton.setOnClickListener(clickListener);
 
-        if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
-            // format input time
-            timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
-        } else {
+        if (currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
             // input move counts instead of time
             nameText.setText(R.string.add_move_count);
             timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(2)});
+        } else if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+            // format input time
+            timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcherSecond());
+            timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(8)});
+
+            if (currentTime != 0)
+                timeEditText.setText(PuzzleUtils.formatTime(currentTime));
+            penaltyEditText.setText("0");
+
+            solvedText.setVisibility(View.VISIBLE);
+            solvedEditText.setVisibility(View.VISIBLE);
+            penaltyText.setVisibility(View.VISIBLE);
+            penaltyEditText.setVisibility(View.VISIBLE);
+        } else {
+            // format input time
+            timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
         }
 
         // Focus on editText and request keyboard

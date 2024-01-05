@@ -6,8 +6,8 @@ import com.hatopigeon.cubictimer.structures.RedBlackTree;
 
 import androidx.annotation.Nullable;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.DNF;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.UNKNOWN;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.DNF;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.UNKNOWN;
 
 /**
  * Stores a balanced tree, its sum, and its least and greatest times

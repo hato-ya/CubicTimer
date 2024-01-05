@@ -145,7 +145,7 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
     private void handleTime(final TimeHolder holder, final Cursor cursor) {
         final long mId = cursor.getLong(0); // id
         final String pPuzzle = cursor.getString(1); // puzzleType
-        final int pTime = cursor.getInt(3); // time
+        final long pTime = cursor.getLong(3); // time
         final int pPenalty = cursor.getInt(6); // penalty
         final long pDate = cursor.getLong(4); // date
         final String pComment = cursor.getString(7); // comment

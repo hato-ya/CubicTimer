@@ -8,7 +8,7 @@ import androidx.annotation.StringRes;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.items.Solve;
-import com.hatopigeon.cubictimer.stats.AverageCalculator;
+import com.hatopigeon.cubictimer.stats.AverageCalculatorSuper;
 import com.hatopigeon.cubictimer.stats.Statistics;
 
 import org.joda.time.Period;
@@ -18,7 +18,9 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.DNF;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.UNKNOWN;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
 
 /**
  * Created by Ari on 17/01/2016.
@@ -39,6 +41,7 @@ public class PuzzleUtils {
     public static final String TYPE_444BLD  = "444bld";
     public static final String TYPE_555BLD  = "555bld";
     public static final String TYPE_333FMC  = "333fmc";
+    public static final String TYPE_333MBLD = "333mbld";
     public static final String TYPE_OTHER   = "other";
 
     public static final int NO_PENALTY       = 0;
@@ -49,15 +52,127 @@ public class PuzzleUtils {
     public static final int PENALTY_HIDETIME = 10;
 
     public static final int TIME_DNF = - 1;
+    public static final int TIME_UNKNOWN = -2;
 
 
     // -- Format constants for timeToString --
     public static final int FORMAT_SINGLE = 0;
     public static final int FORMAT_STATS = 1;
     public static final int FORMAT_SMALL_MILLI = 2;
-    public static final int FORMAT_NO_MILLI = 3;
-    public static final int FORMAT_LARGE = 4;
+    public static final int FORMAT_NO_MILLI_AXIS = 3;
+    public static final int FORMAT_NO_MILLI_TIMER = 4;
+    public static final int FORMAT_LARGE = 5;
     // --                                    --
+
+    /**
+     * Utility class for multi blind record.
+     */
+    public static class MbldRecord {
+        /**
+         * MBLD record as long value
+         *  PPPP_TTTTTT_FFF
+         *   PPPP   : 1000 - point (it allows minus point)
+         *   TTTTTT : second
+         *   FFF    : # of puzzles failed
+         *
+         * It is similar to internal data of WCA.
+         * It is possible to sort record by using this format.
+         * Decimal assign is different from WCA.
+         */
+        private long mRecord;
+
+        private static final long PLACE_POINT = 1000000L * 1000L;
+        private static final long PLACE_SECOND = 1000L;
+        private static final long MASK_FAILED = 1000L;
+        private static final long MASK_SECOND = 1000000L;
+
+        /**
+         * initialize by long value
+         * @param record
+         */
+        public MbldRecord(long record) {
+            mRecord = record;
+        }
+
+        /**
+         * initialize by solved / attempt
+         *   if solved > attempted, solved is clipped to attempt
+         * @param solved
+         * @param attempted
+         * @param second
+         */
+        public MbldRecord(long solved, long attempted, long second) {
+            long solved_clipped = Math.min(solved, attempted);
+            long point = solved_clipped * 2 - attempted;
+            long failed = attempted - solved_clipped;
+            mRecord = (1000-point) * PLACE_POINT + second * PLACE_SECOND + failed;
+        }
+
+        public long getLong() {
+            return mRecord;
+        }
+
+        private long getRawPoint() {
+            return (1000 - mRecord / PLACE_POINT);
+        }
+
+        public long getFailed() {
+            return mRecord % MASK_FAILED;
+        }
+
+        public long getSecond() {
+            return (mRecord / PLACE_SECOND) % MASK_SECOND;
+        }
+
+        public long getSolved() {
+            return getRawPoint() + getFailed();
+        }
+
+        public long getAttempted() {
+            return getSolved() + getFailed();
+        }
+
+        /**
+         * Get MBLD point.
+         * @return
+         *   time is UNKNOWN : UNKNOWN
+         *   time is DNF     : DNF
+         *   time is 0       : 0
+         *   otherwise       : MBLD point = (solved - unsolved) as second
+         */
+        public long getPoint() {
+            return isUnknown() ? UNKNOWN : (isDNF() ? DNF : (mRecord == 0 ? 0 : getRawPoint() * 1000));
+        }
+
+        public boolean isDNF() {
+            return (mRecord == DNF || getSolved() == 1 || getRawPoint() < 0);
+        }
+
+        protected boolean isUnknown() {
+            return mRecord == UNKNOWN;
+        }
+
+        /**
+         * @return r1.point - r2.point
+         */
+        public static long getPointDiff(long r1, long r2) {
+            return new MbldRecord(r1).getPoint() - new MbldRecord(r2).getPoint();
+        }
+
+        /**
+         * @return r1.second - r2.second
+         */
+        public static long getSecondDiff(long r1, long r2) {
+            return new MbldRecord(r1).getSecond() - new MbldRecord(r2).getSecond();
+        }
+
+        /**
+         * @return r1.failed - r2.failed
+         */
+        public static long getFailedDiff(long r1, long r2) {
+            return new MbldRecord(r1).getFailed() - new MbldRecord(r2).getFailed();
+        }
+    }
 
     public PuzzleUtils() {
     }
@@ -81,7 +196,8 @@ public class PuzzleUtils {
             case 12: return TYPE_444BLD;
             case 13: return TYPE_555BLD;
             case 14: return TYPE_333FMC;
-            case 15: return TYPE_OTHER;
+            case 15: return TYPE_333MBLD;
+            case 16: return TYPE_OTHER;
         }
     }
 
@@ -112,7 +228,8 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return 12;
             case TYPE_555BLD:  return 13;
             case TYPE_333FMC:  return 14;
-            case TYPE_OTHER:   return 15;
+            case TYPE_333MBLD: return 15;
+            case TYPE_OTHER:   return 16;
         }
     }
 
@@ -142,6 +259,7 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return R.string.cube_444bld_informal;
             case TYPE_555BLD:  return R.string.cube_555bld_informal;
             case TYPE_333FMC:  return R.string.cube_333fmc_informal;
+            case TYPE_333MBLD: return R.string.cube_333mbld_informal;
             case TYPE_OTHER:   return R.string.cube_other;
             default:           return 0;
         }
@@ -166,6 +284,7 @@ public class PuzzleUtils {
             case TYPE_444BLD:  return R.string.cube_444bld;
             case TYPE_555BLD:  return R.string.cube_555bld;
             case TYPE_333FMC:  return R.string.cube_333fmc;
+            case TYPE_333MBLD: return R.string.cube_333mbld;
             case TYPE_OTHER:   return R.string.cube_other;
         }
     }
@@ -177,19 +296,36 @@ public class PuzzleUtils {
      *     - xx:xx.xx
      *   - FORMAT_SMALL_MILLI
      *     - xx:xx.xx (.xx is small)
-     *   - FORMAT_NO_MILLI
+     *   - FORMAT_NO_MILLI_AXIS
+     *     - xx:xx
+     *   - FORMAT_NO_MILLI_TIMER
      *     - xx:xx
      *   - FORMAT_LARGE (used for Total Time)
      *     - xxh xxm
      * For FMC
      *   - FORMAT_SINGLE
      *     - xx
-     *   - FORMAT_STATS
-     *     - xx.xx
      *   - FORMAT_SMALL_MILLI
      *     - xx
-     *   - FORMAT_NO_MILLI
+     *   - FORMAT_STATS
+     *     - xx.xx
+     *   - FORMAT_NO_MILLI_AXIS
      *     - xx
+     *   - FORMAT_NO_MILLI_TIMER
+     *     - xx
+     *   - FORMAT_LARGE (used for Total Time)
+     *     - "--"
+     * For MBLD
+     *   - FORMAT_SINGLE (# of solved) / (# of attempted)
+     *     - xx/xx x:xx:xx
+     *   - FORMAT_SMALL_MILLI (# of solved) / (# of attempted)
+     *     - xx/xx x:xx:xx (x:xx:xx is small)
+     *   - FORMAT_STATS point
+     *     - xx.xx
+     *   - FORMAT_NO_MILLI_AXIS point
+     *     - xx
+     *   - FORMAT_NO_MILLI_TIMER (# of solved) / (# of attempted)
+     *     - xx/xx x:xx:xx (x:xx:xx is small)
      *   - FORMAT_LARGE (used for Total Time)
      *     - "--"
      *
@@ -205,14 +341,47 @@ public class PuzzleUtils {
     public static String convertTimeToString(long time, int format, String puzzleType) {
         if (time == TIME_DNF)
             return "DNF";
-        if (time == 0)
+        if (time == TIME_UNKNOWN)
             return "--";
-        if (format == FORMAT_LARGE && puzzleType.equals(TYPE_333FMC))
+        if (format == FORMAT_LARGE && isTimeDisabled(puzzleType))
             return "--";
 
         StringBuilder formattedString = new StringBuilder();
 
-        if (!puzzleType.equals(TYPE_333FMC)) {
+        if (puzzleType.equals(TYPE_333FMC)) {
+            // simply append move count
+            formattedString.append(time/1000);
+        } else if (puzzleType.equals(TYPE_333MBLD)) {
+            switch (format) {
+                case FORMAT_SINGLE:
+                case FORMAT_SMALL_MILLI:
+                case FORMAT_NO_MILLI_TIMER:
+                    MbldRecord record = new MbldRecord(time);
+                    if (record.getLong() == 0)
+                        return "0";
+
+                    // solved / attempted
+                    formattedString.append(record.getSolved() + "/" + record.getAttempted() + " ");
+
+                    String strTime = formatTime(record.getSecond()*1000);
+
+                    if (format == FORMAT_SMALL_MILLI || format == FORMAT_NO_MILLI_TIMER) {
+                        formattedString.append("<small>");
+                        formattedString.append(strTime);
+                        formattedString.append("</small>");
+                    } else {
+                        formattedString.append(strTime);
+                    }
+                    break;
+                case FORMAT_STATS:
+                case FORMAT_NO_MILLI_AXIS:
+                    // points is saved as second
+                    formattedString.append(time/1000);
+                    break;
+                default:
+                    return "--";
+            }
+        } else {
             // PeriodFormatter ignores appends (and suffixes) if time is not enough to convert.
             // If the time ir smaller than 10_000 milliseconds (10 seconds), do not pad it with
             // a zero
@@ -242,9 +411,6 @@ public class PuzzleUtils {
             }
 
             formattedString.append(period.toString(periodFormatter));
-        } else {
-            // simply append move count
-            formattedString.append(time/1000);
         }
 
         // Restrict millis to 2 digits
@@ -253,7 +419,7 @@ public class PuzzleUtils {
         // Append millis
         switch (format) {
             case FORMAT_SINGLE:
-                if (!puzzleType.equals(TYPE_333FMC)) {
+                if (!isTimeDisabled(puzzleType)) {
                     formattedString.append(".");
                     formattedString.append(millis);
                 }
@@ -263,16 +429,62 @@ public class PuzzleUtils {
                 formattedString.append(millis);
                 break;
             case FORMAT_SMALL_MILLI:
-                if (!puzzleType.equals(TYPE_333FMC)) {
+                if (!isTimeDisabled(puzzleType)) {
                     formattedString.append("<small>.");
                     formattedString.append(millis);
                     formattedString.append("</small>");
                 }
                 break;
-            case FORMAT_NO_MILLI:
+            case FORMAT_NO_MILLI_AXIS:
+            case FORMAT_NO_MILLI_TIMER:
             default:
                 break;
         }
+
+        return formattedString.toString();
+    }
+
+    /**
+     * format time simply to xx:xx:xx (second)
+     * @param time
+     * @return
+     */
+    public static String formatTime(long time) {
+        StringBuilder formattedString = new StringBuilder();
+
+        // second (xx:xx:xx)
+        Period period;
+        try {
+            period = new Period(time);
+        } catch (ArithmeticException e) {
+            return "";
+        }
+        PeriodFormatterBuilder periodFormatterBuilder = new PeriodFormatterBuilder();
+        PeriodFormatter periodFormatter;
+
+        int digitsMinutes = time >= 10 * 60 * 1000 ? 2 : (time >= 60 * 1000 ? 1 : 0);
+        int digitsSeconds = time >=      10 * 1000 ? 2 : 1;
+
+        if (time >= 60 * 60 * 1000) {
+            periodFormatter = periodFormatterBuilder
+                    .appendHours().appendSuffix(":")
+                    .printZeroAlways()
+                    .minimumPrintedDigits(digitsMinutes)
+                    .appendMinutes().appendSuffix(":")
+                    .minimumPrintedDigits(digitsSeconds)
+                    .appendSeconds()
+                    .toFormatter();
+        } else {
+            periodFormatter = periodFormatterBuilder
+                    .minimumPrintedDigits(digitsMinutes)
+                    .appendMinutes().appendSuffix(":")
+                    .printZeroAlways()
+                    .minimumPrintedDigits(digitsSeconds)
+                    .appendSeconds()
+                    .toFormatter();
+        }
+
+        formattedString.append(period.toString(periodFormatter));
 
         return formattedString.toString();
     }
@@ -295,7 +507,7 @@ public class PuzzleUtils {
      *     milliseconds. If the time cannot be parsed because the format does not conform to the
      *     requirements, zero is returned.
      */
-    public static int parseTime(String time) {
+    public static long parseTime(String time) {
         final String timeStr = time.trim();
         final int colonIdx = timeStr.indexOf(':');
         int parsedTime = 0;
@@ -332,7 +544,8 @@ public class PuzzleUtils {
         long timeMillis = 0;
         String[] times = time.split("[h]|:|\\.");
 
-        switch (times.length) {
+        try {
+            switch (times.length) {
             case 2: // ss.SS
                 timeMillis += Long.valueOf(times[0]) * 1_000
                               + Long.valueOf(times[1]) * 10;
@@ -348,8 +561,33 @@ public class PuzzleUtils {
                               + Long.valueOf(times[2]) * 1_000
                               + Long.valueOf(times[3]) * 10;
                 break;
+            }
+        } catch (NumberFormatException ignore) {
+            timeMillis = 0; // Invalid time format.
         }
+
         return timeMillis;
+    }
+
+    /**
+     * Parse a mbld record "x/y h:mm:ss"
+     * @param record String of MBLD record
+     * @return MBLD record as long
+     */
+    public static long parseMbldRecord(String record) {
+        // record "x/y h:mm:ss"
+        //  -> records[0] = "x"
+        //     records[1] = "y"
+        //     records[2] = "h:mm:ss"
+        String[] records = record.split("/| ");
+        if (records.length != 3)
+            return 0;
+
+        long solved = Long.parseLong(records[0]);
+        long attempted = Long.parseLong(records[1]);
+        long second = parseAddedTime(records[2]+".00")/1000;
+
+        return new MbldRecord(solved, attempted, second).getLong();
     }
 
     /**
@@ -401,11 +639,11 @@ public class PuzzleUtils {
             return null;
         }
 
-        final AverageCalculator.AverageOfN aoN = stats.getAverageOf(n, true).getAverageOfN();
+        final AverageCalculatorSuper.AverageOfN aoN = stats.getAverageOf(n, true).getAverageOfN();
         final long[] times = aoN.getTimes();
         final long average = aoN.getAverage();
 
-        if (average == AverageCalculator.UNKNOWN || times == null) {
+        if (average == AverageCalculatorSuper.UNKNOWN || times == null) {
             return null;
         }
 
@@ -542,7 +780,7 @@ public class PuzzleUtils {
             for (Long time : timeFreqs.keySet()) {
                 histogram
                         .append('\n')
-                        .append(convertTimeToString(tr(time), FORMAT_NO_MILLI, puzzleType))
+                        .append(convertTimeToString(tr(time), FORMAT_NO_MILLI_AXIS, puzzleType))
                         .append(": ")
                         .append(convertToBars(timeFreqs.get(time))); // frequency value.
             }
@@ -612,12 +850,30 @@ public class PuzzleUtils {
      */
     public static boolean isInspectionEnabled (String puzzleType) {
         return !(puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
-                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC));
+                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC)
+                || puzzleType.equals(TYPE_333MBLD));
     }
 
+    /**
+     * Confirm puzzle that Mo3 is used
+     *
+     * @param puzzleType current puzzle type
+     * @return
+     */
     public static boolean isForceMo3Enabled (String puzzleType) {
         return puzzleType.equals(TYPE_666) || puzzleType.equals(TYPE_777)
                 || puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
-                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC);
+                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC)
+                || puzzleType.equals(TYPE_333MBLD);
+    }
+
+    /**
+     * Confirm time is used or not (FMC, MBLD)
+     *
+     * @param puzzleType current puzzle type
+     * @return
+     */
+    public static boolean isTimeDisabled (String puzzleType) {
+        return puzzleType.equals(TYPE_333FMC) || puzzleType.equals(TYPE_333MBLD);
     }
 }

@@ -100,7 +100,7 @@ public class TimeDialog extends DialogFragment {
                                 case R.id.share:
                                     Intent shareIntent = new Intent();
                                     shareIntent.setAction(Intent.ACTION_SEND);
-                                    if (!solve.getPuzzle().equals(PuzzleUtils.TYPE_333FMC)) {
+                                    if (!PuzzleUtils.isTimeDisabled(solve.getPuzzle())) {
                                         shareIntent.putExtra(Intent.EXTRA_TEXT, PuzzleUtils.convertTimeToString(solve.getTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle()) + "s.\n" + solve.getComment() + "\n" + solve.getScramble());
                                     } else {
                                         shareIntent.putExtra(Intent.EXTRA_TEXT, PuzzleUtils.convertTimeToString(solve.getTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle()) + ".\n" + solve.getComment() + "\n" + solve.getScramble());
@@ -133,28 +133,51 @@ public class TimeDialog extends DialogFragment {
                     popupHelper.show();
                     break;
                 case R.id.editButton:
-                    ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
-                            .title(R.string.select_penalty)
-                            .items(R.array.array_penalties)
-                            .itemsCallbackSingleChoice(solve.getPenalty(), (dialog, itemView, which, text) -> {
-                                switch (which) {
-                                    case 0: // No penalty
-                                        solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.NO_PENALTY);
-                                        break;
-                                    case 1: // +2
-                                        solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.PENALTY_PLUSTWO);
-                                        break;
-                                    case 2: // DNF
-                                        solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.PENALTY_DNF);
-                                        break;
-                                }
-                                dbHandler.updateSolve(solve);
-                                // dismiss dialog
-                                updateList();
-                                return true;
-                            })
-                            .negativeText(R.string.action_cancel)
-                            .build());
+                    if (PuzzleUtils.isTimeDisabled(solve.getPuzzle())) {
+                        int selectedPenalty = solve.getPenalty() == PuzzleUtils.PENALTY_DNF ? 1 : 0;
+                        ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                                .title(R.string.select_penalty)
+                                .items(R.array.array_penalties_wo_plus2)
+                                .itemsCallbackSingleChoice(selectedPenalty, (dialog, itemView, which, text) -> {
+                                    switch (which) {
+                                        case 0: // No penalty
+                                            solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.NO_PENALTY);
+                                            break;
+                                        case 1: // DNF
+                                            solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.PENALTY_DNF);
+                                            break;
+                                    }
+                                    dbHandler.updateSolve(solve);
+                                    // dismiss dialog
+                                    updateList();
+                                    return true;
+                                })
+                                .negativeText(R.string.action_cancel)
+                                .build());
+                    } else {
+                        ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                                .title(R.string.select_penalty)
+                                .items(R.array.array_penalties)
+                                .itemsCallbackSingleChoice(solve.getPenalty(), (dialog, itemView, which, text) -> {
+                                    switch (which) {
+                                        case 0: // No penalty
+                                            solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.NO_PENALTY);
+                                            break;
+                                        case 1: // +2
+                                            solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.PENALTY_PLUSTWO);
+                                            break;
+                                        case 2: // DNF
+                                            solve = PuzzleUtils.applyPenalty(solve, PuzzleUtils.PENALTY_DNF);
+                                            break;
+                                    }
+                                    dbHandler.updateSolve(solve);
+                                    // dismiss dialog
+                                    updateList();
+                                    return true;
+                                })
+                                .negativeText(R.string.action_cancel)
+                                .build());
+                    }
                     break;
                 case R.id.commentButton:
                     {

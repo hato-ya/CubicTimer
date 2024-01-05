@@ -245,7 +245,7 @@ public class ChartStatisticsLoader extends AsyncTaskLoader<Wrapper<ChartStatisti
             // times and for the current session in the same instance.
             mChartStats = isForCurrentSessionOnly
                     ? ChartStatistics.newCurrentSessionChartStatistics(mChartStyle, mPuzzleType)
-                    : ChartStatistics.newAllTimeChartStatistics(mChartStyle);
+                    : ChartStatistics.newAllTimeChartStatistics(mChartStyle, mPuzzleType);
 
             // Wrapper remains empty until the first load is attempted. This allows a distinction
             // to be made between "was not loaded" and "was loaded, but the database had no times".

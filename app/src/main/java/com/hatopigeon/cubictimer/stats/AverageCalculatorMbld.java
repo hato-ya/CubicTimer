@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.hatopigeon.cubictimer.items.AverageComponent;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
+import com.hatopigeon.cubictimer.utils.PuzzleUtils.MbldRecord;
 import com.hatopigeon.cubictimer.utils.StatUtils;
 
 import java.util.ArrayList;
@@ -12,17 +13,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Calculates the average time of a number of puzzle solves. Running averages are easily calculated
- * as each new solve is added. If the number of solve times is five or greater, the best and worst
- * times are discarded before returning the truncated arithmetic mean (aka "trimmed mean" or
- * "modified mean) of the remaining times. All times and averages are in milliseconds. The mean,
- * minimum (best) and maximum (worst) of all added times, and the best average from all values of
- * the running average are also made available.
- *
- * @author damo
+ * AverageCalculator for MBLD
  */
-public final class AverageCalculator extends AverageCalculatorSuper {
-    AverageCalculator(int n, int trimPercent) {
+public final class AverageCalculatorMbld extends AverageCalculatorSuper {
+    AverageCalculatorMbld(int n, int trimPercent) {
         super(n, trimPercent);
     }
 
@@ -46,7 +40,7 @@ public final class AverageCalculator extends AverageCalculatorSuper {
             // being until the import algorithm gets sorted out.
             // TODO: Should the app automatically remove illegal solves?
 
-            Log.e("AverageCalculator", "Time must be > 0 or be 'DNF': " + time);
+            Log.e("AverageCalculatorMbld", "Time must be > 0 or be 'DNF': " + time);
 
             // throw new IllegalArgumentException("Time must be > 0 or be 'DNF': " + time);
         } else {
@@ -74,18 +68,22 @@ public final class AverageCalculator extends AverageCalculatorSuper {
                     mTimes[mNext] = time;
 
                     // Sort mTimes
+                    // it can be sorted as same as others but order is reversed
+                    // reverse order of time means normal oder of point
                     List<Long> sortedTimes = new ArrayList<>(StatUtils.asList(mTimes));
-                    Collections.sort(sortedTimes);
+                    Collections.sort(sortedTimes, Collections.reverseOrder());
 
                     // Distribute the sorted times into the trims
                     int count = 0;
                     for (long solve : sortedTimes) {
+                        long point = new MbldRecord(solve).getPoint();
+                        if (point == DNF) point = -1;
                         if (count < mLowerTrimBound)
-                            mLowerTrim.put(solve);
+                            mLowerTrim.put(point);
                         else if (count >= mUpperTrimBound)
-                            mUpperTrim.put(solve);
+                            mUpperTrim.put(point);
                         else
-                            mMiddleTrim.put(solve);
+                            mMiddleTrim.put(point);
                         count++;
                     }
                 }
@@ -98,16 +96,18 @@ public final class AverageCalculator extends AverageCalculatorSuper {
             mTimes[mNext] = time;
             mNext++;
 
-            //Log.d("AverageCalculator", "N: " + mN + " | Set: " + mSortedTimes);
+            //Log.d("AverageCalculatorMbld", "N: " + mN + " | Set: " + mSortedTimes);
 
             // Order is important here, as these methods change fields and some methods depend on the
             // fields being updated by other methods before they are called. All depend on the new
             // time being stored already (see above) and any ejected time being known (also above).
+            final long point = new MbldRecord(time).getPoint();
+            final long ejectedPoint = new MbldRecord(ejectedTime).getPoint();
             updateDNFCounts(time, ejectedTime);
             updateCurrentBestAndWorstTimes(time, ejectedTime);
-            updateSums(time, ejectedTime);
-            updateCurrentTrims(time, ejectedTime);
-            updateVariance(time);
+            updateSums(point, ejectedPoint);
+            updateCurrentTrims(point, ejectedPoint);
+            updateVariance(point);
             updateCurrentAverage();
 
             updateAllTimeBestAndWorstTimes();
@@ -117,6 +117,9 @@ public final class AverageCalculator extends AverageCalculatorSuper {
 
     @Override
     protected void updateCurrentTrims(long addedTime, long ejectedTime) {
+        if (addedTime == DNF) addedTime = -1;
+        if (ejectedTime == DNF) ejectedTime = -1;
+
         if (mNumSolves > mN && mLowerTrimBound > 0) {
             // Ejected time belongs to lower trim
             if (ejectedTime <= mLowerTrim.getGreatest()) {
@@ -210,12 +213,12 @@ public final class AverageCalculator extends AverageCalculatorSuper {
             // Therefore, we never set "mAllTimeBestAverage" to a value worse than it already has.
             mAllTimeBestAverage = mCurrentAverage;
         } else if (mCurrentAverage != DNF) {
-            if (mCurrentAverage < mAllTimeBestAverage) {
+            if (mCurrentAverage > mAllTimeBestAverage) {
                 mIsAllTimeBestAverageUpdated = true;
             } else {
                 mIsAllTimeBestAverageUpdated = false;
             }
-            mAllTimeBestAverage = Math.min(mAllTimeBestAverage, mCurrentAverage);
+            mAllTimeBestAverage = Math.max(mAllTimeBestAverage, mCurrentAverage);
         }
     }
 }

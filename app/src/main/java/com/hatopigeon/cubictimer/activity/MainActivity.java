@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState == null) {
             fragmentManager
                 .beginTransaction()
-                .replace(R.id.main_activity_container, TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
+                .replace(R.id.main_activity_container, TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", 5, "", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
                 .commit();
         }
 
@@ -364,7 +364,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
+                                                         TimerFragmentMain.newInstance(PuzzleUtils.TYPE_333, "Normal", 5, "reset", TimerFragment.TIMER_MODE_TIMER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.OLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
+                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.OLL.name(), "Normal", 5, "reset", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.OLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });
@@ -390,7 +390,7 @@ public class MainActivity extends AppCompatActivity
                                         fragmentManager
                                                 .beginTransaction()
                                                 .replace(R.id.main_activity_container,
-                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.PLL.name(), "Normal", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
+                                                         TimerFragmentMain.newInstance(TrainerScrambler.TrainerSubset.PLL.name(), "Normal", 5, "reset", TimerFragment.TIMER_MODE_TRAINER, TrainerScrambler.TrainerSubset.PLL, TIMER_PAGE), "fragment_main")
                                                 .commit();
                                     }
                                 });
@@ -783,7 +783,7 @@ public class MainActivity extends AppCompatActivity
                         while (cursor.moveToNext()) {
                             out.write('"' + cursor.getString(IDX_TYPE)
                                     + "\";\"" + cursor.getString(IDX_SUBTYPE)
-                                    + "\";\"" + cursor.getInt(IDX_TIME)
+                                    + "\";\"" + cursor.getLong(IDX_TIME)
                                     + "\";\"" + cursor.getLong(IDX_DATE)
                                     + "\";\"" + cursor.getString(IDX_SCRAMBLE)
                                     + "\";\"" + cursor.getInt(IDX_PENALTY)
@@ -805,7 +805,7 @@ public class MainActivity extends AppCompatActivity
 
                         while (cursor.moveToNext()) {
                             String csvValues
-                                    = '"' + PuzzleUtils.convertTimeToString(cursor.getInt(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType)
+                                    = '"' + PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType)
                                     + "\";\"" + cursor.getString(IDX_SCRAMBLE)
                                     + "\";\"" + new DateTime(cursor.getLong(IDX_DATE)).toString()
                                     + '"';
@@ -958,7 +958,7 @@ public class MainActivity extends AppCompatActivity
                     while ((line = csvReader.readNext()) != null) {
                         try {
                             solveList.add(new Solve(
-                                Integer.parseInt(line[2]), line[0], line[1], Long.parseLong(line[3]),
+                                Long.parseLong(line[2]), line[0], line[1], Long.parseLong(line[3]),
                                 line[4], Integer.parseInt(line[5]), line[6], mIsToArchive));
                         } catch (Exception e) {
                             parseErrors++;
@@ -972,7 +972,12 @@ public class MainActivity extends AppCompatActivity
                             try {
                                 Log.d("IMPORTING EXTERNAL", "time: " + line[0]);
 
-                                int time = PuzzleUtils.parseTime(line[0]);
+                                long time;
+                                if (mPuzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
+                                    time = PuzzleUtils.parseMbldRecord(line[0]);
+                                } else {
+                                    time = PuzzleUtils.parseTime(line[0]);
+                                }
                                 String scramble = "";
                                 long date = now;
                                 int penalty = PuzzleUtils.NO_PENALTY;

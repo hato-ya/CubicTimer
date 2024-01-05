@@ -51,7 +51,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
 
 /**
@@ -586,8 +586,8 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
             return;
         }
 
-        // "tr()" converts from "AverageCalculator.UNKNOWN" and "AverageCalculator.DNF" to the
-        // values needed by "convertTimeToString".
+        // "tr()" converts from "AverageCalculatorSuper.UNKNOWN" and "AverageCalculatorSuper.DNF" to
+        // the values needed by "convertTimeToString".
 
         ArrayList<Stat> averageList = buildAverageList(stats);
         ArrayList<Stat> otherList = buildOtherStatList(stats);

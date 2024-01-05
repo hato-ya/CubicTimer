@@ -1,13 +1,13 @@
 package com.hatopigeon.cubictimer.stats;
 
-import com.hatopigeon.cubictimer.stats.AverageCalculator.AverageOfN;
+import com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.AverageOfN;
 
 import org.junit.Test;
 
 import java.util.Random;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.DNF;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.UNKNOWN;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.DNF;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.UNKNOWN;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

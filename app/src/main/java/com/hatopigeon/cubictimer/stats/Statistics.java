@@ -10,14 +10,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.DNF;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.UNKNOWN;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.DNF;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.UNKNOWN;
 
 import android.util.Log;
 
 /**
- * A collection of {@link AverageCalculator} instances that distributes solve times to each
+ * A collection of {@link AverageCalculatorSuper} instances that distributes solve times to each
  * calculator. The calculators can be segregated into averages for times from the current session
  * only, and averages for times from all past sessions (including the current session). This also
  * provides a simple API to access the all-time and session mean, best and worst times and solve
@@ -30,24 +29,24 @@ public class Statistics {
      * The average calculators for averages of times across all sessions. The calculators are keyed
      * by the number of times used to calculate the average.
      */
-    private final Map<Integer, AverageCalculator> mAllTimeACs = new HashMap<>();
+    private final Map<Integer, AverageCalculatorSuper> mAllTimeACs = new HashMap<>();
 
     /**
      * The average calculators for averages of times in the current session only. The calculators
      * are keyed by the number of times used to calculate the average.
      */
-    private final Map<Integer, AverageCalculator> mSessionACs = new HashMap<>();
+    private final Map<Integer, AverageCalculatorSuper> mSessionACs = new HashMap<>();
 
     /**
      * The average calculators for averages of today's time. The calculators
      * are keyed by the number of times used to calculate the average.
      */
-    private final Map<Integer, AverageCalculator> mTodayACs = new HashMap<>();
+    private final Map<Integer, AverageCalculatorSuper> mTodayACs = new HashMap<>();
 
     /**
      * The frequencies of solve times across all sessions. The keys are the solve times in
      * milliseconds, but truncated to whole seconds, and the values are the number of solve times.
-     * {@link AverageCalculator#DNF} may also be a key.
+     * {@link AverageCalculatorSuper#DNF} may also be a key.
      */
     // NOTE: A "TreeMap" ensures that the entries are ordered by key (time) value.
     private final TreeMap<Long, Integer> mAllTimeTimeFreqs = new TreeMap<>();
@@ -55,14 +54,14 @@ public class Statistics {
     /**
      * The frequencies of solve times for the current session. The keys are the solve times in
      * milliseconds, but truncated to whole seconds and the values are the number of solve times.
-     * {@link AverageCalculator#DNF} may also be a key.
+     * {@link AverageCalculatorSuper#DNF} may also be a key.
      */
     private final TreeMap<Long, Integer> mSessionTimeFreqs = new TreeMap<>();
 
     /**
      * The frequencies of solve times today. The keys are the solve times in
      * milliseconds, but truncated to whole seconds and the values are the number of solve times.
-     * {@link AverageCalculator#DNF} may also be a key.
+     * {@link AverageCalculatorSuper#DNF} may also be a key.
      */
     private final TreeMap<Long, Integer> mTodayTimeFreqs = new TreeMap<>();
 
@@ -70,22 +69,27 @@ public class Statistics {
      * An average calculator for solves across all past sessions and the current session. May be
      * {@code null}.
      */
-    private AverageCalculator mOneAllTimeAC;
+    private AverageCalculatorSuper mOneAllTimeAC;
 
     /**
      * An average calculator for solves only in the current session. May be {@code null}.
      */
-    private AverageCalculator mOneSessionAC;
+    private AverageCalculatorSuper mOneSessionAC;
 
     /**
      * An average calculator for solves today. May be {@code null}.
      */
-    private AverageCalculator mOneTodayAC;
+    private AverageCalculatorSuper mOneTodayAC;
 
     /**
      * Percent to trim off each end
      */
     private static int mTrimSize;
+
+    /**
+     * Type of puzzle
+     */
+    private static String puzzleType;
 
     /**
      * Type of session
@@ -109,7 +113,8 @@ public class Statistics {
      * Creates a new collection for statistics. Use a factory method to create a standard set of
      * statistics.
      */
-    private Statistics() {
+    private Statistics(String currentPuzzle) {
+        puzzleType = currentPuzzle;
     }
 
     /**
@@ -121,8 +126,8 @@ public class Statistics {
      *
      * @return The detailed set of all-time solve time statistics for the statistics/graph tab.
      */
-    public static Statistics newAllTimeStatistics() {
-        final Statistics stats = new Statistics();
+    public static Statistics newAllTimeStatistics(String currentPuzzle) {
+        final Statistics stats = new Statistics(currentPuzzle);
 
         mTrimSize = Prefs.getInt(R.string.pk_stat_trim_size, Prefs.getDefaultIntValue(R.integer.defaultTrimSize));
 
@@ -145,8 +150,8 @@ public class Statistics {
      *
      * @return The solve time statistics for graphing the all-time averages.
      */
-    static Statistics newAllTimeAveragesChartStatistics() {
-        final Statistics stats = new Statistics();
+    static Statistics newAllTimeAveragesChartStatistics(String currentPuzzle) {
+        final Statistics stats = new Statistics(currentPuzzle);
 
         // Averages for the current session only IS NOT A MISTAKE! The "ChartStatistics" class
         // passes all data in for the "current session", but makes a distinction using its own API.
@@ -164,7 +169,7 @@ public class Statistics {
      * @return The solve time statistics for graphing the current session averages.
      */
     static Statistics newCurrentSessionAveragesChartStatistics(String currentPuzzle) {
-        final Statistics stats = new Statistics();
+        final Statistics stats = new Statistics(currentPuzzle);
 
         if (PuzzleUtils.isForceMo3Enabled(currentPuzzle))
             stats.addAverageOf(3, 0, true);
@@ -180,15 +185,15 @@ public class Statistics {
      * calculators and time frequencies are reset, but the average-of-N calculators are not removed.
      */
     public void reset() {
-        for (final AverageCalculator allTimeAC : mAllTimeACs.values()) {
+        for (final AverageCalculatorSuper allTimeAC : mAllTimeACs.values()) {
             allTimeAC.reset();
         }
 
-        for (final AverageCalculator sessionAC : mSessionACs.values()) {
+        for (final AverageCalculatorSuper sessionAC : mSessionACs.values()) {
             sessionAC.reset();
         }
 
-        for (final AverageCalculator todayAC : mTodayACs.values()) {
+        for (final AverageCalculatorSuper todayAC : mTodayACs.values()) {
             todayAC.reset();
         }
 
@@ -245,6 +250,13 @@ public class Statistics {
         return ns;
     }
 
+    private AverageCalculatorSuper createAverageCalculator(int n, int trimPercent) {
+        if (!puzzleType.equals(PuzzleUtils.TYPE_333MBLD))
+            return new AverageCalculator(n, trimPercent);
+        else
+            return new AverageCalculatorMbld(n, trimPercent);
+    }
+
     /**
      * Creates a new calculator for the "average of <i>n</i>" solve times.
      *
@@ -260,7 +272,7 @@ public class Statistics {
      *     If {@code n} is not greater than zero.
      */
     private void addAverageOf(int n, int trimPercent, boolean isForCurrentSessionOnly) {
-        final AverageCalculator ac = new AverageCalculator(n, trimPercent);
+        final AverageCalculatorSuper ac = createAverageCalculator(n, trimPercent);
 
         mSessionACs.put(n, ac);
         if (mOneSessionAC == null) {
@@ -268,8 +280,8 @@ public class Statistics {
         }
 
         if (!isForCurrentSessionOnly) {
-            final AverageCalculator acAllTIme = new AverageCalculator(n, trimPercent);
-            final AverageCalculator acToday = new AverageCalculator(n, trimPercent);
+            final AverageCalculatorSuper acAllTIme = createAverageCalculator(n, trimPercent);
+            final AverageCalculatorSuper acToday = createAverageCalculator(n, trimPercent);
 
             mAllTimeACs.put(n, acAllTIme);
             if (mOneAllTimeAC == null) {
@@ -297,7 +309,7 @@ public class Statistics {
      *     The requested average calculator, or {@code null} if no such calculator was defined for
      *     these statistics.
      */
-    public AverageCalculator getAverageOf(int n, boolean isForCurrentSessionOnly) {
+    public AverageCalculatorSuper getAverageOf(int n, boolean isForCurrentSessionOnly) {
         if (isForCurrentSessionOnly) {
             return mSessionACs.get(n);
         }
@@ -316,7 +328,7 @@ public class Statistics {
      *     The requested average calculator, or {@code null} if no such calculator was defined for
      *     these statistics.
      */
-    public AverageCalculator getAverageOf(int n, SessionType sessionType) {
+    public AverageCalculatorSuper getAverageOf(int n, SessionType sessionType) {
         switch (sessionType) {
             case ALL_TIME:
                 return mAllTimeACs.get(n);
@@ -333,7 +345,7 @@ public class Statistics {
      * call {@link #addDNF} instead.
      *
      * @param time
-     *     The solve time in milliseconds. Must be positive (though {@link AverageCalculator#DNF}
+     *     The solve time in milliseconds. Must be positive (though {@link AverageCalculatorSuper#DNF}
      *     is also accepted).
      * @param isForCurrentSession
      *     {@code true} if the solve was added during the current session; or {@code false} if
@@ -347,29 +359,39 @@ public class Statistics {
     public void addTime(long time, boolean isForCurrentSession, boolean isToday)
             throws IllegalArgumentException {
 
-        // Cutting off last digit to fix rounding errors
-        if (time != DNF)
-            time = time - (time % 10);
+        if (puzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
+            if (new PuzzleUtils.MbldRecord(time).isDNF())
+                time = DNF;
+        } else {
+            // Cutting off last digit to fix rounding errors
+            if (time != DNF)
+                time = time - (time % 10);
+        }
 
-        // "time" is validated on the first call to "AverageCalculator.addTime".
-        for (final AverageCalculator allTimeAC : mAllTimeACs.values()) {
+        // "time" is validated on the first call to "AverageCalculatorSuper.addTime".
+        for (final AverageCalculatorSuper allTimeAC : mAllTimeACs.values()) {
             allTimeAC.addTime(time);
         }
 
         if (isForCurrentSession) {
-            for (final AverageCalculator sessionAC : mSessionACs.values()) {
+            for (final AverageCalculatorSuper sessionAC : mSessionACs.values()) {
                 sessionAC.addTime(time);
             }
         }
 
         if (isForCurrentSession && isToday) {
-            for (final AverageCalculator todayAC : mTodayACs.values()) {
+            for (final AverageCalculatorSuper todayAC : mTodayACs.values()) {
                 todayAC.addTime(time);
             }
         }
 
         // Updated the time frequencies.
-        final long timeForFreq = time == DNF ? DNF : (time - time % 1_000);
+        long timeForFreq;
+        if (puzzleType.equals(PuzzleUtils.TYPE_333MBLD))
+            timeForFreq = new PuzzleUtils.MbldRecord(time).getPoint();
+        else
+            timeForFreq = time == DNF ? DNF : (time - time % 1_000);
+
         Integer oldFreq;
 
         oldFreq = mAllTimeTimeFreqs.get(timeForFreq);
@@ -406,7 +428,7 @@ public class Statistics {
      *
      * @return
      *     The best time ever added for the current session. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getSessionBestTime() {
@@ -419,7 +441,7 @@ public class Statistics {
      *
      * @return
      *     The worst time ever added for the current session. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getSessionWorstTime() {
@@ -454,7 +476,7 @@ public class Statistics {
      *
      * @return
      *     The mean time of all non-DNF solves that were added for the current session. The result
-     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added
      *     times were DNFs.
      */
     public long getSessionMeanTime() {
@@ -467,7 +489,7 @@ public class Statistics {
      *
      * @return
      *     The total time of all non-DNF solves that were added for the current session. The result
-     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added
      *     times were DNFs.
      */
     public long getSessionTotalTime() {
@@ -480,7 +502,7 @@ public class Statistics {
      *
      * @return
      *     The current Sample Standard Deviation of all non-DNF solves that were added for the
-     *     current session. The result will be {@link AverageCalculator#UNKNOWN} if no times have
+     *     current session. The result will be {@link AverageCalculatorSuper#UNKNOWN} if no times have
      *     been added, or if all added times were DNFs.
      */
     public long getSessionStdDeviation() {
@@ -490,7 +512,7 @@ public class Statistics {
     /**
      * Gets the solve time frequencies for the current sessions. The times are truncated to whole
      * seconds, but still expressed as milliseconds. The keys are the times (and
-     * {@link AverageCalculator#DNF} can be a key), and the values are the number of solves times
+     * {@link AverageCalculatorSuper#DNF} can be a key), and the values are the number of solves times
      * that fell into the one-second interval for that key. For example, if the key is "4", the
      * value is the number of solve times of "four-point-something seconds".
      *
@@ -508,7 +530,7 @@ public class Statistics {
      *
      * @return
      *     The best time ever added for all past and current sessions. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getAllTimeBestTime() {
@@ -521,7 +543,7 @@ public class Statistics {
      *
      * @return
      *     The worst time ever added for all past and current sessions. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getAllTimeWorstTime() {
@@ -556,7 +578,7 @@ public class Statistics {
      *
      * @return
      *     The mean time of all non-DNF solves that were added for all past and current sessions.
-     *     The result will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if
+     *     The result will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if
      *     all added times were DNFs.
      */
     public long getAllTimeMeanTime() {
@@ -569,7 +591,7 @@ public class Statistics {
      *
      * @return
      *     The total time of all non-DNF solves that were added for all past and current sessions
-     *     The result will be {@link AverageCalculator#UNKNOWN} if no times have been added, or
+     *     The result will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or
      *     if all added times were DNFs.
      */
     public long getAllTimeTotalTime() {
@@ -582,7 +604,7 @@ public class Statistics {
      *
      * @return
      *     The current Sample Standard Deviation of all non-DNF solves that were added for all
-     *     past and current sessions. The result will be {@link AverageCalculator#UNKNOWN} if no
+     *     past and current sessions. The result will be {@link AverageCalculatorSuper#UNKNOWN} if no
      *     times have been added, or if all added times were DNFs.
      */
     public long getAllTimeStdDeviation() {
@@ -592,7 +614,7 @@ public class Statistics {
     /**
      * Gets the solve time frequencies for all past and current sessions. The times are truncated
      * to whole seconds, but still expressed as milliseconds. The keys are the times (and
-     * {@link AverageCalculator#DNF} can be a key), and the values are the number of solves times
+     * {@link AverageCalculatorSuper#DNF} can be a key), and the values are the number of solves times
      * that fell into the one-second interval for that key. For example, if the key is "4", the
      * value is the number of solve times of "four-point-something seconds".
      *
@@ -609,7 +631,7 @@ public class Statistics {
      *
      * @return
      *     The best time ever added today. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getTodayBestTime() {
@@ -621,7 +643,7 @@ public class Statistics {
      *
      * @return
      *     The worst time ever added today. The result will be
-     *     {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added times
+     *     {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added times
      *     were DNFs.
      */
     public long getTodayWorstTime() {
@@ -655,7 +677,7 @@ public class Statistics {
      *
      * @return
      *     The mean time of all non-DNF solves that were added today. The result
-     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added
      *     times were DNFs.
      */
     public long getTodayMeanTime() {
@@ -668,7 +690,7 @@ public class Statistics {
      *
      * @return
      *     The total time of all non-DNF solves that were added today. The result
-     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     will be {@link AverageCalculatorSuper#UNKNOWN} if no times have been added, or if all added
      *     times were DNFs.
      */
     public long getTodayTotalTime() {
@@ -681,7 +703,7 @@ public class Statistics {
      *
      * @return
      *     The current Sample Standard Deviation of all non-DNF solves that were added today.
-     *     The result will be {@link AverageCalculator#UNKNOWN} if no times have
+     *     The result will be {@link AverageCalculatorSuper#UNKNOWN} if no times have
      *     been added, or if all added times were DNFs.
      */
     public long getTodayStdDeviation() {
@@ -691,7 +713,7 @@ public class Statistics {
     /**
      * Gets the solve time frequencies today. The times are truncated to whole
      * seconds, but still expressed as milliseconds. The keys are the times (and
-     * {@link AverageCalculator#DNF} can be a key), and the values are the number of solves times
+     * {@link AverageCalculatorSuper#DNF} can be a key), and the values are the number of solves times
      * that fell into the one-second interval for that key. For example, if the key is "4", the
      * value is the number of solve times of "four-point-something seconds".
      *

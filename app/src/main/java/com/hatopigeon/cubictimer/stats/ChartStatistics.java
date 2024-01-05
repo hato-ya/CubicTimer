@@ -1,6 +1,7 @@
 package com.hatopigeon.cubictimer.stats;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -18,9 +19,8 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.DNF;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.UNKNOWN;
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.DNF;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.UNKNOWN;
 
 /**
  * A collector for solve times and related statistics (average times) to be presented in a chart.
@@ -162,6 +162,8 @@ public class ChartStatistics {
      */
     private long mBestTime;
 
+    private String mPuzzleType;
+
     /**
      * The "pre-compiled" date formatter for the X-axis labels.
      */
@@ -217,7 +219,7 @@ public class ChartStatistics {
      *     If there are more than three average-of-N lines to be graphed.
      */
     private ChartStatistics(Statistics statistics, boolean isForCurrentSessionOnly,
-                            ChartStyle chartStyle)
+                            ChartStyle chartStyle, String currentPuzzle)
                 throws IllegalArgumentException, IllegalStateException {
         if (!statistics.isForCurrentSessionOnly()) {
             // Enforcing this requirement means that there will be no excess clutter caused by
@@ -233,6 +235,7 @@ public class ChartStatistics {
         mNsOfAverages = statistics.getNsOfAverages();
         mIsForCurrentSessionOnly = isForCurrentSessionOnly;
         mMainShowDiscreteLineset = Prefs.getBoolean(R.string.pk_stat_discrete_graph_dataset, false);
+        mPuzzleType = currentPuzzle;
 
         /*/ Unfortunately, the mean value can only be set in the "LimitLine" constructor, so save
         // the label and color of the line now (while a "Context" is available) and create the line
@@ -403,9 +406,9 @@ public class ChartStatistics {
      * @return
      *     The collector for chart statistics.
      */
-    public static ChartStatistics newAllTimeChartStatistics(ChartStyle chartStyle) {
+    public static ChartStatistics newAllTimeChartStatistics(ChartStyle chartStyle, String currentPuzzle) {
         return new ChartStatistics(
-                Statistics.newAllTimeAveragesChartStatistics(), false, chartStyle);
+                Statistics.newAllTimeAveragesChartStatistics(currentPuzzle), false, chartStyle, currentPuzzle);
     }
 
     /**
@@ -423,7 +426,7 @@ public class ChartStatistics {
      */
     public static ChartStatistics newCurrentSessionChartStatistics(ChartStyle chartStyle, String currentPuzzle) {
         return new ChartStatistics(
-                Statistics.newCurrentSessionAveragesChartStatistics(currentPuzzle), true, chartStyle);
+                Statistics.newCurrentSessionAveragesChartStatistics(currentPuzzle), true, chartStyle, currentPuzzle);
     }
 
     /**
@@ -456,7 +459,7 @@ public class ChartStatistics {
         /*
         chart.getAxisLeft().removeAllLimitLines();
 
-        if (getMeanTime() != AverageCalculator.UNKNOWN) { // At least one non-DNF solve time?
+        if (getMeanTime() != AverageCalculatorSuper.UNKNOWN) { // At least one non-DNF solve time?
             final LimitLine ll = new LimitLine(getMeanTime() / 1_000f, mLimitLineLabel);
 
             ll.setLineColor(mLimitLineColor);
@@ -553,22 +556,30 @@ public class ChartStatistics {
         mStatistics.addTime(time, true, false); // May throw IAE.
 
         if (time != DNF) {
-            mChartData.addEntry(new Entry(mXIndex, time / 1_000f), DS_ALL);
-            isEntryAdded = true;
+            long record = time;
+            if (mPuzzleType.equals(PuzzleUtils.TYPE_333MBLD))
+                record = new PuzzleUtils.MbldRecord(time).getPoint();
+            if (record != DNF) {
+                mChartData.addEntry(new Entry(mXIndex, record / 1_000f), DS_ALL);
+                isEntryAdded = true;
 
-            // Only update the recorded best time if it changes. The result should be a line that
-            // traces (if lucky) a staircase descending from left to right (never rising).
-            if (time < mBestTime) {
-                mBestTime = time;
-                mChartData.addEntry(new Entry(mXIndex, mBestTime / 1_000f), DS_BEST);
+                // Only update the recorded best time if it changes. The result should be a line that
+                // traces (if lucky) a staircase descending from left to right (never rising).
+                if (time < mBestTime) {
+                    mBestTime = time;
+                    long bestRecord = mBestTime;
+                    if (mPuzzleType.equals(PuzzleUtils.TYPE_333MBLD))
+                        bestRecord = new PuzzleUtils.MbldRecord(mBestTime).getPoint();
+                    mChartData.addEntry(new Entry(mXIndex, bestRecord / 1_000f), DS_BEST);
+                }
             }
         }
 
         for (int nIndex = 0; nIndex < mNsOfAverages.length; nIndex++) {
-            final AverageCalculator ac = mStatistics.getAverageOf(mNsOfAverages[nIndex], true);
+            final AverageCalculatorSuper ac = mStatistics.getAverageOf(mNsOfAverages[nIndex], true);
             final long averageTime = ac.getCurrentAverage();
 
-            if (averageTime != AverageCalculator.DNF && averageTime != UNKNOWN) {
+            if (averageTime != DNF && averageTime != UNKNOWN) {
                 // AoN data sets start at "DS_AVG_0" and come in pairs. In each pair, the first is
                 // the data set for all AoN times for that "N" and the second is the data set for
                 // the single best AoN time for that "N".
@@ -587,10 +598,18 @@ public class ChartStatistics {
                 if (bestAoNDS.getEntryCount() > 0) { // Should be 0 or 1, nothing more.
                     final Entry oldEntry = bestAoNDS.getEntryForIndex(0); // Not an X-index.
 
-                    if (aonYValue < oldEntry.getY()) {
-                        // A new best AoN time! Replace the old one with this new one.
-                        bestAoNDS.removeEntry(oldEntry);
-                        bestAoNDS.addEntry(new Entry(mXIndex, aonYValue));
+                    if (mPuzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
+                        if (aonYValue > oldEntry.getY()) {
+                            // A new best AoN time! Replace the old one with this new one.
+                            bestAoNDS.removeEntry(oldEntry);
+                            bestAoNDS.addEntry(new Entry(mXIndex, aonYValue));
+                        }
+                    } else {
+                        if (aonYValue < oldEntry.getY()) {
+                            // A new best AoN time! Replace the old one with this new one.
+                            bestAoNDS.removeEntry(oldEntry);
+                            bestAoNDS.addEntry(new Entry(mXIndex, aonYValue));
+                        }
                     }
                 } else {
                     // This is the first AoN time, so just add it as the best (and only) AoN time.

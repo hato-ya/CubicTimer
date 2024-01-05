@@ -9,7 +9,7 @@ import android.os.Parcelable;
  */
 public class Solve implements Parcelable {
     long   id;
-    int    time;
+    long   time;
     String puzzle;
     String subtype;
     long   date;
@@ -18,7 +18,7 @@ public class Solve implements Parcelable {
     String comment;
     boolean history;
 
-    public Solve(int time, String puzzle, String subtype, long date, String scramble, int penalty,
+    public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
                  String comment, boolean history) {
         this.time = time;
         this.puzzle = puzzle;
@@ -30,7 +30,7 @@ public class Solve implements Parcelable {
         this.history = history;
     }
 
-    public Solve(long id, int time, String puzzle, String subtype, long date, String scramble,
+    public Solve(long id, long time, String puzzle, String subtype, long date, String scramble,
                  int penalty, String comment, boolean history) {
         this.id = id;
         this.time = time;
@@ -50,7 +50,7 @@ public class Solve implements Parcelable {
      */
     protected Solve(Parcel in) {
         id = in.readLong();
-        time = in.readInt();
+        time = in.readLong();
         puzzle = in.readString();
         subtype = in.readString();
         date = in.readLong();
@@ -84,11 +84,11 @@ public class Solve implements Parcelable {
         return id;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(int time) {
+    public void setTime(long time) {
         this.time = time;
     }
 
@@ -141,7 +141,7 @@ public class Solve implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
-        dest.writeInt(time);
+        dest.writeLong(time);
         dest.writeString(puzzle);
         dest.writeString(subtype);
         dest.writeLong(date);

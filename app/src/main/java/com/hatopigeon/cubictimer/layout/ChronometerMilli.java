@@ -16,7 +16,7 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
-import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_NO_MILLI;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_NO_MILLI_TIMER;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SMALL_MILLI;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.NO_PENALTY;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
@@ -425,7 +425,7 @@ public class ChronometerMilli extends AppCompatTextView {
             isHiRes = (!mIsStarted || mShowHiRes) && hours == 0;
 
             if (elapsedMS > 0)
-                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI : FORMAT_NO_MILLI, PuzzleUtils.TYPE_333);
+                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI : FORMAT_NO_MILLI_TIMER, PuzzleUtils.TYPE_333);
             else
                 timeText = "0<small>.00</small>";
             // If a "+2" penalty has been applied and the chronometer is not started or holding,

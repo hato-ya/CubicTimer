@@ -2,6 +2,7 @@
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -17,19 +18,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:text="@string/add_time" />
-
-        <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/check_scramble"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/divider02"
-            android:layout_alignBottom="@id/button_save"
-            android:layout_alignTop="@id/divider02"
-            android:gravity="center_vertical"
-            android:layout_marginLeft="8dp"
-            android:checked="true"
-            android:text="@string/dialog_add_time_use_scramble"
-            android:textColor="@color/black_light_100" />
 
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/edit_text_time"
@@ -60,13 +48,80 @@
             android:paddingRight="16dp"
             app:srcCompat="@drawable/ic_outline_more_vert_18px" />
 
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/solvedText"
+            style="@style/DialogTitleTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/edit_text_time"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:text="@string/add_number_of_puzzles_solved" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/edit_text_solved"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/solvedText"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:inputType="number"
+            android:textColor="@color/black_light_100"
+            android:background="@drawable/outline_background_card"
+            android:gravity="center"
+            android:maxLength="2"
+            android:padding="8dp"
+            android:textSize="22sp" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/penaltyText"
+            style="@style/DialogTitleTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/edit_text_solved"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:text="@string/add_number_of_penalty" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/edit_text_penalty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/penaltyText"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:inputType="number"
+            android:textColor="@color/black_light_100"
+            android:background="@drawable/outline_background_card"
+            android:gravity="center"
+            android:maxLength="2"
+            android:padding="8dp"
+            android:textSize="22sp" />
+
         <include
             android:id="@+id/divider02"
             layout="@layout/view_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="16dp"
-            android:layout_below="@id/edit_text_time" />
+            android:layout_below="@id/edit_text_penalty" />
+
+        <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/check_scramble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider02"
+            android:layout_alignBottom="@id/button_save"
+            android:layout_alignTop="@id/divider02"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="8dp"
+            android:checked="true"
+            android:text="@string/dialog_add_time_use_scramble"
+            android:textColor="@color/black_light_100" />
 
         <ImageView
             android:id="@+id/button_save"

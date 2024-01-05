@@ -122,7 +122,7 @@ import no.nordicsemi.android.support.v18.scanner.ScanFilter;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
-import static com.hatopigeon.cubictimer.stats.AverageCalculator.tr;
+import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_STATS;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.NO_PENALTY;
@@ -130,6 +130,7 @@ import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_PLUSTWO;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.TYPE_333;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
@@ -174,6 +175,7 @@ public class TimerFragment extends BaseFragment
 
     private static final String PUZZLE = "puzzle";
     private static final String PUZZLE_SUBTYPE = "puzzle_type";
+    private static final String MBLD_NUM = "mbld_num";
     private static final String TRAINER_SUBSET = "trainer_subset";
     private static final String TIMER_MODE = "timer_mode";
     private static final String SCRAMBLE = "scramble";
@@ -189,6 +191,7 @@ public class TimerFragment extends BaseFragment
     private String currentPuzzle;
     private String currentPuzzleCategory;
     private TrainerScrambler.TrainerSubset currentSubset;
+    private int currentMbldNum = 7;
 
     /**
      * The last generated scramble, related to the current solve. When the timer is started,
@@ -417,6 +420,7 @@ public class TimerFragment extends BaseFragment
                     if (currentSolve != null) {
                         congratsText.setVisibility(View.GONE);
                         hasStoppedTimerOnce = true;
+                        chronometer.reset();
                         chronometer.setText(Html.fromHtml(
                                 PuzzleUtils.convertTimeToString(currentSolve.getTime(),
                                         PuzzleUtils.FORMAT_SMALL_MILLI, currentPuzzle)));
@@ -569,12 +573,7 @@ public class TimerFragment extends BaseFragment
                     }
                     break;
                 case R.id.scramble_button_manual_entry:
-                    {
-                        AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, realScramble);
-                        FragmentManager manager = getFragmentManager();
-                        if (manager != null)
-                            addTimeDialog.show(manager, "dialog_add_time");
-                    }
+                    addTimeManually();
                     break;
             }
         }
@@ -588,11 +587,14 @@ public class TimerFragment extends BaseFragment
         undoButton.setVisibility(hideUndoButton ? View.GONE : View.VISIBLE);
     }
 
-    public static TimerFragment newInstance(String puzzle, String puzzleSubType, String timerMode, TrainerScrambler.TrainerSubset subset) {
+    public static TimerFragment newInstance(String puzzle, String puzzleSubType, int mbldNum, String scramble, String timerMode, TrainerScrambler.TrainerSubset subset) {
         TimerFragment fragment = new TimerFragment();
         Bundle args = new Bundle();
         args.putString(PUZZLE, puzzle);
         args.putString(PUZZLE_SUBTYPE, puzzleSubType);
+        args.putInt(MBLD_NUM, mbldNum);
+        args.putString(SCRAMBLE, scramble);
+        Log.d(TAG, "newInstance scramble = " + scramble);
         args.putString(TIMER_MODE, timerMode);
         args.putSerializable(TRAINER_SUBSET, subset);
         fragment.setArguments(args);
@@ -602,12 +604,15 @@ public class TimerFragment extends BaseFragment
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_ME) Log.d(TAG, "updateLocale(savedInstanceState=" + savedInstanceState + ")");
+        if (DEBUG_ME) Log.d(TAG, "onCreate updateLocale(savedInstanceState=" + savedInstanceState + ")");
         super.onCreate(savedInstanceState);
         mContext = getContext();
         if (getArguments() != null) {
             currentPuzzle = getArguments().getString(PUZZLE);
             currentPuzzleCategory = getArguments().getString(PUZZLE_SUBTYPE);
+            currentMbldNum = getArguments().getInt(MBLD_NUM);
+            realScramble = getArguments().getString(SCRAMBLE);
+            if (realScramble.isEmpty()) realScramble = null;
             currentSubset = (TrainerScrambler.TrainerSubset) getArguments().getSerializable(TRAINER_SUBSET);
             currentTimerMode = getArguments().getString(TIMER_MODE);
         }
@@ -805,7 +810,7 @@ public class TimerFragment extends BaseFragment
         }
         if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_no_support_message));
-        } else if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+        } else if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disabled_message));
         } else {
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
@@ -1010,11 +1015,12 @@ public class TimerFragment extends BaseFragment
                         // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
                         chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
                     }
-                    if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                    if (!isTimeDisabled(currentPuzzle)) {
                         addNewSolve();
                     } else {
-                        // For FMC, use isCanceld flag not to show quick action button and not update solves
+                        // For FMC and MBLD, use isCanceld flag not to show quick action button and not update solves
                         isCanceled = true;
+                        addTimeManually();
                     }
                 }
                 return false;
@@ -1171,6 +1177,7 @@ public class TimerFragment extends BaseFragment
                 // This one is the same as the NxN cubes
                 return (multiplier / 4) * 3;
             case PuzzleUtils.TYPE_SQUARE1: // Square-1
+            case PuzzleUtils.TYPE_333MBLD:
             case PuzzleUtils.TYPE_OTHER:
                 return multiplier;
         }
@@ -1179,7 +1186,7 @@ public class TimerFragment extends BaseFragment
 
     private void addNewSolve() {
         currentSolve = new Solve(
-                (int) chronometer.getElapsedTime(), // Includes any "+2" penalty. Is zero for "DNF".
+                chronometer.getElapsedTime(), // Includes any "+2" penalty. Is zero for "DNF".
                 currentPuzzle, currentPuzzleCategory,
                 System.currentTimeMillis(), currentScramble, currentPenalty, "", false);
 
@@ -1189,6 +1196,16 @@ public class TimerFragment extends BaseFragment
 
         currentSolve.setId(CubicTimer.getDBHandler().addSolve(currentSolve));
         currentPenalty = NO_PENALTY;
+    }
+
+    public void addTimeManually() {
+        long time = chronometer.getElapsedTime();
+        time = (time + 500) / 1000 * 1000;  // rounding to the nearest second
+
+        AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, realScramble, time);
+        FragmentManager manager = getFragmentManager();
+        if (manager != null)
+            addTimeDialog.show(manager, "dialog_add_time");
     }
 
     private void broadcastNewSolve() {
@@ -1237,8 +1254,9 @@ public class TimerFragment extends BaseFragment
             // solve time cannot better (i.e., lower).
             if (newTime < previousBestTime) {
                 rippleBackground.startRippleAnimation();
-                congratsText.setText(getString(R.string.personal_best_message,
-                        PuzzleUtils.convertTimeToString(previousBestTime - newTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
+                String strDiff = getDifferenceString(previousBestTime, newTime, currentPuzzle);
+                congratsText.setText(getString(R.string.personal_best_message, strDiff));
+
                 congratsText.setVisibility(View.VISIBLE);
 
                 new Handler().postDelayed(() -> {
@@ -1254,8 +1272,8 @@ public class TimerFragment extends BaseFragment
             // If "previousWorstTime" is a DNF or UNKNOWN, it will be less than zero. Therefore,
             // make sure it is at least greater than zero before testing against the new time.
             if (previousWorstTime > 0 && newTime > previousWorstTime) {
-                congratsText.setText(getString(R.string.personal_worst_message,
-                        PuzzleUtils.convertTimeToString(newTime - previousWorstTime, PuzzleUtils.FORMAT_SINGLE, currentPuzzle)));
+                String strDiff = getDifferenceString(newTime, previousWorstTime, currentPuzzle);
+                congratsText.setText(getString(R.string.personal_worst_message, strDiff));
 
                 congratsText.setCompoundDrawablesWithIntrinsicBounds(
                         poopDrawable, null,
@@ -1264,6 +1282,28 @@ public class TimerFragment extends BaseFragment
                 congratsText.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    public String getDifferenceString(long t1, long t2, String puzzleType) {
+        String str;
+        if (puzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
+            long diff = PuzzleUtils.MbldRecord.getPointDiff(t2, t1);
+            if (diff != 0) {
+                str = getString(R.string.personal_best_points, String.valueOf(diff/1000));
+            } else {
+                diff = PuzzleUtils.MbldRecord.getSecondDiff(t1, t2);
+                if (diff != 0) {
+                    str = getString(R.string.personal_best_seconds, PuzzleUtils.formatTime(diff*1000));
+                } else {
+                    diff = PuzzleUtils.MbldRecord.getFailedDiff(t1, t2);
+                    str = getString(R.string.personal_best_failed, String.valueOf(diff));
+                }
+            }
+        } else {
+            str = convertTimeToString(t1 - t2, PuzzleUtils.FORMAT_SINGLE, puzzleType);
+        }
+
+        return str;
     }
 
     /**
@@ -1564,7 +1604,7 @@ public class TimerFragment extends BaseFragment
         // the spinner to visible.
         isRunning = true;
 
-        if (scrambleEnabled && !currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+        if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;
             generateNewScramble();
         }
@@ -1598,6 +1638,7 @@ public class TimerFragment extends BaseFragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        if (DEBUG_ME) Log.d(TAG, "onSaveInstanceState()");
         super.onSaveInstanceState(outState);
         outState.putString(SCRAMBLE, realScramble);
         outState.putString(PUZZLE, currentPuzzle);
@@ -1771,6 +1812,18 @@ public class TimerFragment extends BaseFragment
         protected String doInBackground(String... params) {
             if (currentPuzzle.equals(PuzzleUtils.TYPE_OTHER))
                 return " ";
+
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                int i;
+                String scramble = "";
+                for (i = 0; i < currentMbldNum; i++) {
+                    if (i != 0) scramble = scramble + "\n";
+                    scramble = scramble + (i+1) + ") " + generator.getPuzzle().generateScramble();
+                }
+
+                return scramble;
+            }
+
             try {
                 return generator.getPuzzle().generateScramble();
             } catch (Exception e) {
@@ -1796,6 +1849,12 @@ public class TimerFragment extends BaseFragment
      */
     private void setScramble(final String scramble) {
         realScramble = scramble;
+
+        if (currentTimerMode.equals(TIMER_MODE_TIMER)) {
+            // save the scramble especially for MBLD
+            Prefs.edit().putString(R.string.pk_last_used_scramble, realScramble).apply();
+        }
+
         scrambleText.setText(scramble);
         scrambleText.post(() -> {
             if (chronometer != null)
@@ -1836,7 +1895,7 @@ public class TimerFragment extends BaseFragment
 
         if (showHintsEnabled && currentPuzzle.equals(PuzzleUtils.TYPE_333))
             scrambleButtonHint.setVisibility(View.VISIBLE);
-        if (manualEntryEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC))
+        if (manualEntryEnabled || isTimeDisabled(currentPuzzle))
             scrambleButtonManualEntry.setVisibility(View.VISIBLE);
         scrambleProgress.setVisibility(View.GONE);
         scrambleButtonEdit.setVisibility(View.VISIBLE);
@@ -2035,7 +2094,7 @@ public class TimerFragment extends BaseFragment
         }
 
         Log.d(TAG, "UART connect : start");
-        if (!stackTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+        if (!stackTimerEnabled || isTimeDisabled(currentPuzzle)) {
             Log.d(TAG, "UART connect : disabled");
             serialStatusMessage.setText(getString(R.string.timer_serial_status_message)
                     + getString(R.string.timer_serial_status_disabled_message));
@@ -2287,7 +2346,7 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
-        if (!smartTimerEnabled || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+        if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
             Log.d(TAG, "BLE Scan : " + "disabled");
             return;
         }

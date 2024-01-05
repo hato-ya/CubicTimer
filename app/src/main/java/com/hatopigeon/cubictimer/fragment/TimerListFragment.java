@@ -86,6 +86,8 @@ public class TimerListFragment extends BaseFragment
     private static final String PUZZLE         = "puzzle";
     private static final String PUZZLE_SUBTYPE = "puzzle_type";
     private static final String HISTORY        = "history";
+    private static final String MBLD_NUM       = "mbld_num";
+    private static final String SCRAMBLE       = "scramble";
 
     private static final String SHOWCASE_FAB_ID = "SHOWCASE_FAB_ID";
 
@@ -105,6 +107,7 @@ public class TimerListFragment extends BaseFragment
 
     private String currentPuzzle;
     private String currentPuzzleCategory;
+    private int currentMbldNum = 7;
     private String currentScramble;
 
     private String orderByKey = DatabaseHandler.KEY_DATE;
@@ -127,7 +130,7 @@ public class TimerListFragment extends BaseFragment
             // TODO: Should use "mRecentStatistics" when sharing averages.
             switch (view.getId()) {
                 case R.id.add_time_button:
-                    AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, currentScramble);
+                    AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, currentScramble);
                     FragmentManager manager = getFragmentManager();
                     if (manager != null)
                         addTimeDialog.show(manager, "dialog_add_time");
@@ -309,12 +312,14 @@ public class TimerListFragment extends BaseFragment
     }
 
     // We have to put a boolean history here because it resets when we change puzzles.
-    public static TimerListFragment newInstance(String puzzle, String puzzleType, boolean history) {
+    public static TimerListFragment newInstance(String puzzle, String puzzleType, int mbldNum, String scramble, boolean history) {
         TimerListFragment fragment = new TimerListFragment();
         Bundle args = new Bundle();
         args.putString(PUZZLE, puzzle);
         args.putBoolean(HISTORY, history);
         args.putString(PUZZLE_SUBTYPE, puzzleType);
+        args.putInt(MBLD_NUM, mbldNum);
+        args.putString(SCRAMBLE, scramble);
         fragment.setArguments(args);
         if (DEBUG_ME) Log.d(TAG, "newInstance() -> " + fragment);
         return fragment;
@@ -328,6 +333,8 @@ public class TimerListFragment extends BaseFragment
         if (getArguments() != null) {
             currentPuzzle = getArguments().getString(PUZZLE);
             currentPuzzleCategory = getArguments().getString(PUZZLE_SUBTYPE);
+            currentMbldNum = getArguments().getInt(MBLD_NUM);
+            currentScramble = getArguments().getString(SCRAMBLE);
             history = getArguments().getBoolean(HISTORY);
         }
         if (savedInstanceState != null) {

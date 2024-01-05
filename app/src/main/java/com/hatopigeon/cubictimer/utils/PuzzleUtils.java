@@ -490,59 +490,13 @@ public class PuzzleUtils {
     }
 
     /**
-     * Converts times in the format "M:SS.s", or "S.s" into an integer number of milliseconds. The
-     * minutes value may be padded with zeros. The "ss" is the fractional number of seconds and may
-     * be given to any desired precision, but will be rounded to a whole number of milliseconds.
-     * For example, "1:23.45" is parsed to 83,450 ms and "95.6789" is parsed to 95,679 ms. Where
-     * minutes are present, the seconds can be padded with zeros or not, but the number of seconds
-     * must be less than 60, or the time will be treated as invalid. Where minutes are not present,
-     * the number of seconds can be 60 or greater.
-     *
-     * @param time
-     *     The time string to be parsed. Leading and trailing whitespace will be trimmed before
-     *     the time is parsed. If minus signs are present, the result is not defined.
-     *
-     * @return
-     *     The parsed time in milliseconds. The value is rounded to the nearest multiple of 10
-     *     milliseconds. If the time cannot be parsed because the format does not conform to the
-     *     requirements, zero is returned.
-     */
-    public static long parseTime(String time) {
-        final String timeStr = time.trim();
-        final int colonIdx = timeStr.indexOf(':');
-        int parsedTime = 0;
-
-        try {
-            if (colonIdx != -1) {
-                if (colonIdx > 0 && colonIdx < timeStr.length()) {
-                    // At least one digit for the minutes, so still a valid time format. Format is
-                    // expected to be "M:S.s" (zero padding to "MM" and "SS" is optional).
-                    final int minutes = Integer.parseInt(timeStr.substring(0, colonIdx));
-                    final float seconds = Float.parseFloat(timeStr.substring(colonIdx + 1));
-
-                    if (seconds < 60f) {
-                        parsedTime += 60_000 * minutes + Math.round(seconds * 1_000f);
-                    } // else "parsedTime" remains zero as seconds value is out of range (>= 60).
-                } // else "parsedTime" remains zero as there is nothing before or after the colon.
-            } else {
-                // Format is expected to be "S.s", with arbitrary precision and padding.
-                parsedTime = Math.round(Float.parseFloat(timeStr.substring(colonIdx + 1)) * 1_000f);
-            }
-        } catch (NumberFormatException ignore) {
-            parsedTime = 0; // Invalid time format.
-        }
-
-        return 10 * ((parsedTime + 5) / 10);
-    }
-
-    /**
      * Parses a time in the format hh'h'mm:ss.SS and returns it in milliseconds
      * @param time the string to be parsed
      * @return the time in milliseconds
      */
     public static long parseAddedTime(String time) {
         long timeMillis = 0;
-        String[] times = time.split("[h]|:|\\.");
+        String[] times = time.split("[h] *|:|\\.");
 
         try {
             switch (times.length) {

@@ -977,7 +977,7 @@ public class MainActivity extends AppCompatActivity
                                 if (mPuzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
                                     time = PuzzleUtils.parseMbldRecord(line[0]);
                                 } else {
-                                    time = PuzzleUtils.parseTime(line[0]);
+                                    time = PuzzleUtils.parseAddedTime(line[0]);
                                 }
                                 String scramble = "";
                                 long date = now;

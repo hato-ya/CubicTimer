@@ -357,6 +357,7 @@ public class MainActivity extends AppCompatActivity
                         switch ((int) drawerItem.getIdentifier()) {
                             default:
                                 closeDrawer = false;
+                                break;
                             case TIMER_ID:
                                 mDrawerToggle.runWhenIdle(new Runnable() {
                                     @Override

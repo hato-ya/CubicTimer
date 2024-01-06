@@ -23,6 +23,9 @@ import org.worldcubeassociation.tnoodle.puzzle.SquareOnePuzzle;
 import org.worldcubeassociation.tnoodle.puzzle.ThreeByThreeCubeFewestMovesPuzzle;
 import org.worldcubeassociation.tnoodle.puzzle.ThreeByThreeCubePuzzle;
 import org.worldcubeassociation.tnoodle.puzzle.TwoByTwoCubePuzzle;
+import org.worldcubeassociation.tnoodle.svglite.Color;
+
+import java.util.HashMap;
 
 /**
  * Util for generating and drawing scrambles
@@ -30,6 +33,22 @@ import org.worldcubeassociation.tnoodle.puzzle.TwoByTwoCubePuzzle;
 public class ScrambleGenerator {
     private Puzzle puzzle;
     private String puzzleType;
+
+    // define the color scheme for the clock puzzle to closer to the current tnoodle-lib color
+    private static HashMap<String, Color> clockColorScheme = new HashMap<String, Color>();
+    static {
+        Color bright = new Color(0xccddee);
+        Color dark = new Color(0x113366);
+
+        clockColorScheme.put("Front", dark);
+        clockColorScheme.put("Back", bright);
+        clockColorScheme.put("FrontClock", bright);
+        clockColorScheme.put("BackClock", dark);
+        clockColorScheme.put("Hand", new Color(0xf5fffa));
+        clockColorScheme.put("HandBorder", new Color(0x708090));
+        clockColorScheme.put("PinUp", new Color(0x88aacc));
+        clockColorScheme.put("PinDown", new Color(0x446699));
+    }
 
     public ScrambleGenerator(String type) {
         puzzleType = type;
@@ -137,11 +156,15 @@ public class ScrambleGenerator {
 
         if (!(puzzleType.equals(PuzzleUtils.TYPE_OTHER) || puzzleType.equals(PuzzleUtils.TYPE_333MBLD))) {
             // To draw old clock scramble, remove pin moves at the end of scramble
-            if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
-                scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
-            }
+//            if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
+//                scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
+//            }
             try {
-                cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
+                if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
+                    cubeImg = puzzle.drawScramble(scramble, clockColorScheme).toString();
+                } else {
+                    cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
+                }
             } catch (InvalidScrambleException e) {
                 e.printStackTrace();
             }

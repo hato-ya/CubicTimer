@@ -1915,7 +1915,11 @@ public class TimerFragment extends BaseFragment
             }
 
             try {
-                return generator.getPuzzle().generateScramble();
+                String scramble = generator.getPuzzle().generateScramble();
+                if (currentPuzzle.equals(PuzzleUtils.TYPE_CLOCK)) {
+                    scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
+                }
+                return scramble;
             } catch (Exception e) {
                 Log.e(TAG, "Invalid puzzle for generator");
             }

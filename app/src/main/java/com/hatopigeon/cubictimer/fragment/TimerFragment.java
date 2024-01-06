@@ -357,6 +357,7 @@ public class TimerFragment extends BaseFragment
     TextView bleStatusMessage;
 
     private boolean buttonsEnabled;
+    private boolean largeQuickActionEnabled;
     private boolean scrambleImgEnabled;
     private boolean sessionStatsEnabled;
     private boolean sessionStatsMo3Enabled;
@@ -709,6 +710,7 @@ public class TimerFragment extends BaseFragment
         backCancelEnabled = Prefs.getBoolean(R.string.pk_back_button_cancel_solve_enabled, res.getBoolean(R.bool.default_backCancelEnabled));
 
         buttonsEnabled = Prefs.getBoolean(R.string.pk_show_quick_actions, res.getBoolean(R.bool.default_buttonEnabled));
+        largeQuickActionEnabled = Prefs.getBoolean(R.string.pk_large_quick_actions_enabled, res.getBoolean(R.bool.default_largeQuickActionEnabled));
         holdEnabled = Prefs.getBoolean(R.string.pk_hold_to_start_enabled, res.getBoolean(R.bool.default_holdEnabled));
         startCueEnabled = Prefs.getBoolean(R.string.pk_start_cue_enabled, res.getBoolean(R.bool.default_startCue));
 
@@ -823,6 +825,26 @@ public class TimerFragment extends BaseFragment
             scrambleButtonManualEntry.setVisibility(View.VISIBLE);
         }
         scrambleButtonManualEntry.setOnClickListener(buttonClickListener);
+
+        // Enlarge quick action buttons
+        if (largeQuickActionEnabled) {
+            ImageView viewRemove = quickActionButtons.findViewById(R.id.qa_remove);
+            ImageView viewDnf = quickActionButtons.findViewById(R.id.qa_dnf);
+            ImageView viewPlustwo = quickActionButtons.findViewById(R.id.qa_plustwo);
+            ImageView viewComment = quickActionButtons.findViewById(R.id.qa_comment);
+            ViewGroup.LayoutParams layoutParams = viewRemove.getLayoutParams();
+            layoutParams.width = (int)(layoutParams.width * 1.7);
+            layoutParams.height = (int)(layoutParams.height * 1.7);
+            viewRemove.setLayoutParams(layoutParams);
+            viewDnf.setLayoutParams(layoutParams);
+            viewPlustwo.setLayoutParams(layoutParams);
+            viewComment.setLayoutParams(layoutParams);
+
+            layoutParams = undoButton.getLayoutParams();
+            layoutParams.width = (int)(layoutParams.width * 1.7);
+            layoutParams.height = (int)(layoutParams.height * 1.7);
+            undoButton.setLayoutParams(layoutParams);
+        }
 
         // Inspection timer
         if (inspectionEnabled) {

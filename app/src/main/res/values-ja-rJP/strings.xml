@@ -344,4 +344,9 @@
     <string name="graph_stats_title_global">全体</string>
     <string name="pref_title_manual_mode">タイムを手入力する</string>
     <string name="pref_summary_manual_mode">スタート画面に手入力ボタンを追加する</string>
+    <string name="list_sort_title">並び替え</string>
+    <string name="list_sort_time">記録</string>
+    <string name="list_sort_date">日時</string>
+    <string name="list_sort_ascending">昇順</string>
+    <string name="list_sort_descending">降順</string>
 </resources>

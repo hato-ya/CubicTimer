@@ -68,6 +68,7 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.scrambleText)      TextView  scrambleText;
     @BindView(R.id.editButton)        ImageView editButton;
     @BindView(R.id.commentButton)     ImageView commentButton;
+    @BindView(R.id.editRecordButton)  ImageView editRecordButton;
     @BindView(R.id.commentText)       TextView  commentText;
     @BindView(R.id.overflowButton)    ImageView overflowButton;
     @BindView(R.id.scramble_image)    ImageView scrambleImage;
@@ -193,6 +194,16 @@ public class TimeDialog extends DialogFragment {
                             commentDialog.show(manager, "dialog_comment");
                     }
                     break;
+                case R.id.editRecordButton:
+                    AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(solve);
+                    addTimeDialog.setCallback((solve) -> {
+                        dbHandler.updateSolve(solve);
+                        updateList();
+                    });
+                    FragmentManager manager = getFragmentManager();
+                    if (manager != null)
+                        addTimeDialog.show(manager, "dialog_add_time");
+                    break;
                 case R.id.scrambleText:
                     AnimUtils.toggleContentVisibility(scrambleImage);
                     break;
@@ -259,6 +270,7 @@ public class TimeDialog extends DialogFragment {
             overflowButton.setOnClickListener(clickListener);
             editButton.setOnClickListener(clickListener);
             commentButton.setOnClickListener(clickListener);
+            editRecordButton.setOnClickListener(clickListener);
 
         }
 

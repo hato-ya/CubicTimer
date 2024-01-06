@@ -44,7 +44,9 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMES_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIME_ADDED_MANUALLY;
+import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGES;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_UI_INTERACTIONS;
 import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 
@@ -89,11 +91,22 @@ public class AddTimeDialog extends DialogFragment {
     private String currentPuzzleSubtype;
     private int currentMbldNum;
     private long currentTime;
+    private Solve currentSolve;
 
     private int mCurrentPenalty = PuzzleUtils.NO_PENALTY;
     private String mCurrentComment = "";
 
+    private static final int MODE_ADD = 0;
+    private static final int MODE_EDIT = 1;
+    private int mMode;
+
     private Context mContext;
+
+    public interface AddTimeCallback {
+        void onAddTime(Solve solve);
+    }
+
+    protected AddTimeCallback addTimeCallback;
 
     @SuppressLint("RestrictedApi")
     private View.OnClickListener clickListener = new View.OnClickListener() {
@@ -122,31 +135,46 @@ public class AddTimeDialog extends DialogFragment {
                                 time = record.getLong();
                                 if (record.isDNF())
                                     mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
+                                else
+                                    mCurrentPenalty = PuzzleUtils.NO_PENALTY;
                             } else {
                                 dismiss();
+                                return;
                             }
                         } else {
                             time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
                         }
-                        final Solve solve = new Solve(
-                                mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time,
-                                currentPuzzle,
-                                currentPuzzleSubtype,
-                                new DateTime().getMillis(),
-                                useCurrentScramble.isChecked() ? currentScramble : "",
-                                mCurrentPenalty,
-                                mCurrentComment,
-                                false);
 
-                        CubicTimer.getDBHandler().addSolve(solve);
-                        // The receiver might be able to use the new solve and avoid
-                        // accessing the database.
-                        new TTIntent.BroadcastBuilder(CATEGORY_UI_INTERACTIONS, ACTION_TIME_ADDED_MANUALLY)
-                                .solve(solve)
-                                .broadcast();
+                        time = mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time;
 
-                        // Generate new scramble
-                        broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
+                        if (mMode == MODE_ADD) {
+                            final Solve solve = new Solve(
+                                    time,
+                                    currentPuzzle,
+                                    currentPuzzleSubtype,
+                                    new DateTime().getMillis(),
+                                    useCurrentScramble.isChecked() ? currentScramble : "",
+                                    mCurrentPenalty,
+                                    mCurrentComment,
+                                    false);
+
+                            CubicTimer.getDBHandler().addSolve(solve);
+                            // The receiver might be able to use the new solve and avoid
+                            // accessing the database.
+                            new TTIntent.BroadcastBuilder(CATEGORY_UI_INTERACTIONS, ACTION_TIME_ADDED_MANUALLY)
+                                    .solve(solve)
+                                    .broadcast();
+
+                            // Generate new scramble
+                            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_GENERATE_SCRAMBLE);
+                        } else {
+                            if (addTimeCallback != null) {
+                                currentSolve.setTime(time);
+                                currentSolve.setPenalty(mCurrentPenalty);
+                                currentSolve.setComment(mCurrentComment);
+                                addTimeCallback.onAddTime(currentSolve);
+                            }
+                        }
 
                         dismiss();
                     } else {
@@ -223,29 +251,55 @@ public class AddTimeDialog extends DialogFragment {
     };
 
     public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble) {
-        return newInstance(currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, 0);
+        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, 0, null);
     }
 
     public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime) {
+        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, currentTime, null);
+    }
+
+    public static AddTimeDialog newInstance(Solve currentSolve) {
+        return newInstance(MODE_EDIT, "", "", 0, "", 0, currentSolve);
+    }
+
+    public static AddTimeDialog newInstance(int mode, String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime, Solve currentSolve) {
         AddTimeDialog timeDialog = new AddTimeDialog();
         Bundle args = new Bundle();
+        args.putInt("mode", mode);
         args.putString("puzzle", currentPuzzle);
         args.putString("category", currentPuzzleSubtype);
         args.putInt("mbldnum", currentMbldNum);
         args.putString("scramble", currentScramble);
         args.putLong("time", currentTime);
+        args.putParcelable("solve", currentSolve);
         timeDialog.setArguments(args);
         return timeDialog;
+    }
+
+    public void setCallback(AddTimeCallback callback) {
+        addTimeCallback = callback;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mMode = getArguments().getInt("mode");
         currentPuzzle = getArguments().getString("puzzle");
         currentPuzzleSubtype = getArguments().getString("category");
         currentMbldNum = getArguments().getInt("mbldnum");
         currentScramble = getArguments().getString("scramble");
         currentTime = getArguments().getLong("time");
+        currentSolve = getArguments().getParcelable("solve");
+        if (currentSolve != null) {
+            currentPuzzle = currentSolve.getPuzzle();
+            // currentPuzzleSubtype = currentSolve.getSubtype();
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD))
+                currentMbldNum = (int) (new PuzzleUtils.MbldRecord(currentSolve.getTime()).getAttempted());
+            // currentScramble = currentSolve.getScramble();
+            currentTime = currentSolve.getTime();
+            mCurrentComment = currentSolve.getComment();
+            mCurrentPenalty = currentSolve.getPenalty();
+        }
         mContext = getContext();
     }
 
@@ -264,13 +318,23 @@ public class AddTimeDialog extends DialogFragment {
             // input move counts instead of time
             nameText.setText(R.string.add_move_count);
             timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(2)});
+
+            if (mMode == MODE_EDIT) {
+                timeEditText.setText(String.valueOf(currentTime));
+            }
         } else if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
             // format input time
             timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcherSecond());
             timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(8)});
 
-            if (currentTime != 0)
-                timeEditText.setText(PuzzleUtils.formatTime(currentTime));
+            if (mMode == MODE_ADD) {
+                if (currentTime != 0)
+                    timeEditText.setText(PuzzleUtils.formatTime(currentTime, PuzzleUtils.FORMAT_SECOND));
+            } else {
+                PuzzleUtils.MbldRecord record = new PuzzleUtils.MbldRecord(currentTime);
+                timeEditText.setText(PuzzleUtils.formatTime(Math.min(record.getSecond(), 99*3600+59*60+59)*1000, PuzzleUtils.FORMAT_SECOND));
+                solvedEditText.setText(String.valueOf(record.getSolved()));
+            }
             penaltyEditText.setText("0");
 
             solvedText.setVisibility(View.VISIBLE);
@@ -280,6 +344,14 @@ public class AddTimeDialog extends DialogFragment {
         } else {
             // format input time
             timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
+
+            if (mMode == MODE_EDIT) {
+                timeEditText.setText(PuzzleUtils.formatTime(Math.min(currentTime, (99*3600+59*60+59)*1000+990), PuzzleUtils.FORMAT_MILLI));
+            }
+        }
+
+        if (mMode == MODE_EDIT) {
+            useCurrentScramble.setVisibility(View.GONE);
         }
 
         // Focus on editText and request keyboard

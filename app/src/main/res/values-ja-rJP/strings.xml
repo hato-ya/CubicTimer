@@ -22,7 +22,7 @@
     <string name="add_comment">コメントを追加する</string>
     <string name="add_time">タイム</string>
     <string name="add_move_count">手数</string>
-    <string name="added_comment">追加されたコメント</string>
+    <string name="added_comment">コメントが追加されました</string>
     <string name="add_number_of_puzzles_solved">完成した個数（ペナルティ含む）</string>
     <string name="add_number_of_penalty">ペナルティが必要な個数</string>
     <string name="input_number_of_puzzles">パズルの個数</string>

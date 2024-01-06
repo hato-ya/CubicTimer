@@ -333,7 +333,10 @@ public class ChronometerMilli extends AppCompatTextView {
         if (mIsStarted) {
             // There is no use case where the chronometer will be reset without first being
             // stopped, so throw an exception to highlight a likely bug in the caller.
-            throw new IllegalStateException("Chronometer cannot be reset if it has been started.");
+            //throw new IllegalStateException("Chronometer cannot be reset if it has been started.");
+
+            // stop timer instead exception
+            stop();
         }
 
         mStartedAt = 0L;

@@ -137,6 +137,18 @@
             app:srcCompat="@drawable/ic_outline_insert_comment_18px" />
 
         <ImageView
+            android:id="@+id/editRecordButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider02"
+            android:layout_toLeftOf="@id/commentButton"
+
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="16dp"
+            app:srcCompat="@drawable/ic_outline_edit_18px" />
+
+        <ImageView
             android:id="@+id/overflowButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

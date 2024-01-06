@@ -64,6 +64,10 @@ public class PuzzleUtils {
     public static final int FORMAT_LARGE = 5;
     // --                                    --
 
+    // format mode for formatTime
+    public static final int FORMAT_SECOND = 0;
+    public static final int FORMAT_MILLI  = 1;
+
     /**
      * Utility class for multi blind record.
      */
@@ -363,7 +367,7 @@ public class PuzzleUtils {
                     // solved / attempted
                     formattedString.append(record.getSolved() + "/" + record.getAttempted() + " ");
 
-                    String strTime = formatTime(record.getSecond()*1000);
+                    String strTime = formatTime(record.getSecond()*1000, FORMAT_SECOND);
 
                     if (format == FORMAT_SMALL_MILLI || format == FORMAT_NO_MILLI_TIMER) {
                         formattedString.append("<small>");
@@ -445,11 +449,11 @@ public class PuzzleUtils {
     }
 
     /**
-     * format time simply to xx:xx:xx (second)
+     * format time simply to xx:xx:xx (second) or xx:xx:xx.xx (centi-second)
      * @param time
      * @return
      */
-    public static String formatTime(long time) {
+    public static String formatTime(long time, int mode) {
         StringBuilder formattedString = new StringBuilder();
 
         // second (xx:xx:xx)
@@ -466,25 +470,31 @@ public class PuzzleUtils {
         int digitsSeconds = time >=      10 * 1000 ? 2 : 1;
 
         if (time >= 60 * 60 * 1000) {
-            periodFormatter = periodFormatterBuilder
+            periodFormatterBuilder
                     .appendHours().appendSuffix(":")
-                    .printZeroAlways()
-                    .minimumPrintedDigits(digitsMinutes)
-                    .appendMinutes().appendSuffix(":")
-                    .minimumPrintedDigits(digitsSeconds)
-                    .appendSeconds()
-                    .toFormatter();
-        } else {
-            periodFormatter = periodFormatterBuilder
-                    .minimumPrintedDigits(digitsMinutes)
-                    .appendMinutes().appendSuffix(":")
-                    .printZeroAlways()
-                    .minimumPrintedDigits(digitsSeconds)
-                    .appendSeconds()
-                    .toFormatter();
+                    .printZeroAlways();
         }
 
+        periodFormatterBuilder
+                .minimumPrintedDigits(digitsMinutes)
+                .appendMinutes().appendSuffix(":")
+                .printZeroAlways()
+                .minimumPrintedDigits(digitsSeconds)
+                .appendSeconds();
+
+        if (mode == FORMAT_MILLI) {
+            periodFormatterBuilder
+                    .appendSuffix(".")
+                    .minimumPrintedDigits(3)
+                    .appendMillis();
+        }
+
+        periodFormatter = periodFormatterBuilder.toFormatter();
         formattedString.append(period.toString(periodFormatter));
+
+        if (mode == FORMAT_MILLI) {
+            formattedString.deleteCharAt(formattedString.length()-1);
+        }
 
         return formattedString.toString();
     }

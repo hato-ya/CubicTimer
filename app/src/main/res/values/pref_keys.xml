@@ -43,6 +43,9 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_inspection_alert_sound">sound</string>
     <string translatable="false" name="pk_inspection_alert_both">both</string>
 
+    <string translatable="false" name="pk_time_limit_alert_enabled">timeLimitAlertEnabled</string>
+    <string translatable="false" name="pk_time_limit_alert_type">timeLimitAlertType</string>
+
     <string translatable="false" name="pk_show_scramble_image">scrambleImageEnabled</string>
     <string translatable="false" name="pk_scramble_text_size">scrambleTextSize</string>
     <string translatable="false" name="pk_scramble_image_size">scrambleImageSize</string>

@@ -211,6 +211,7 @@ public class TimerFragment extends BaseFragment
 
     CountdownWarning firstWarning;
     CountdownWarning secondWarning;
+    CountdownWarning timeLimitWarning;
 
     private Context mContext;
 
@@ -388,6 +389,10 @@ public class TimerFragment extends BaseFragment
     private boolean inspectionVibrationAlertEnabled;
     private boolean inspectionSoundAlertEnabled;
 
+
+    private boolean timeLimitAlertEnabled;
+    private boolean timeLimitVibrationAlertEnabled;
+    private boolean timeLimitSoundAlertEnabled;
     float scrambleTextSize;
 
     // True if the user has started (and stopped) the timer at least once. Used to trigger
@@ -755,6 +760,22 @@ public class TimerFragment extends BaseFragment
             }
         }
 
+        timeLimitAlertEnabled = Prefs.getBoolean(R.string.pk_time_limit_alert_enabled, false);
+        if (timeLimitAlertEnabled) {
+            String timeLimitAlertType = Prefs.getString(R.string.pk_time_limit_alert_type,
+                    getString(R.string.pk_inspection_alert_vibration));
+            if (timeLimitAlertType.equals(vibrationAlert)) {
+                timeLimitVibrationAlertEnabled = true;
+                timeLimitSoundAlertEnabled = false;
+            } else if (timeLimitAlertType.equals(soundAlert)) {
+                timeLimitVibrationAlertEnabled = false;
+                timeLimitSoundAlertEnabled = true;
+            } else {
+                timeLimitVibrationAlertEnabled = true;
+                timeLimitSoundAlertEnabled = true;
+            }
+        }
+
         if (!scrambleEnabled) {
             // CongratsText is by default aligned to below the scramble box. If it's missing, we have
             // to add an extra margin to account for the title header
@@ -844,6 +865,25 @@ public class TimerFragment extends BaseFragment
             layoutParams.width = (int)(layoutParams.width * 1.7);
             layoutParams.height = (int)(layoutParams.height * 1.7);
             undoButton.setLayoutParams(layoutParams);
+        }
+
+        // Time Limit Alert
+        if (timeLimitAlertEnabled && PuzzleUtils.isTimeDisabled(currentPuzzle)){
+            // For FMC, Time Limit is 60 minutes = 3,600 seconds
+            long second = 60*60;
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                // For MBLD, Time Limit is the number of puzzles times 10 minutes (max 60 minutes)
+                second = Math.min(currentMbldNum, 6) * 10 * 60;
+            }
+
+            timeLimitWarning = new CountdownWarning
+                    .Builder(second)
+                    .withVibrate(timeLimitVibrationAlertEnabled)
+                    .withTone(timeLimitSoundAlertEnabled)
+                    .toneCode(ToneGenerator.TONE_CDMA_MED_PBX_S_X4)
+                    .toneDuration(2300)
+                    .vibrateDuration(2300)
+                    .build();
         }
 
         // Inspection timer
@@ -1621,6 +1661,9 @@ public class TimerFragment extends BaseFragment
         chronometer.start();
         chronometer.setHighlighted(false); // Clear any start cue or hold-for-start highlight.
 
+        if (timeLimitWarning != null)
+            timeLimitWarning.start();
+
         // isRunning should be set before generateNewScramble so the loading spinner doesn't appear
         // during a solve, since generateNewScramble checks if isRunning is false before setting
         // the spinner to visible.
@@ -1638,6 +1681,8 @@ public class TimerFragment extends BaseFragment
     private void stopChronometer() {
         chronometer.stop();
         chronometer.setHighlighted(false);
+        if (timeLimitWarning != null)
+            timeLimitWarning.cancel();
         isRunning = false;
         hasStoppedTimerOnce = true;
         showToolbar();

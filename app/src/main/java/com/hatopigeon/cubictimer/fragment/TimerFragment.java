@@ -212,6 +212,7 @@ public class TimerFragment extends BaseFragment
     CountdownWarning firstWarning;
     CountdownWarning secondWarning;
     CountdownWarning timeLimitWarning;
+    CountdownWarning fiveMinutesWarning;
 
     private Context mContext;
 
@@ -875,6 +876,8 @@ public class TimerFragment extends BaseFragment
                 // For MBLD, Time Limit is the number of puzzles times 10 minutes (max 60 minutes)
                 second = Math.min(currentMbldNum, 6) * 10 * 60;
             }
+            // for debug
+            //second = second / 600;
 
             timeLimitWarning = new CountdownWarning
                     .Builder(second)
@@ -884,6 +887,21 @@ public class TimerFragment extends BaseFragment
                     .toneDuration(2300)
                     .vibrateDuration(2300)
                     .build();
+
+            // five minutes remaining for FMC
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                second = 55*60;
+                // for debug
+                //second = 1;
+                fiveMinutesWarning = new CountdownWarning
+                        .Builder(second)
+                        .withVibrate(timeLimitVibrationAlertEnabled)
+                        .withTone(timeLimitSoundAlertEnabled)
+                        .toneCode(ToneGenerator.TONE_CDMA_MED_PBX_S_X4)
+                        .toneDuration(1100)
+                        .vibrateDuration(1100)
+                        .build();
+            }
         }
 
         // Inspection timer
@@ -1663,6 +1681,8 @@ public class TimerFragment extends BaseFragment
 
         if (timeLimitWarning != null)
             timeLimitWarning.start();
+        if (fiveMinutesWarning != null)
+            fiveMinutesWarning.start();
 
         // isRunning should be set before generateNewScramble so the loading spinner doesn't appear
         // during a solve, since generateNewScramble checks if isRunning is false before setting
@@ -1683,6 +1703,8 @@ public class TimerFragment extends BaseFragment
         chronometer.setHighlighted(false);
         if (timeLimitWarning != null)
             timeLimitWarning.cancel();
+        if (fiveMinutesWarning != null)
+            fiveMinutesWarning.cancel();
         isRunning = false;
         hasStoppedTimerOnce = true;
         showToolbar();

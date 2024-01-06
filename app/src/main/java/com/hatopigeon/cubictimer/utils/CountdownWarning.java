@@ -5,6 +5,7 @@ import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.util.Log;
@@ -27,6 +28,8 @@ public class CountdownWarning extends CountDownTimer {
     private final int toneDuration;
     private final int toneCode;
 
+    private HandlerThread handlerThread;
+
     private CountdownWarning(Builder builder) {
         super(builder.secondsInFuture * 1000, 50);
         vibrator = (Vibrator) CubicTimer.getAppContext().getSystemService(Context.VIBRATOR_SERVICE);
@@ -37,6 +40,9 @@ public class CountdownWarning extends CountDownTimer {
         this.toneEnabled = builder.toneEnabled;
         this.toneDuration = builder.toneDuration;
         this.toneCode = builder.toneCode;
+
+        handlerThread = new HandlerThread("CountdownWarningHandler");
+        handlerThread.start();
     }
 
 
@@ -52,18 +58,22 @@ public class CountdownWarning extends CountDownTimer {
             try {
                 this.toneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
                 toneGenerator.startTone(toneCode, toneDuration);
-                Handler handler = new Handler(Looper.getMainLooper());
+                // Sometimes toneGenerator.release take long time.
+                // So, to avoid ANR, make another thread to process toneGenerator.release().
+                Handler handler = new Handler(handlerThread.getLooper());
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        Log.d("Countdown", "tone release start");
                         if (toneGenerator != null) {
                             Log.d("Countdown", "toneGenerator released");
                             toneGenerator.release();
                             toneGenerator = null;
                         }
+                        Log.d("Countdown", "tone release end");
                     }
 
-                }, toneDuration);
+                }, toneDuration+200);   // to avoid "Stop timed out" on some environment add +200ms
             } catch (Exception e) {
                 Log.d("Countdown", "Exception while playing sound:" + e);
             }

@@ -1142,6 +1142,7 @@ public class TimerFragment extends BaseFragment
         disconnect();
         disconnectBle();
         if (bleClientManager != null)
+            bleClientManager.close();
             bleClientManager = null;
     }
 

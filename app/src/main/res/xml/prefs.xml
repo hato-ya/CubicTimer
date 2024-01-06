@@ -149,6 +149,21 @@
                     android:summary="@string/worstSolveEnabledSummary"
                     android:title="@string/worstSolveEnabledTitle" />
 
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_timeLimitAlertEnabled"
+                    android:key="@string/pk_time_limit_alert_enabled"
+                    android:summary="@string/pref_time_limit_alert_summary"
+                    android:title="@string/pref_time_limit_alert_title" />
+
+                <ListPreference
+                    android:defaultValue="@string/pk_inspection_alert_vibration"
+                    android:dependency="@string/pk_time_limit_alert_enabled"
+                    android:entries="@array/pref_array_inspection_alert"
+                    android:entryValues="@array/pk_pref_array_inspection_alert"
+                    android:key="@string/pk_time_limit_alert_type"
+                    android:summary="@string/pref_inspection_alert_type_summary"
+                    android:title="@string/pref_inspection_alert_type_title" />
             </PreferenceCategory>
 
             <Preference android:layout="@layout/divider_preference_category" />

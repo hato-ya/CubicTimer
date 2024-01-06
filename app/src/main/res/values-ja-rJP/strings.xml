@@ -295,6 +295,8 @@
     <string name="pref_inspection_alert_both">バイブレーションと音声</string>
     <string name="pref_inspection_alert_title">インスペクションタイムのアラート</string>
     <string name="pref_inspection_alert_summary">インスペクションタイム中%1$d と %2$d 秒にアラートします</string>
+    <string name="pref_time_limit_alert_title">制限時間のアラート</string>
+    <string name="pref_time_limit_alert_summary">FMCまたはMBLDの制限時間が過ぎたらアラートします</string>
     <string name="dialog_scramble_details">スクランブルの詳細</string>
     <string name="dialog_select_puzzle">パズルの選択</string>
     <string name="dialog_hint_title">ヒント</string>

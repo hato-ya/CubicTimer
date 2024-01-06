@@ -210,6 +210,12 @@
                     android:summary="@string/buttonsEnabledSummary"
                     android:title="@string/buttonsEnabledTitle" />
 
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_largeQuickActionEnabled"
+                    android:key="@string/pk_large_quick_actions_enabled"
+                    android:summary="@string/largeQuickActionSummary"
+                    android:title="@string/largeQuickActionTitle" />
+
             </PreferenceCategory>
 
             <Preference android:layout="@layout/divider_preference_category" />

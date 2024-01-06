@@ -37,6 +37,8 @@
     <string name="averageRecordsEnabledTitle">平均自己ベスト更新</string>
     <string name="buttonsEnabledSummary">ソルブ終了後ボタンを表示する</string>
     <string name="buttonsEnabledTitle">クイックアクション</string>
+    <string name="largeQuickActionSummary">ソルブ終了後に表示されるボタンを大きくする</string>
+    <string name="largeQuickActionTitle">クイックアクションを大きくする</string>
     <string name="choose_donation_amount">支援する金額を選択する</string>
     <string name="clearEnabledSummary">消去ボタンを表示する</string>
     <string name="clearEnabledTitle">消去ボタンの表示</string>

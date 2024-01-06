@@ -58,6 +58,9 @@
     <string name="buttonsEnabledSummary">Show the buttons that appear under the timer after a solve</string>
     <string name="buttonsEnabledTitle">Quick action buttons</string>
 
+    <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
+    <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+
     <string name="choose_donation_amount">Choose an amount to donate</string>
 
     <string name="clearEnabledSummary">The \"Clear\" button is shown in the time list, and lets you remove all solves from the current session</string>

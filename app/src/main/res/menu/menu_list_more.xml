@@ -18,11 +18,11 @@
                 <menu>
                     <item
                         android:id="@+id/sort_asc"
-                        android:icon="@drawable/ic_arrow_upward_24dp"
+                        android:icon="@drawable/ic_arrow_ascending_24dp"
                         android:title="@string/list_sort_ascending" />
                     <item
                         android:id="@+id/sort_desc"
-                        android:icon="@drawable/ic_arrow_downward_24dp"
+                        android:icon="@drawable/ic_arrow_descending_24dp"
                         android:title="@string/list_sort_descending" />
                 </menu>
             </item>
@@ -33,11 +33,11 @@
                 <menu>
                     <item
                         android:id="@+id/sort_ascd"
-                        android:icon="@drawable/ic_arrow_upward_24dp"
+                        android:icon="@drawable/ic_arrow_ascending_24dp"
                         android:title="@string/list_sort_ascending" />
                     <item
                         android:id="@+id/sort_descd"
-                        android:icon="@drawable/ic_arrow_downward_24dp"
+                        android:icon="@drawable/ic_arrow_descending_24dp"
                         android:title="@string/list_sort_descending" />
                 </menu>
             </item>

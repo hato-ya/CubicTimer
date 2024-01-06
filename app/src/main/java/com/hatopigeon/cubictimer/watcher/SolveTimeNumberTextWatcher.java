@@ -38,14 +38,15 @@ public class SolveTimeNumberTextWatcher implements TextWatcher {
 
         // Clear all formatting from editable
         // Regex matches the characters ':', '.', 'h' and a leading zero, if present
-        mUnformatted = s.toString().replaceAll("^0+|[h]|:|\\.", "");
+        mUnformatted = s.toString().replaceAll("^0\\.0|^0+|[h]|:|\\.", "");
         mLen = mUnformatted.length();
 
         s.clear();
         s.insert(0, mUnformatted);
 
-
-        if (mLen <= 2 && mLen > 0) { // 12 -> 0.12
+        if (mLen == 1) { // 1 -> 0.01
+            s.insert(0, "0.0");
+        } else if (mLen == 2) { // 12 -> 0.12
             s.insert(0, "0.");
         } else if (mLen == 3) { // 123 -> 1.23
             s.insert(1, ".");
@@ -58,11 +59,11 @@ public class SolveTimeNumberTextWatcher implements TextWatcher {
             s.insert(2, ":");
             s.insert(5, ".");
         } else if (mLen == 7) { // 1234567 -> 1:23:45.67
-            s.insert(1, "h");
+            s.insert(1, ":");
             s.insert(4, ":");
             s.insert(7, ".");
         } else if (mLen == 8) { // 12345678 -> 12:34:56.78
-            s.insert(2, "h");
+            s.insert(2, ":");
             s.insert(5, ":");
             s.insert(8, ".");
         }

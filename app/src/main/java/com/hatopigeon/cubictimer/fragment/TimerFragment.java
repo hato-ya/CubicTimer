@@ -1355,7 +1355,7 @@ public class TimerFragment extends BaseFragment
             } else {
                 diff = PuzzleUtils.MbldRecord.getSecondDiff(t1, t2);
                 if (diff != 0) {
-                    str = getString(R.string.personal_best_seconds, PuzzleUtils.formatTime(diff*1000));
+                    str = getString(R.string.personal_best_seconds, PuzzleUtils.formatTime(diff*1000, PuzzleUtils.FORMAT_SECOND));
                 } else {
                     diff = PuzzleUtils.MbldRecord.getFailedDiff(t1, t2);
                     str = getString(R.string.personal_best_failed, String.valueOf(diff));

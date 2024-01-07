@@ -687,7 +687,7 @@ public abstract class AverageCalculatorSuper {
      *     {@link #DNF}s.
      */
     public long getMeanTime() {
-        return (long) mMean != 0 ? (long) mMean : UNKNOWN;
+        return (long) mMean;
     }
 
     /**

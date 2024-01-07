@@ -345,7 +345,7 @@ public class PuzzleUtils {
     public static String convertTimeToString(long time, int format, String puzzleType) {
         if (time == TIME_DNF)
             return "DNF";
-        if (time == TIME_UNKNOWN)
+        if (time == TIME_UNKNOWN || (time == 0 && !puzzleType.equals(TYPE_333MBLD)))
             return "--";
         if (format == FORMAT_LARGE && isTimeDisabled(puzzleType))
             return "--";
@@ -362,7 +362,7 @@ public class PuzzleUtils {
                 case FORMAT_NO_MILLI_TIMER:
                     MbldRecord record = new MbldRecord(time);
                     if (record.getLong() == 0)
-                        return "0";
+                        return "--";
 
                     // solved / attempted
                     formattedString.append(record.getSolved() + "/" + record.getAttempted() + " ");

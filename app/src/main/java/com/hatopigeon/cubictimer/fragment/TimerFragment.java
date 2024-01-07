@@ -136,6 +136,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCROLLED_PAGE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMER_STARTED;
@@ -1141,9 +1142,10 @@ public class TimerFragment extends BaseFragment
         super.onPause();
         disconnect();
         disconnectBle();
-        if (bleClientManager != null)
+        if (bleClientManager != null) {
             bleClientManager.close();
             bleClientManager = null;
+        }
     }
 
     /**
@@ -1892,6 +1894,10 @@ public class TimerFragment extends BaseFragment
             scrambleButtonManualEntry.setVisibility(View.GONE);
             scrambleProgress.setVisibility(View.VISIBLE);
 
+            // Broadcast scramble generating
+            new BroadcastBuilder(CATEGORY_UI_INTERACTIONS, ACTION_SCRAMBLE_GENERATING)
+                    .broadcast();
+
             hideImage();
             if (!isRunning)
                 progressSpinner.setVisibility(View.VISIBLE);
@@ -1903,19 +1909,23 @@ public class TimerFragment extends BaseFragment
             if (currentPuzzle.equals(PuzzleUtils.TYPE_OTHER))
                 return " ";
 
-            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
-                int i;
-                String scramble = "";
-                for (i = 0; i < currentMbldNum; i++) {
-                    if (i != 0) scramble = scramble + "\n";
-                    scramble = scramble + (i+1) + ") " + generator.getPuzzle().generateScramble();
+            try {
+                // MBLD : generate scramble multi times
+                if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                    int i;
+                    String scramble = "";
+                    for (i = 0; i < currentMbldNum; i++) {
+                        if (i != 0) scramble = scramble + "\n";
+                        scramble = scramble + (i+1) + ") " + generator.getPuzzle().generateScramble();
+                    }
+
+                    return scramble;
                 }
 
-                return scramble;
-            }
-
-            try {
                 String scramble = generator.getPuzzle().generateScramble();
+
+                // Clock : remove pin moves at the end of scramble to comply with 2024 regulation
+                //         without updating tnoodle-lib
                 if (currentPuzzle.equals(PuzzleUtils.TYPE_CLOCK)) {
                     scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
                 }

@@ -321,7 +321,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_TIME, time);
         values.put(KEY_DATE, solve.getDate());
         values.put(KEY_SCRAMBLE, solve.getScramble());
-        values.put(KEY_PENALTY, solve.getPenalty());
+        values.put(KEY_PENALTY, solve.getRawPenalty());
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
 
@@ -404,7 +404,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_TIME, time);
         values.put(KEY_DATE, solve.getDate());
         values.put(KEY_SCRAMBLE, solve.getScramble());
-        values.put(KEY_PENALTY, solve.getPenalty());
+        values.put(KEY_PENALTY, solve.getRawPenalty());
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
 
@@ -541,7 +541,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 final boolean isToday = (dtFrom.getMillis() <= cursor.getLong(dateCol)
                         && cursor.getLong(dateCol) < dtTo.getMillis());
 
-                if (cursor.getInt(penaltyCol) == PuzzleUtils.PENALTY_DNF) {
+                if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(isForCurrentSession, isToday);
                 } else {
                     statistics.addTime(cursor.getLong(timeCol), isForCurrentSession, isToday);
@@ -598,7 +598,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             final int dateCol = cursor.getColumnIndex(KEY_DATE);
 
             while (cursor.moveToNext()) {
-                if (cursor.getInt(penaltyCol) == PuzzleUtils.PENALTY_DNF) {
+                if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(cursor.getLong(dateCol));
                 } else {
                     statistics.addTime(cursor.getLong(timeCol), cursor.getLong(dateCol));

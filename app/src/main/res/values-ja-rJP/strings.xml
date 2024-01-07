@@ -152,9 +152,9 @@
     <string name="optimal_x_cross">X-クロス %1$s:</string>
     <string name="option_show_scramble_hints">ヒントを表示する面の選択</string>
     <string name="option_show_scramble_hints_summary">ヒントを表示したい面を選択してください</string>
-    <string name="pagerEnabledSummary">この設定をオフにするとスワップでタブの切り替えができなくなります</string>
-    <string name="pagerEnabledTitle">スワップでのタブの切り替えを許可する</string>
-    <string name="panel_swipe_down_to_hide">下にスワップしてヒントを隠す</string>
+    <string name="pagerEnabledSummary">この設定をオフにするとスワイプでタブの切り替えができなくなります</string>
+    <string name="pagerEnabledTitle">スワイプでのタブの切り替えを許可する</string>
+    <string name="panel_swipe_down_to_hide">下にスワイプしてヒントを隠す</string>
     <string name="permission_denied_explanation">エクスポート/インポート機能を実行するには、Cubic Timerに、外部ストレージにアクセスする権限を付与する必要があります。</string>
     <string name="personal_best_message">おめでとうございます‼ \n自己ベストから %1$sの更新です</string>
     <string name="personal_worst_message">残念！\n ワーストを %1$s更新！</string>

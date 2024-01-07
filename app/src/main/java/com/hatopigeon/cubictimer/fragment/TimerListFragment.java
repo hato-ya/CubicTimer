@@ -300,9 +300,16 @@ public class TimerListFragment extends BaseFragment
                 case ACTION_SCRAMBLE_MODIFIED:
                     // A new scramble was generated
                     currentScramble = TTIntent.getScramble(intent);
+                    addTimeButton.setEnabled(true);
+                    addTimeButton.setAlpha(1.0f);
                     break;
-                    default:
-                        break;
+                case ACTION_SCRAMBLE_GENERATING:
+                    currentScramble = "";
+                    addTimeButton.setEnabled(false);
+                    addTimeButton.setAlpha(0.5f);
+                    break;
+                default:
+                    break;
             }
         }
     };

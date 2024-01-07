@@ -812,7 +812,7 @@ public class MainActivity extends AppCompatActivity
                                     + '"';
 
                             // Add optional "DNF" in fourth field.
-                            if (cursor.getInt(IDX_PENALTY) == PuzzleUtils.PENALTY_DNF) {
+                            if (Solve.getPenalty(cursor.getInt(IDX_PENALTY)) == PuzzleUtils.PENALTY_DNF) {
                                 csvValues += ";\"DNF\"";
                             }
 

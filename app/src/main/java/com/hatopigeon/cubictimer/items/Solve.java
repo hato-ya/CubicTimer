@@ -14,9 +14,16 @@ public class Solve implements Parcelable {
     String subtype;
     long   date;
     String scramble;
+
+    // penalty
+    //  MMM_PP
+    //   MMM : the number of penalty for MBLD
+    //   PP  : penalty flag (0:no penalty, 1:+2, 2:DNF, 10:HIDETIME (for special purpose)
     int    penalty;
     String comment;
     boolean history;
+
+    private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
     public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
                  String comment, boolean history) {
@@ -26,6 +33,19 @@ public class Solve implements Parcelable {
         this.date = date;
         this.scramble = scramble;
         this.penalty = penalty;
+        this.comment = comment;
+        this.history = history;
+    }
+
+    public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
+                 int mbldPenaltyNum, String comment, boolean history) {
+        this.time = time;
+        this.puzzle = puzzle;
+        this.subtype = subtype;
+        this.date = date;
+        this.scramble = scramble;
+        this.penalty = penalty;
+        setMbldPenaltyNum(mbldPenaltyNum);
         this.comment = comment;
         this.history = history;
     }
@@ -125,13 +145,32 @@ public class Solve implements Parcelable {
     }
 
     public int getPenalty() {
-        return penalty;
+        return penalty % PLACE_MBLD_PENALTY_NUM;
     }
 
     public void setPenalty(int penalty) {
-        this.penalty = penalty;
+        this.penalty = getMbldPenaltyNum() * PLACE_MBLD_PENALTY_NUM + penalty;
     }
 
+    public int getMbldPenaltyNum() {
+        return penalty / PLACE_MBLD_PENALTY_NUM;
+    }
+
+    public void setMbldPenaltyNum(int penaltyNum) {
+        penalty = penaltyNum * PLACE_MBLD_PENALTY_NUM + this.penalty % PLACE_MBLD_PENALTY_NUM;
+    }
+
+    public int getRawPenalty() {
+        return penalty;
+    }
+
+    public static int getPenalty(int rawPenalty) {
+        return rawPenalty % PLACE_MBLD_PENALTY_NUM;
+    }
+
+    public static int getMbldPenaltyNum(int rawPenalty) {
+        return rawPenalty / PLACE_MBLD_PENALTY_NUM;
+    }
     /**
      * Writes this solve to a parcel.
      *

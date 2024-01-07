@@ -251,6 +251,8 @@ public class TimeDialog extends DialogFragment {
                 penaltyText.setText("DNF");
             else if (solve.getPenalty() == PuzzleUtils.PENALTY_PLUSTWO)
                 penaltyText.setText("+2");
+            else if (solve.getMbldPenaltyNum() > 0)
+                penaltyText.setText("+" + solve.getMbldPenaltyNum()*2);
             else
                 penaltyText.setVisibility(View.GONE);
 

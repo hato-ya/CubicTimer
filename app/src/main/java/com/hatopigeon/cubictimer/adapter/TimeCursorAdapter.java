@@ -27,6 +27,7 @@ import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.fragment.TimerFragment;
 import com.hatopigeon.cubictimer.fragment.TimerListFragment;
 import com.hatopigeon.cubictimer.fragment.dialog.TimeDialog;
+import com.hatopigeon.cubictimer.items.Solve;
 import com.hatopigeon.cubictimer.listener.DialogListener;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
@@ -190,18 +191,17 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
                 PuzzleUtils.FORMAT_SMALL_MILLI, pPuzzle)));
         holder.penaltyText.setTextColor(ContextCompat.getColor(mContext, R.color.red_material));
 
-        switch (pPenalty) {
-            case PuzzleUtils.PENALTY_DNF:
-                holder.timeText.setText("DNF");
-                holder.penaltyText.setVisibility(View.GONE);
-                break;
-            case PuzzleUtils.PENALTY_PLUSTWO:
-                holder.penaltyText.setText("+2");
-                holder.penaltyText.setVisibility(View.VISIBLE);
-                break;
-            default:
-                holder.penaltyText.setVisibility(View.GONE);
-                break;
+        if (Solve.getPenalty(pPenalty) == PuzzleUtils.PENALTY_DNF) {
+            holder.timeText.setText("DNF");
+            holder.penaltyText.setVisibility(View.GONE);
+        } else if (Solve.getPenalty(pPenalty) == PuzzleUtils.PENALTY_PLUSTWO) {
+            holder.penaltyText.setText("+2");
+            holder.penaltyText.setVisibility(View.VISIBLE);
+        } else if (Solve.getMbldPenaltyNum(pPenalty) > 0) {
+            holder.penaltyText.setText("+" + Solve.getMbldPenaltyNum(pPenalty)*2);
+            holder.penaltyText.setVisibility(View.VISIBLE);
+        } else {
+            holder.penaltyText.setVisibility(View.GONE);
         }
 
         if (! pComment.equals("")) {

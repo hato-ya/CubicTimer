@@ -90,6 +90,7 @@ public class AddTimeDialog extends DialogFragment {
     private String currentScramble;
     private String currentPuzzleSubtype;
     private int currentMbldNum;
+    private int currentMbldPenaltyNum;
     private long currentTime;
     private Solve currentSolve;
 
@@ -126,26 +127,23 @@ public class AddTimeDialog extends DialogFragment {
                                 // set number of puzzles solved as second and number of puzzles as milli-second
                                 time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString() + ".00");
                                 int solved = Integer.parseInt(solvedEditText.getText().toString());
-                                int penalty = Math.min(Integer.parseInt(penaltyEditText.getText().toString()), currentMbldNum);
+                                currentMbldPenaltyNum = Math.min(Integer.parseInt(penaltyEditText.getText().toString()), solved);
 
                                 PuzzleUtils.MbldRecord record =
                                         new PuzzleUtils.MbldRecord(solved, currentMbldNum,
-                                                time / 1000 + penalty * 2);
+                                                time / 1000 + currentMbldPenaltyNum * 2);
 
                                 time = record.getLong();
-                                if (record.isDNF())
+                                if (mMode == MODE_ADD && record.isDNF())
                                     mCurrentPenalty = PuzzleUtils.PENALTY_DNF;
-                                else
-                                    mCurrentPenalty = PuzzleUtils.NO_PENALTY;
                             } else {
                                 dismiss();
                                 return;
                             }
                         } else {
                             time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
+                            time = mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time;
                         }
-
-                        time = mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time;
 
                         if (mMode == MODE_ADD) {
                             final Solve solve = new Solve(
@@ -155,6 +153,7 @@ public class AddTimeDialog extends DialogFragment {
                                     new DateTime().getMillis(),
                                     useCurrentScramble.isChecked() ? currentScramble : "",
                                     mCurrentPenalty,
+                                    currentMbldPenaltyNum,
                                     mCurrentComment,
                                     false);
 
@@ -172,6 +171,7 @@ public class AddTimeDialog extends DialogFragment {
                                 currentSolve.setTime(time);
                                 currentSolve.setPenalty(mCurrentPenalty);
                                 currentSolve.setComment(mCurrentComment);
+                                currentSolve.setMbldPenaltyNum(currentMbldPenaltyNum);
                                 addTimeCallback.onAddTime(currentSolve);
                             }
                         }
@@ -287,14 +287,17 @@ public class AddTimeDialog extends DialogFragment {
         currentPuzzle = getArguments().getString("puzzle");
         currentPuzzleSubtype = getArguments().getString("category");
         currentMbldNum = getArguments().getInt("mbldnum");
+        currentMbldPenaltyNum = 0;
         currentScramble = getArguments().getString("scramble");
         currentTime = getArguments().getLong("time");
         currentSolve = getArguments().getParcelable("solve");
         if (currentSolve != null) {
             currentPuzzle = currentSolve.getPuzzle();
             // currentPuzzleSubtype = currentSolve.getSubtype();
-            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD))
+            if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
                 currentMbldNum = (int) (new PuzzleUtils.MbldRecord(currentSolve.getTime()).getAttempted());
+                currentMbldPenaltyNum = currentSolve.getMbldPenaltyNum();
+            }
             // currentScramble = currentSolve.getScramble();
             currentTime = currentSolve.getTime();
             mCurrentComment = currentSolve.getComment();
@@ -332,10 +335,12 @@ public class AddTimeDialog extends DialogFragment {
                     timeEditText.setText(PuzzleUtils.formatTime(currentTime, PuzzleUtils.FORMAT_SECOND));
             } else {
                 PuzzleUtils.MbldRecord record = new PuzzleUtils.MbldRecord(currentTime);
-                timeEditText.setText(PuzzleUtils.formatTime(Math.min(record.getSecond(), 99*3600+59*60+59)*1000, PuzzleUtils.FORMAT_SECOND));
+                long time = record.getSecond() - currentMbldPenaltyNum*2;
+                time = Math.max(Math.min(time, 99*3600+59*60+59), 0)*1000;
+                timeEditText.setText(PuzzleUtils.formatTime(time, PuzzleUtils.FORMAT_SECOND));
                 solvedEditText.setText(String.valueOf(record.getSolved()));
             }
-            penaltyEditText.setText("0");
+            penaltyEditText.setText(String.valueOf(currentMbldPenaltyNum));
 
             solvedText.setVisibility(View.VISIBLE);
             solvedEditText.setVisibility(View.VISIBLE);
@@ -346,7 +351,9 @@ public class AddTimeDialog extends DialogFragment {
             timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
 
             if (mMode == MODE_EDIT) {
-                timeEditText.setText(PuzzleUtils.formatTime(Math.min(currentTime, (99*3600+59*60+59)*1000+990), PuzzleUtils.FORMAT_MILLI));
+                long time = currentTime - (mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? 2000 : 0);
+                time = Math.max(Math.min(time, (99*3600+59*60+59)*1000+990), 0);
+                timeEditText.setText(PuzzleUtils.formatTime(time, PuzzleUtils.FORMAT_MILLI));
             }
         }
 

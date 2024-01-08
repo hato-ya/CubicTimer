@@ -59,6 +59,7 @@ import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 
 import org.joda.time.DateTime;
 
@@ -771,30 +772,32 @@ public class MainActivity extends AppCompatActivity
                 final DatabaseHandler handler = CubicTimer.getDBHandler();
                 final OutputStream os = mContext.getContentResolver().openOutputStream(mUri);
                 final OutputStreamWriter out = new OutputStreamWriter(os);
+                final CSVWriter csvWriter = new CSVWriter(out, ';', '"', '\\');
 
                 if (mFileFormat == ExportImportDialog.EXIM_FORMAT_BACKUP) {
-                    String csvHeader
-                            = "Puzzle,Category,Time(millis),Date(millis),Scramble,Penalty,Comment\n";
                     Cursor cursor = handler.getAllSolves();
 
                     try {
                         publishProgress(0, cursor.getCount());
-                        out.write(csvHeader);
+                        csvWriter.writeNext(new String[] {"Puzzle", "Category", "Time(millis)",
+                                "Date(millis)", "Scramble", "Penalty", "Comment"});
 
                         while (cursor.moveToNext()) {
-                            out.write('"' + cursor.getString(IDX_TYPE)
-                                    + "\";\"" + cursor.getString(IDX_SUBTYPE)
-                                    + "\";\"" + cursor.getLong(IDX_TIME)
-                                    + "\";\"" + cursor.getLong(IDX_DATE)
-                                    + "\";\"" + cursor.getString(IDX_SCRAMBLE)
-                                    + "\";\"" + cursor.getInt(IDX_PENALTY)
-                                    + "\";\"" + cursor.getString(IDX_COMMENT)
-                                    + "\"\n");
+                            csvWriter.writeNext(new String[] {
+                                    cursor.getString(IDX_TYPE),
+                                    cursor.getString(IDX_SUBTYPE),
+                                    String.valueOf(cursor.getLong(IDX_TIME)),
+                                    String.valueOf(cursor.getLong(IDX_DATE)),
+                                    cursor.getString(IDX_SCRAMBLE),
+                                    String.valueOf(cursor.getInt(IDX_PENALTY)),
+                                    cursor.getString(IDX_COMMENT)
+                            });
                             exports++;
                             publishProgress(exports);
                         }
                     } finally {
                         cursor.close();
+                        csvWriter.close();
                         out.close();
                     }
                     returnCode = true;
@@ -805,25 +808,27 @@ public class MainActivity extends AppCompatActivity
                         publishProgress(0, cursor.getCount());
 
                         while (cursor.moveToNext()) {
-                            String csvValues
-                                    = '"' + PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType)
-                                    + "\";\"" + cursor.getString(IDX_SCRAMBLE)
-                                    + "\";\"" + new DateTime(cursor.getLong(IDX_DATE)).toString()
-                                    + '"';
-
-                            // Add optional "DNF" in fourth field.
                             if (Solve.getPenalty(cursor.getInt(IDX_PENALTY)) == PuzzleUtils.PENALTY_DNF) {
-                                csvValues += ";\"DNF\"";
+                                csvWriter.writeNext(new String[] {
+                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType),
+                                        cursor.getString(IDX_SCRAMBLE),
+                                        new DateTime(cursor.getLong(IDX_DATE)).toString(),
+                                        "DNF"
+                                });
+                            } else {
+                                csvWriter.writeNext(new String[] {
+                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType),
+                                        cursor.getString(IDX_SCRAMBLE),
+                                        new DateTime(cursor.getLong(IDX_DATE)).toString(),
+                                        ""
+                                });
                             }
-
-                            csvValues += '\n';
-
-                            out.write(csvValues);
                             exports++;
                             publishProgress(exports);
                         }
                     } finally {
                         cursor.close();
+                        csvWriter.close();
                         out.close();
                     }
                     returnCode = true;
@@ -949,7 +954,7 @@ public class MainActivity extends AppCompatActivity
                 InputStream is = mContext.getContentResolver().openInputStream(mUri);
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
-                CSVReader csvReader = new CSVReader(br, ';', '"', true);
+                CSVReader csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
                 String[] line;
 
                 if (mFileFormat == ExportImportDialog.EXIM_FORMAT_BACKUP) {

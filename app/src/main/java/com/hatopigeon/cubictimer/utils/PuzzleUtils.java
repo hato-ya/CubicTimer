@@ -41,8 +41,8 @@ public class PuzzleUtils {
     public static final String TYPE_333BLD  = "333bld";
     public static final String TYPE_444BLD  = "444bld";
     public static final String TYPE_555BLD  = "555bld";
-    public static final String TYPE_333FMC  = "333fmc";
     public static final String TYPE_333MBLD = "333mbld";
+    public static final String TYPE_333FMC  = "333fmc";
     public static final String TYPE_OTHER   = "other";
 
     public static final int NO_PENALTY       = 0;
@@ -202,8 +202,8 @@ public class PuzzleUtils {
             case 12: return TYPE_333BLD;
             case 13: return TYPE_444BLD;
             case 14: return TYPE_555BLD;
-            case 15: return TYPE_333FMC;
-            case 16: return TYPE_333MBLD;
+            case 15: return TYPE_333MBLD;
+            case 16: return TYPE_333FMC;
             case 17: return TYPE_OTHER;
         }
     }
@@ -235,8 +235,8 @@ public class PuzzleUtils {
             case TYPE_333BLD:  return 12;
             case TYPE_444BLD:  return 13;
             case TYPE_555BLD:  return 14;
-            case TYPE_333FMC:  return 15;
-            case TYPE_333MBLD: return 16;
+            case TYPE_333MBLD: return 15;
+            case TYPE_333FMC:  return 16;
             case TYPE_OTHER:   return 17;
         }
     }
@@ -267,8 +267,8 @@ public class PuzzleUtils {
             case TYPE_333BLD:  return R.string.cube_333bld_informal;
             case TYPE_444BLD:  return R.string.cube_444bld_informal;
             case TYPE_555BLD:  return R.string.cube_555bld_informal;
-            case TYPE_333FMC:  return R.string.cube_333fmc_informal;
             case TYPE_333MBLD: return R.string.cube_333mbld_informal;
+            case TYPE_333FMC:  return R.string.cube_333fmc_informal;
             case TYPE_OTHER:   return R.string.cube_other;
             default:           return 0;
         }
@@ -293,8 +293,8 @@ public class PuzzleUtils {
             case TYPE_333BLD:  return R.string.cube_333bld;
             case TYPE_444BLD:  return R.string.cube_444bld;
             case TYPE_555BLD:  return R.string.cube_555bld;
-            case TYPE_333FMC:  return R.string.cube_333fmc;
             case TYPE_333MBLD: return R.string.cube_333mbld;
+            case TYPE_333FMC:  return R.string.cube_333fmc;
             case TYPE_OTHER:   return R.string.cube_other;
         }
     }

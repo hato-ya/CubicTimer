@@ -72,6 +72,7 @@ public class PuzzleSelectDialog extends DialogFragment {
                 Pair.create(getString(R.string.cube_pyra), R.drawable.ic_pyra),
                 Pair.create(getString(R.string.cube_sq1), R.drawable.ic_sq1),
                 Pair.create(getString(R.string.cube_clock), R.drawable.ic_clock),
+                Pair.create(getString(R.string.cube_333oh), R.drawable.ic_3x3_oh),
                 Pair.create(getString(R.string.cube_333bld), R.drawable.ic_3x3_bld),
                 Pair.create(getString(R.string.cube_444bld), R.drawable.ic_4x4_bld),
                 Pair.create(getString(R.string.cube_555bld), R.drawable.ic_5x5_bld),

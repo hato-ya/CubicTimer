@@ -90,6 +90,8 @@
     <string name="cube_pyra">Pyraminx</string>
     <string name="cube_skewb">Skewb</string>
     <string name="cube_sq1">Square-1</string>
+    <string name="cube_333oh">3x3 OH</string>
+    <string name="cube_333oh_informal">3x3oh</string>
     <string name="cube_333bld">3x3 BLD</string>
     <string name="cube_333bld_informal">3x3bld</string>
     <string name="cube_444bld">4x4 BLD</string>

@@ -962,8 +962,9 @@ public class TimerFragment extends BaseFragment
                     isReady = false;
                     holdingDNF = true;
                     currentPenalty = PuzzleUtils.PENALTY_DNF;
-                    chronometer.setPenalty(PuzzleUtils.PENALTY_DNF);
                     stopChronometer();
+                    chronometer.reset();
+                    chronometer.setPenalty(PuzzleUtils.PENALTY_DNF);    // order is important, penalty is cleared at chronometer.reset()
                     currentScramble = realScramble;
                     generateNewScramble();
                     addNewSolve();

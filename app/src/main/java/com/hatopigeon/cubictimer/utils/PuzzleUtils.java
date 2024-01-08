@@ -37,6 +37,7 @@ public class PuzzleUtils {
     public static final String TYPE_SKEWB   = "skewb";
     public static final String TYPE_CLOCK   = "clock";
     public static final String TYPE_SQUARE1 = "sq1";
+    public static final String TYPE_333OH   = "333oh";
     public static final String TYPE_333BLD  = "333bld";
     public static final String TYPE_444BLD  = "444bld";
     public static final String TYPE_555BLD  = "555bld";
@@ -197,12 +198,13 @@ public class PuzzleUtils {
             case  8: return TYPE_PYRA;
             case  9: return TYPE_SQUARE1;
             case 10: return TYPE_CLOCK;
-            case 11: return TYPE_333BLD;
-            case 12: return TYPE_444BLD;
-            case 13: return TYPE_555BLD;
-            case 14: return TYPE_333FMC;
-            case 15: return TYPE_333MBLD;
-            case 16: return TYPE_OTHER;
+            case 11: return TYPE_333OH;
+            case 12: return TYPE_333BLD;
+            case 13: return TYPE_444BLD;
+            case 14: return TYPE_555BLD;
+            case 15: return TYPE_333FMC;
+            case 16: return TYPE_333MBLD;
+            case 17: return TYPE_OTHER;
         }
     }
 
@@ -229,12 +231,13 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return  8;
             case TYPE_SQUARE1: return  9;
             case TYPE_CLOCK:   return 10;
-            case TYPE_333BLD:  return 11;
-            case TYPE_444BLD:  return 12;
-            case TYPE_555BLD:  return 13;
-            case TYPE_333FMC:  return 14;
-            case TYPE_333MBLD: return 15;
-            case TYPE_OTHER:   return 16;
+            case TYPE_333OH:   return 11;
+            case TYPE_333BLD:  return 12;
+            case TYPE_444BLD:  return 13;
+            case TYPE_555BLD:  return 14;
+            case TYPE_333FMC:  return 15;
+            case TYPE_333MBLD: return 16;
+            case TYPE_OTHER:   return 17;
         }
     }
 
@@ -260,6 +263,7 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return R.string.cube_pyra;
             case TYPE_SKEWB:   return R.string.cube_skewb;
             case TYPE_SQUARE1: return R.string.cube_sq1;
+            case TYPE_333OH:   return R.string.cube_333oh_informal;
             case TYPE_333BLD:  return R.string.cube_333bld_informal;
             case TYPE_444BLD:  return R.string.cube_444bld_informal;
             case TYPE_555BLD:  return R.string.cube_555bld_informal;
@@ -285,6 +289,7 @@ public class PuzzleUtils {
             case TYPE_PYRA:    return R.string.cube_pyra;
             case TYPE_SKEWB:   return R.string.cube_skewb;
             case TYPE_SQUARE1: return R.string.cube_sq1;
+            case TYPE_333OH:   return R.string.cube_333oh;
             case TYPE_333BLD:  return R.string.cube_333bld;
             case TYPE_444BLD:  return R.string.cube_444bld;
             case TYPE_555BLD:  return R.string.cube_555bld;

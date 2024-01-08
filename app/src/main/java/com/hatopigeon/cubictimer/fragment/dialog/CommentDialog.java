@@ -112,6 +112,7 @@ public class CommentDialog  extends DialogFragment {
         switch(getArguments().getString(ARG_PUZZLE).toString()){
             case PuzzleUtils.TYPE_222:
             case PuzzleUtils.TYPE_333:
+            case PuzzleUtils.TYPE_333OH:
             case PuzzleUtils.TYPE_333BLD:
             case PuzzleUtils.TYPE_333FMC:
             case PuzzleUtils.TYPE_333MBLD:

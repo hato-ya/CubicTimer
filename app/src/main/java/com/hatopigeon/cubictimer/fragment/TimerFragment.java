@@ -1268,6 +1268,7 @@ public class TimerFragment extends BaseFragment
             case PuzzleUtils.TYPE_222:
             case PuzzleUtils.TYPE_444:
             case PuzzleUtils.TYPE_333:
+            case PuzzleUtils.TYPE_333OH:
             case PuzzleUtils.TYPE_333BLD:
             case PuzzleUtils.TYPE_444BLD:
             case PuzzleUtils.TYPE_555BLD:

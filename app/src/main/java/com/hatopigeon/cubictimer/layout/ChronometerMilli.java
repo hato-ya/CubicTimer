@@ -16,12 +16,14 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SMALL_MILLI_TIMER;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_NO_MILLI_TIMER;
-import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SMALL_MILLI;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.NO_PENALTY;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_PLUSTWO;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
+
+import java.util.ArrayList;
 
 /**
  * A chronometer for twisty puzzles of all types. This supports timing in milliseconds, display of
@@ -60,6 +62,12 @@ public class ChronometerMilli extends AppCompatTextView {
      * Will be zero if the chronometer has not been started or has been reset.
      */
     private long mStartedAt;
+
+    /**
+     * The time (system elapsed real time in milliseconds) at which this chronometer was wrapped.
+     * Will be zero if the chronometer has not been stopped or has been reset.
+     */
+    private ArrayList<Long> mLapAt;
 
     /**
      * The time (system elapsed real time in milliseconds) at which this chronometer was stopped.
@@ -138,6 +146,8 @@ public class ChronometerMilli extends AppCompatTextView {
         hideTimeEnabled = Prefs.getBoolean(R.string.pk_hide_time_while_running, false);
         hideTimeText = getContext().getString(R.string.hideTimeText);
 
+        mLapAt = new ArrayList<>();
+
         // The initial state will cause "0.00" to be displayed.
         updateText();
     }
@@ -165,6 +175,30 @@ public class ChronometerMilli extends AppCompatTextView {
      */
     public boolean isStarted() {
         return mIsStarted;
+    }
+
+    /**
+     * Gets the number of current laps
+     * @return
+     */
+    public int getLapNum() {
+        return mLapAt.size();
+    }
+
+    /**
+     * Gets the lap time of lap n
+     * @param n
+     * @return
+     */
+    public long getLapTime(int n) {
+        if (n < mLapAt.size()) {
+            if (n == 0)
+                return mLapAt.get(n) - mStartedAt;
+            else
+                return mLapAt.get(n) - mLapAt.get(n-1);
+        } else {
+            return 0L;
+        }
     }
 
     /**
@@ -290,12 +324,24 @@ public class ChronometerMilli extends AppCompatTextView {
         mStartedAt = SystemClock.elapsedRealtime() - getElapsedTimeExcludingPenalties();
         mStoppedAt = 0L;
         mIsStarted = true;
+        mLapAt.clear();
+
+        // for debug
+        //mStartedAt -= (59*60 + 50) * 1000;
 
         // If we were holding for a start, stop doing that now and discard any saved text.
         endHoldForStart();
 
         updateText();
         updateRunning();
+    }
+
+    public void lap() {
+        if (!mIsStarted) {
+            return;
+        }
+
+        mLapAt.add(SystemClock.elapsedRealtime());
     }
 
     /**
@@ -313,6 +359,11 @@ public class ChronometerMilli extends AppCompatTextView {
 
         mIsStarted = false;
         mStoppedAt = SystemClock.elapsedRealtime();
+
+        if (mIsExternal)
+            mLapAt.add(mStartedAt + mExternalTime);
+        else
+            mLapAt.add(mStoppedAt);
 
         // Update the text to show the exact elapsed time at this precise moment.
         updateText();
@@ -342,6 +393,7 @@ public class ChronometerMilli extends AppCompatTextView {
         mStartedAt = 0L;
         mStoppedAt = 0L;
         mPenalty = NO_PENALTY;
+        mLapAt.clear();
 
         mIsExternal = false;
 
@@ -428,7 +480,7 @@ public class ChronometerMilli extends AppCompatTextView {
             isHiRes = (!mIsStarted || mShowHiRes) && hours == 0;
 
             if (elapsedMS > 0)
-                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI : FORMAT_NO_MILLI_TIMER, PuzzleUtils.TYPE_333);
+                timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI_TIMER : FORMAT_NO_MILLI_TIMER, PuzzleUtils.TYPE_333);
             else
                 timeText = "0<small>.00</small>";
             // If a "+2" penalty has been applied and the chronometer is not started or holding,

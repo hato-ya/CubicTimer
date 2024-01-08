@@ -251,18 +251,18 @@ public class AddTimeDialog extends DialogFragment {
     };
 
     public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble) {
-        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, 0, null);
+        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, 0, "", null);
     }
 
-    public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime) {
-        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, currentTime, null);
+    public static AddTimeDialog newInstance(String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime, String currentComment) {
+        return newInstance(MODE_ADD, currentPuzzle, currentPuzzleSubtype, currentMbldNum, currentScramble, currentTime, currentComment, null);
     }
 
     public static AddTimeDialog newInstance(Solve currentSolve) {
-        return newInstance(MODE_EDIT, "", "", 0, "", 0, currentSolve);
+        return newInstance(MODE_EDIT, "", "", 0, "", 0, "", currentSolve);
     }
 
-    public static AddTimeDialog newInstance(int mode, String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime, Solve currentSolve) {
+    public static AddTimeDialog newInstance(int mode, String currentPuzzle, String currentPuzzleSubtype, int currentMbldNum, String currentScramble, long currentTime, String currentComment, Solve currentSolve) {
         AddTimeDialog timeDialog = new AddTimeDialog();
         Bundle args = new Bundle();
         args.putInt("mode", mode);
@@ -271,6 +271,7 @@ public class AddTimeDialog extends DialogFragment {
         args.putInt("mbldnum", currentMbldNum);
         args.putString("scramble", currentScramble);
         args.putLong("time", currentTime);
+        args.putString("comment", currentComment);
         args.putParcelable("solve", currentSolve);
         timeDialog.setArguments(args);
         return timeDialog;
@@ -290,6 +291,7 @@ public class AddTimeDialog extends DialogFragment {
         currentMbldPenaltyNum = 0;
         currentScramble = getArguments().getString("scramble");
         currentTime = getArguments().getLong("time");
+        mCurrentComment = getArguments().getString("comment");
         currentSolve = getArguments().getParcelable("solve");
         if (currentSolve != null) {
             currentPuzzle = currentSolve.getPuzzle();

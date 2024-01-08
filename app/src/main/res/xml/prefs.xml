@@ -98,6 +98,26 @@
 
             <Preference android:layout="@layout/divider_preference_category" />
 
+            <PreferenceCategory android:title="@string/pref_category_title_multi_phase">
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_multiPhaseEnabled"
+                    android:key="@string/pk_multi_phase_enabled"
+                    android:summary="@string/multiPhaseEnabledSummary"
+                    android:title="@string/multiPhaseEnabledTitle" />
+
+                <Preference
+                    android:defaultValue="@integer/defaultMultiPhaseNum"
+                    android:dependency="@string/pk_multi_phase_enabled"
+                    android:key="@string/pk_multi_phase_num"
+
+                    android:summary="@string/multiPhaseNumSummary"
+                    android:title="@string/multiPhaseNumTitle" />
+
+            </PreferenceCategory>
+
+            <Preference android:layout="@layout/divider_preference_category" />
+
             <PreferenceCategory android:title="@string/pref_category_title_scramble">
 
                 <SwitchPreferenceCompat

@@ -31,6 +31,9 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_tint_navigation_bar">pkTintNavigationBar</string>
     <string translatable="false" name="pk_menu_background">pkMenuBackground</string>
 
+    <string translatable="false" name="pk_multi_phase_enabled">multiPhaseEnabled</string>
+    <string translatable="false" name="pk_multi_phase_num">multiPhaseNum</string>
+
     <string translatable="false" name="pk_scramble_enabled">scrambleEnabled</string>
     <string translatable="false" name="pk_show_scramble_hints">showHints</string>
     <string translatable="false" name="pk_show_scramble_background">showScrambleBackground</string>

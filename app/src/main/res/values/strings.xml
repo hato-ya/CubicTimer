@@ -259,6 +259,7 @@
     <string name="pref_category_title_inspection">Inspection</string>
     <string name="pref_category_title_locale">Locale</string>
     <string name="pref_category_title_other">Other</string>
+    <string name="pref_category_title_multi_phase">Multi Phase</string>
     <string name="pref_category_title_scramble">Scramble</string>
     <string name="pref_category_title_timer">Timer</string>
     <string name="pref_category_title_stack_timer">Stack timer</string>
@@ -286,6 +287,12 @@
     <string name="rename_subtype_title">Select a category to rename</string>
 
     <string name="reset_colorscheme">Reset color scheme to default?</string>
+
+    <string name="multiPhaseEnabledSummary">Enable multi-phase for measuring lap times</string>
+    <string name="multiPhaseEnabledTitle">Multi-Phase</string>
+    <string name="multiPhaseNumSummary">The number of phases : %1$d (2 - %2$d)</string>
+    <string name="multiPhaseNumTitle">Number of phases</string>
+    <string name="phase_num">Number of phases</string>
 
     <string name="scrambleEnabledSummary">Generate scramble sequences for the puzzles</string>
 

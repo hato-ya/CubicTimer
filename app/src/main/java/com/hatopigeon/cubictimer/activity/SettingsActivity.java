@@ -17,11 +17,13 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
 import androidx.appcompat.widget.AppCompatSeekBar;
 
+import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -132,6 +134,8 @@ public class SettingsActivity extends AppCompatActivity {
         private int inspectionDuration;
 
         private String averageText;
+        private final int maximumPhaseNum = 5;
+        private final int defaultPhaseNum = 4;
 
         private final androidx.preference.Preference.OnPreferenceClickListener clickListener
                 = new androidx.preference.Preference.OnPreferenceClickListener() {
@@ -139,6 +143,7 @@ public class SettingsActivity extends AppCompatActivity {
             public boolean onPreferenceClick(androidx.preference.Preference preference) {
                 switch (Prefs.keyToResourceID(preference.getKey(),
                         R.string.pk_inspection_time,
+                        R.string.pk_multi_phase_num,
                         R.string.pk_show_scramble_x_cross_hints,
                         R.string.pref_screen_title_timer_appearance_settings,
                         R.string.pk_locale,
@@ -155,6 +160,9 @@ public class SettingsActivity extends AppCompatActivity {
                     case R.string.pk_inspection_time:
                         createNumberDialog(R.string.inspection_time, R.string.pk_inspection_time);
                         break;
+
+                    case R.string.pk_multi_phase_num:
+                        createPhaseNumDialog(R.string.phase_num, R.string.pk_multi_phase_num);
 
                     case R.string.pk_show_scramble_x_cross_hints:
                         if (Prefs.getBoolean(R.string.pk_show_scramble_x_cross_hints, false)) {
@@ -335,6 +343,7 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.prefs, rootKey);
 
             int listenerPrefIds[] = {R.string.pk_inspection_time,
+                    R.string.pk_multi_phase_num,
                     R.string.pref_screen_title_timer_appearance_settings,
                     R.string.pk_show_scramble_x_cross_hints,
                     R.string.pk_locale,
@@ -361,6 +370,7 @@ public class SettingsActivity extends AppCompatActivity {
             // Set the Inspection Alert preference summary to display the correct information
             // about time elapsed depending on user's current inspection duration
             updateInspectionAlertText();
+            updatePhaseNumText();
         }
 
         private void updateInspectionAlertText() {
@@ -371,6 +381,14 @@ public class SettingsActivity extends AppCompatActivity {
                     inspectionPreference.setSummary(getString(R.string.pref_inspection_alert_summary,
                             inspectionDuration == 15 ? 8 : (int) (inspectionDuration * 0.5f),
                             inspectionDuration == 15 ? 12 : (int) (inspectionDuration * 0.8f)));
+        }
+
+        private void updatePhaseNumText() {
+            int phaseNum = Prefs.getInt(R.string.pk_multi_phase_num, defaultPhaseNum);
+
+            Preference pahseNumPreference = findPreference(getString(R.string.pk_multi_phase_num));
+            if (pahseNumPreference != null)
+                pahseNumPreference.setSummary(getString(R.string.multiPhaseNumSummary, phaseNum, maximumPhaseNum));
         }
 
         @Override
@@ -420,6 +438,32 @@ public class SettingsActivity extends AppCompatActivity {
                     .onNeutral((dialog, which) -> Prefs.edit().putInt(prefKeyResID, 15).apply())
                     .onAny((dialog, which) -> updateInspectionAlertText())
                     .build());
+        }
+
+        private void createPhaseNumDialog(@StringRes int title, final int prefKeyResID) {
+            MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
+                    .title(title)
+                    .input("", String.valueOf(Prefs.getInt(prefKeyResID, defaultPhaseNum)),
+                            (dialog1, input) -> {
+                                try {
+                                    int num = Integer.parseInt(input.toString());
+                                    num = Math.max(Math.min(num, maximumPhaseNum),2);
+                                    Prefs.edit().putInt(prefKeyResID, num).apply();
+                                } catch (NumberFormatException e) {
+                                    Toast.makeText(getActivity(),
+                                            R.string.invalid_time, Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    .inputType(InputType.TYPE_CLASS_NUMBER)
+                    .positiveText(R.string.action_done)
+                    .negativeText(R.string.action_cancel)
+                    .onAny((dialog1, which) -> updatePhaseNumText())
+                    .build());
+            EditText editText = dialog.getInputEditText();
+            if (editText != null) {
+                editText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(1)});
+            }
+            dialog.show();
         }
 
         private void createSeekDialog(@StringRes int prefKeyResID,

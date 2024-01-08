@@ -46,7 +46,6 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.cardview.widget.CardView;
 
 import android.text.Html;
-import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -57,8 +56,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -123,12 +120,16 @@ import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_NO_MILLI_TIMER;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SECOND;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_STATS;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.NO_PENALTY;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_DNF;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.PENALTY_PLUSTWO;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.TYPE_333;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.TYPE_333FMC;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.TYPE_333MBLD;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
@@ -257,6 +258,9 @@ public class TimerFragment extends BaseFragment
 
     private Unbinder mUnbinder;
 
+    // multi phase support
+    private int totalPhase;
+
     // Holds the localized strings related to each detail statistic, in order:
     // Ao5, Ao12, Ao50, Ao100, Deviation, Mean, Best, Count
     private String detailTextNamesArray[] = new String[8];
@@ -306,6 +310,8 @@ public class TimerFragment extends BaseFragment
 
     @BindView(R.id.chronometer)
     ChronometerMilli chronometer;
+    @BindView(R.id.lapTimeText)
+    TextView lapTimeText;
     @BindView(R.id.scramble_box)
     CardView scrambleBox;
     @BindView(R.id.scramble_text)
@@ -397,6 +403,10 @@ public class TimerFragment extends BaseFragment
     private boolean timeLimitSoundAlertEnabled;
     float scrambleTextSize;
 
+    // multi phase
+    private boolean mShowHiRes;
+
+
     // True if the user has started (and stopped) the timer at least once. Used to trigger
     // Average highlights, so the user doesn't get a notification when they start the app
     private boolean hasStoppedTimerOnce = false;
@@ -431,7 +441,7 @@ public class TimerFragment extends BaseFragment
                         chronometer.reset();
                         chronometer.setText(Html.fromHtml(
                                 PuzzleUtils.convertTimeToString(currentSolve.getTime(),
-                                        PuzzleUtils.FORMAT_SMALL_MILLI, currentPuzzle)));
+                                        PuzzleUtils.FORMAT_SMALL_MILLI_TIMER, currentPuzzle)));
                         hideButtons(true, true);
                         broadcastNewSolve();
                         declareRecordTimes(currentSolve);
@@ -511,6 +521,7 @@ public class TimerFragment extends BaseFragment
                                     if (!isRunning)
                                         chronometer.reset(); // Reset to "0.00".
                                     congratsText.setVisibility(View.GONE);
+                                    lapTimeText.setText("");
                                     broadcast(CATEGORY_TIME_DATA_CHANGES, ACTION_TIMES_MODIFIED);
                                 }
                                 hideButtons(true, true);
@@ -777,6 +788,14 @@ public class TimerFragment extends BaseFragment
                 timeLimitSoundAlertEnabled = true;
             }
         }
+
+        boolean multiPhaseEnabled = Prefs.getBoolean(R.string.pk_multi_phase_enabled, res.getBoolean(R.bool.default_multiPhaseEnabled));
+        if (multiPhaseEnabled) {
+            totalPhase = Prefs.getInt(R.string.pk_multi_phase_num, res.getInteger(R.integer.defaultMultiPhaseNum));
+        } else {
+            totalPhase = 1;
+        }
+        mShowHiRes = Prefs.getBoolean(R.string.pk_show_hi_res_timer, true);
 
         if (!scrambleEnabled) {
             // CongratsText is by default aligned to below the scramble box. If it's missing, we have
@@ -1086,23 +1105,28 @@ public class TimerFragment extends BaseFragment
                     }
                 } else if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
                         && chronometer.getElapsedTime() >= 80) { // => "isRunning == true"
-                    // Chronometer is timing a solve (running, not counting down inspection period).
-                    // Stop the timer if it has been running for long enough (80 ms) for this not to
-                    // be an accidental touch as the user lifted up the touch to start the timer.
-                    animationDone = false;
-                    stopChronometer();
-                    if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
-                        // If a user has inspection on and went past his inspection time, he has
-                        // two extra seconds do start his time, but with a +2 penalty. This penalty
-                        // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
-                        chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
-                    }
-                    if (!isTimeDisabled(currentPuzzle)) {
-                        addNewSolve();
+                    if (chronometer.getLapNum()+1 < totalPhase) {
+                        chronometer.lap();
+                        setLapTimeText();
                     } else {
-                        // For FMC and MBLD, use isCanceld flag not to show quick action button and not update solves
-                        isCanceled = true;
-                        addTimeManually();
+                        // Chronometer is timing a solve (running, not counting down inspection period).
+                        // Stop the timer if it has been running for long enough (80 ms) for this not to
+                        // be an accidental touch as the user lifted up the touch to start the timer.
+                        animationDone = false;
+                        stopChronometer();
+                        if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
+                            // If a user has inspection on and went past his inspection time, he has
+                            // two extra seconds do start his time, but with a +2 penalty. This penalty
+                            // is recorded above (see plusTwoCountdown), and the timer checks if it's true here.
+                            chronometer.setPenalty(PuzzleUtils.PENALTY_PLUSTWO);
+                        }
+                        if (!isTimeDisabled(currentPuzzle)) {
+                            addNewSolve();
+                        } else {
+                            // For FMC and MBLD, use isCanceld flag not to show quick action button and not update solves
+                            isCanceled = true;
+                            addTimeManually();
+                        }
                     }
                 }
                 return false;
@@ -1272,7 +1296,7 @@ public class TimerFragment extends BaseFragment
         currentSolve = new Solve(
                 chronometer.getElapsedTime(), // Includes any "+2" penalty. Is zero for "DNF".
                 currentPuzzle, currentPuzzleCategory,
-                System.currentTimeMillis(), currentScramble, currentPenalty, "", false);
+                System.currentTimeMillis(), currentScramble, currentPenalty, getLapComment(), false);
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -1286,10 +1310,42 @@ public class TimerFragment extends BaseFragment
         long time = chronometer.getElapsedTime();
         time = (time + 500) / 1000 * 1000;  // rounding to the nearest second
 
-        AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, realScramble, time);
+        String comment = "";
+        if (currentPuzzle.equals(TYPE_333FMC)) {
+            if (time != 0) {
+                comment = PuzzleUtils.formatTime(time, FORMAT_SECOND);
+                String lapComment = getLapComment();
+                if (!getLapComment().isEmpty())
+                    comment = comment + "\n" + lapComment;
+            }
+        } else if (currentPuzzle.equals(TYPE_333MBLD)) {
+            comment = getLapComment();
+        }
+
+        AddTimeDialog addTimeDialog = AddTimeDialog.newInstance(currentPuzzle, currentPuzzleCategory, currentMbldNum, realScramble, time, comment);
         FragmentManager manager = getFragmentManager();
         if (manager != null)
             addTimeDialog.show(manager, "dialog_add_time");
+    }
+
+    private String getLapComment() {
+        String comment = "";
+        int lapNum = chronometer.getLapNum();
+        if (lapNum > 1) {
+            for (int i = 0; i < lapNum; i++) {
+                long lap = chronometer.getLapTime(i);
+                final long hours = lap / (3_600_000L);
+                boolean isHiRes = !isRunning || (mShowHiRes && (hours == 0));
+
+                if (i != 0) comment = comment + "\n";
+                comment = comment + "P" + (i+1) + ": " + convertTimeToString(lap,
+                        isHiRes ? FORMAT_SINGLE : FORMAT_NO_MILLI_TIMER,
+                        PuzzleUtils.TYPE_333);
+
+            }
+        }
+
+        return comment;
     }
 
     private void broadcastNewSolve() {
@@ -1627,6 +1683,8 @@ public class TimerFragment extends BaseFragment
         params.leftMargin = 0;
         startTimerLayout.requestLayout();
 
+        lapTimeText.setText("");
+
         if (scrambleEnabled) {
             scrambleBox.setEnabled(false);
             scrambleBox.animate()
@@ -1711,6 +1769,7 @@ public class TimerFragment extends BaseFragment
             fiveMinutesWarning.cancel();
         isRunning = false;
         hasStoppedTimerOnce = true;
+        setLapTimeText();
         showToolbar();
     }
 
@@ -1724,9 +1783,35 @@ public class TimerFragment extends BaseFragment
             stopChronometer();
 
             chronometer.reset(); // Show "0.00".
+            lapTimeText.setText("");
             isCanceled = true;
             currentPenalty = NO_PENALTY;
         }
+    }
+
+    private void setLapTimeText() {
+        String strLap = "";
+        int lapNum = chronometer.getLapNum();
+
+        if (totalPhase == 1 || (!isRunning && lapNum <= 1)) {
+            // if total phase == 1 or timer stopped and phase <= 1
+            // no lap time text is shown
+            strLap = "";
+        } else {
+            for (int i = 0; i < lapNum; i++) {
+                long lap = chronometer.getLapTime(i);
+                final long hours = lap / (3_600_000L);
+                boolean isHiRes = !isRunning || (mShowHiRes && (hours == 0));
+
+                if (i != 0) strLap = strLap + "\n";
+                strLap = strLap + convertTimeToString(lap,
+                        isHiRes ? FORMAT_SINGLE : FORMAT_NO_MILLI_TIMER,
+                        PuzzleUtils.TYPE_333);
+
+            }
+        }
+
+        lapTimeText.setText(strLap);
     }
 
     @Override
@@ -1982,9 +2067,12 @@ public class TimerFragment extends BaseFragment
                                 chronometer.getRight(),
                                 chronometer.getBottom());
                         Rect congratsRect = new Rect(congratsText.getLeft(), congratsText.getTop(), congratsText.getRight(), congratsText.getBottom());
+                        Rect lapTimeRect = new Rect(lapTimeText.getLeft(), lapTimeText.getTop(), lapTimeText.getRight(), lapTimeText.getBottom());
 
                         if ((Rect.intersects(scrambleRect, chronometerRect)) ||
-                                (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect))) {
+                                (congratsText.getVisibility() == View.VISIBLE && Rect.intersects(chronometerRect, congratsRect)) ||
+                                (!lapTimeText.getText().toString().isEmpty() && Rect.intersects(scrambleRect, lapTimeRect))
+                        ) {
                             scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
                             scrambleBox.setClickable(true);
                             scrambleBox.setOnClickListener(scrambleDetailClickListener);

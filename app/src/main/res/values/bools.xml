@@ -6,6 +6,7 @@
     <bool name="default_bestSolve">true</bool>
     <bool name="default_backgroundEnabled">true</bool>
     <bool name="default_holdEnabled">false</bool>
+    <bool name="default_multiPhaseEnabled">false</bool>
     <bool name="default_scrambleEnabled">true</bool>
     <bool name="default_millisecondsEnabled">true</bool>
     <bool name="default_pagerEnabled">true</bool>

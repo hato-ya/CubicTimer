@@ -168,6 +168,7 @@
     <string name="pref_category_title_inspection">インスペクション</string>
     <string name="pref_category_title_locale">言語設定</string>
     <string name="pref_category_title_other">その他</string>
+    <string name="pref_category_title_multi_phase">マルチフェイズ</string>
     <string name="pref_category_title_scramble">スクランブル</string>
     <string name="pref_category_title_timer">タイマー</string>
     <string name="pref_category_title_stack_timer">スタックタイマー</string>
@@ -189,6 +190,11 @@
     <string name="remove_subtype_title">消去したいカテゴリー選択してください</string>
     <string name="rename_subtype_title">名前を変更したいカテゴリーを選んでください</string>
     <string name="reset_colorscheme">テーマカラーをリセットしデフォルトに設定する</string>
+    <string name="multiPhaseEnabledSummary">マルチフェイズを有効にし、ラップタイムを計測する</string>
+    <string name="multiPhaseEnabledTitle">マルチフェイズ</string>
+    <string name="multiPhaseNumSummary">フェイズ数 %1$d (2 - %2$d)</string>
+    <string name="multiPhaseNumTitle">フェイズ数</string>
+    <string name="phase_num">フェイズ数</string>
     <string name="scrambleEnabledSummary">スクランブルを生成する</string>
     <string name="scrambleEnabledTitle">スクランブルの生成</string>
     <string name="scrambleImageEnabledSummary">スクランブルイメージを表示する</string>
@@ -289,7 +295,7 @@
     <string name="timer_gan_timer_status_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_status_finished">FINISHED</string>
     <string name="pref_inspection_alert_type_title">アラートの種類</string>
-    <string name="pref_inspection_alert_type_summary">インスペクションタイムのアラート方法を選択</string>
+    <string name="pref_inspection_alert_type_summary">アラート方法を選択</string>
     <string name="pref_inspection_alert_vibration">バイブレーション</string>
     <string name="pref_inspection_alert_sound">音声</string>
     <string name="pref_inspection_alert_both">バイブレーションと音声</string>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="default_inspectionTime">15</integer>
+    <integer name="defaultMultiPhaseNum">4</integer>
     <integer name="defaultTimeTextSize">100</integer>
     <integer name="defaultScrambleImageSize">100</integer>
     <integer name="defaultTimeTextOffset">0</integer>

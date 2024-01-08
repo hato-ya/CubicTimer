@@ -59,9 +59,10 @@ public class PuzzleUtils {
     public static final int FORMAT_SINGLE = 0;
     public static final int FORMAT_STATS = 1;
     public static final int FORMAT_SMALL_MILLI = 2;
-    public static final int FORMAT_NO_MILLI_AXIS = 3;
-    public static final int FORMAT_NO_MILLI_TIMER = 4;
-    public static final int FORMAT_LARGE = 5;
+    public static final int FORMAT_SMALL_MILLI_TIMER = 3;
+    public static final int FORMAT_NO_MILLI_AXIS = 4;
+    public static final int FORMAT_NO_MILLI_TIMER = 5;
+    public static final int FORMAT_LARGE = 6;
     // --                                    --
 
     // format mode for formatTime
@@ -298,7 +299,7 @@ public class PuzzleUtils {
      * For other than FMC
      *   - FORMAT_SINGLE / FORMAT_STATS
      *     - xx:xx.xx
-     *   - FORMAT_SMALL_MILLI
+     *   - FORMAT_SMALL_MILLI / FORMAT_SMALL_MILLI_TIMER
      *     - xx:xx.xx (.xx is small)
      *   - FORMAT_NO_MILLI_AXIS
      *     - xx:xx
@@ -309,13 +310,13 @@ public class PuzzleUtils {
      * For FMC
      *   - FORMAT_SINGLE
      *     - xx
-     *   - FORMAT_SMALL_MILLI
+     *   - FORMAT_SMALL_MILLI / FORMAT_SMALL_MILLI_TIMER
      *     - xx
      *   - FORMAT_STATS
      *     - xx.xx
      *   - FORMAT_NO_MILLI_AXIS
      *     - xx
-     *   - FORMAT_NO_MILLI_TIMER
+     *   - FORMAT_NO_MILLI_TIMER  * not reachable
      *     - xx
      *   - FORMAT_LARGE (used for Total Time)
      *     - "--"
@@ -324,12 +325,16 @@ public class PuzzleUtils {
      *     - xx/xx x:xx:xx
      *   - FORMAT_SMALL_MILLI (# of solved) / (# of attempted)
      *     - xx/xx x:xx:xx (x:xx:xx is small)
+     *   - FORMAT_SMALL_MILLI_TIMER
+     *     -  xx/xx
+     *       x:xx:xx
      *   - FORMAT_STATS point
      *     - xx.xx
      *   - FORMAT_NO_MILLI_AXIS point
      *     - xx
-     *   - FORMAT_NO_MILLI_TIMER (# of solved) / (# of attempted)
-     *     - xx/xx x:xx:xx (x:xx:xx is small)
+     *   - FORMAT_NO_MILLI_TIMER  * not reachable
+     *     -  xx/xx
+     *       x:xx:xx
      *   - FORMAT_LARGE (used for Total Time)
      *     - "--"
      *
@@ -359,17 +364,25 @@ public class PuzzleUtils {
             switch (format) {
                 case FORMAT_SINGLE:
                 case FORMAT_SMALL_MILLI:
+                case FORMAT_SMALL_MILLI_TIMER:
                 case FORMAT_NO_MILLI_TIMER:
                     MbldRecord record = new MbldRecord(time);
                     if (record.getLong() == 0)
                         return "--";
 
                     // solved / attempted
-                    formattedString.append(record.getSolved() + "/" + record.getAttempted() + " ");
+                    formattedString.append(record.getSolved() + "/" + record.getAttempted());
+
+                    if (format == FORMAT_SMALL_MILLI_TIMER || format == FORMAT_NO_MILLI_TIMER) {
+                        formattedString.append("<br>");
+                    } else {
+                        formattedString.append(" ");
+                    }
 
                     String strTime = formatTime(record.getSecond()*1000, FORMAT_SECOND);
 
-                    if (format == FORMAT_SMALL_MILLI || format == FORMAT_NO_MILLI_TIMER) {
+                    if (format == FORMAT_SMALL_MILLI || format == FORMAT_SMALL_MILLI_TIMER
+                            || format == FORMAT_NO_MILLI_TIMER) {
                         formattedString.append("<small>");
                         formattedString.append(strTime);
                         formattedString.append("</small>");
@@ -433,6 +446,7 @@ public class PuzzleUtils {
                 formattedString.append(millis);
                 break;
             case FORMAT_SMALL_MILLI:
+            case FORMAT_SMALL_MILLI_TIMER:
                 if (!isTimeDisabled(puzzleType)) {
                     formattedString.append("<small>.");
                     formattedString.append(millis);

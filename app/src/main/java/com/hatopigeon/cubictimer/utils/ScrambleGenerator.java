@@ -98,11 +98,11 @@ public class ScrambleGenerator {
             case PuzzleUtils.TYPE_555BLD:
                 puzzle = new NoInspectionFiveByFiveCubePuzzle();
                 break;
-            case PuzzleUtils.TYPE_333FMC:
-                puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
-                break;
             case PuzzleUtils.TYPE_333MBLD:
                 puzzle = new NoInspectionThreeByThreeCubePuzzle();
+                break;
+            case PuzzleUtils.TYPE_333FMC:
+                puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
                 break;
             case PuzzleUtils.TYPE_OTHER:
                 puzzle = null;

@@ -114,8 +114,8 @@ public class CommentDialog  extends DialogFragment {
             case PuzzleUtils.TYPE_333:
             case PuzzleUtils.TYPE_333OH:
             case PuzzleUtils.TYPE_333BLD:
-            case PuzzleUtils.TYPE_333FMC:
             case PuzzleUtils.TYPE_333MBLD:
+            case PuzzleUtils.TYPE_333FMC:
                 notationThree.setVisibility(View.GONE);
                 break;
             case PuzzleUtils.TYPE_MEGA:

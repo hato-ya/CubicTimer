@@ -288,6 +288,7 @@
     <string name="timer_ble_status_disabled_message">"無効"</string>
     <string name="timer_ble_status_disconnect_message">"切断"</string>
     <string name="timer_ble_status_connect_message">"接続"</string>
+    <string name="multi_phase_status_message">"マルチフェイズ : "</string>
     <string name="timer_gan_timer_status_get_set">GET_SET</string>
     <string name="timer_gan_timer_status_hands_off">HANDS_OFF</string>
     <string name="timer_gan_timer_status_running">RUNNING</string>

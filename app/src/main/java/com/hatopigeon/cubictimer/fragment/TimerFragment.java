@@ -365,6 +365,9 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.ble_status_message)
     TextView bleStatusMessage;
 
+    @BindView(R.id.multi_phase_status_message)
+    TextView multiPhaseStatusMessage;
+
     private boolean buttonsEnabled;
     private boolean largeQuickActionEnabled;
     private boolean scrambleImgEnabled;
@@ -792,8 +795,11 @@ public class TimerFragment extends BaseFragment
         boolean multiPhaseEnabled = Prefs.getBoolean(R.string.pk_multi_phase_enabled, res.getBoolean(R.bool.default_multiPhaseEnabled));
         if (multiPhaseEnabled) {
             totalPhase = Prefs.getInt(R.string.pk_multi_phase_num, res.getInteger(R.integer.defaultMultiPhaseNum));
+            multiPhaseStatusMessage.setVisibility(View.VISIBLE);
+            multiPhaseStatusMessage.setText(getString(R.string.multi_phase_status_message) + totalPhase);
         } else {
             totalPhase = 1;
+            multiPhaseStatusMessage.setVisibility(View.GONE);
         }
         mShowHiRes = Prefs.getBoolean(R.string.pk_show_hi_res_timer, true);
 

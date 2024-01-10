@@ -444,6 +444,8 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
 
+    <string name="multi_phase_status_message">"Multi-phase : "</string>
+
     <string name="pref_inspection_alert_type_title">Alert type</string>
     <string name="pref_inspection_alert_type_summary">Choose how the timer will alert you</string>
     <string name="pref_inspection_alert_vibration">Vibration</string>

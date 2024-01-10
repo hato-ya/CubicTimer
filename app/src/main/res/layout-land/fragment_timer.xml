@@ -214,6 +214,24 @@
         tools:text="Ao5: 12.2\nAo12: 12.2\nAo50: 12.2\nAo100: 23.21" />
 
     <TextView
+        android:id="@+id/multi_phase_status_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/ble_status_message"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center"
+        android:paddingLeft="6dp"
+        android:paddingTop="0dp"
+        android:paddingRight="6dp"
+        android:paddingBottom="4dp"
+        android:text="@string/multi_phase_status_message"
+        android:textColor="?colorTimerText"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
         android:id="@+id/ble_status_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -223,7 +241,7 @@
         android:layout_marginBottom="0dp"
         android:gravity="center"
         android:paddingLeft="6dp"
-        android:paddingTop="2dp"
+        android:paddingTop="0dp"
         android:paddingRight="6dp"
         android:paddingBottom="4dp"
         android:text="@string/timer_ble_status_message"

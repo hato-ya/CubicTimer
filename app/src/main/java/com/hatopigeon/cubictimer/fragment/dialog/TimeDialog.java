@@ -110,9 +110,19 @@ public class TimeDialog extends DialogFragment {
                                     getContext().startActivity(shareIntent);
                                     break;
                                 case R.id.remove:
-                                    dbHandler.deleteSolveByID(mId);
-                                    updateList();
-                                    break;
+                                    // do not close popup
+                                    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                                    item.setActionView(new View(mContext));
+                                    ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                                            .content(R.string.delete_dialog_confirmation_title)
+                                            .positiveText(R.string.delete_dialog_confirmation_button)
+                                            .negativeText(R.string.delete_dialog_cancel_button)
+                                            .onPositive((dialog, which) -> {
+                                                dbHandler.deleteSolveByID(mId);
+                                                updateList();
+                                            })
+                                            .build());
+                                    return false;
                                 case R.id.history_to:
                                     solve.setHistory(true);
                                     Toast.makeText(getContext(), getString(R.string.sent_to_history), Toast.LENGTH_SHORT).show();

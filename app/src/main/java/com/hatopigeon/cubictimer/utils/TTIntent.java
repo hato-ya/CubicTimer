@@ -141,6 +141,11 @@ public final class TTIntent {
     public static final String ACTION_SCRAMBLE_GENERATING = ACTION_PREFIX + "SCRAMBLE_GENERATING";
 
     /**
+     * Set scramble from Time Dialog
+     */
+    public static final String ACTION_SET_SCRAMBLE = ACTION_PREFIX + "SET_SCRAMBLE";
+
+    /**
      * The current scramble has been modified, either by the user or by the timer itself.
      */
     public static final String ACTION_SCRAMBLE_MODIFIED = ACTION_PREFIX + "SCRAMBLE_MODIFIED";
@@ -273,6 +278,7 @@ public final class TTIntent {
                 ACTION_TOOLBAR_RESTORED,
                 ACTION_GENERATE_SCRAMBLE,
                 ACTION_SCRAMBLE_GENERATING,
+                ACTION_SET_SCRAMBLE,
                 ACTION_SCRAMBLE_MODIFIED,
                 ACTION_SCROLLED_PAGE,
                 ACTION_CHANGED_CATEGORY,

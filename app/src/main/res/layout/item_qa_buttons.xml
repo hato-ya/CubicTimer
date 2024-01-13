@@ -14,16 +14,26 @@
         android:id="@+id/qa_remove"
         android:layout_width="?qaButtonSize"
         android:layout_height="?qaButtonSize"
-        android:layout_marginRight="18dp"
         android:background="?selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:tint="?colorTimerText"
         app:srcCompat="@drawable/ic_clear_black_24dp" />
 
     <ImageView
+        android:id="@+id/qa_retry"
+        android:layout_width="?qaButtonSize"
+        android:layout_height="?qaButtonSize"
+        android:layout_marginLeft="18dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:tint="?colorTimerText"
+        app:srcCompat="@drawable/ic_outline_replay_24dp" />
+
+    <ImageView
         android:id="@+id/qa_dnf"
         android:layout_width="?qaButtonSize"
         android:layout_height="?qaButtonSize"
+        android:layout_marginLeft="18dp"
         android:background="?selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:tint="?colorTimerText"
@@ -34,7 +44,6 @@
         android:layout_width="?qaButtonSize"
         android:layout_height="?qaButtonSize"
         android:layout_marginLeft="18dp"
-        android:layout_marginRight="18dp"
         android:background="?selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:tint="?colorTimerText"
@@ -44,6 +53,7 @@
         android:id="@+id/qa_comment"
         android:layout_width="?qaButtonSize"
         android:layout_height="?qaButtonSize"
+        android:layout_marginLeft="18dp"
         android:background="?selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:tint="?colorTimerText"

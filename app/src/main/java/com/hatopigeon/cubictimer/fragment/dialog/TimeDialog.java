@@ -5,6 +5,9 @@ import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
 import static android.text.format.DateUtils.FORMAT_SHOW_TIME;
 import static android.text.format.DateUtils.FORMAT_SHOW_YEAR;
 
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SET_SCRAMBLE;
+import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_UI_INTERACTIONS;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -135,6 +138,12 @@ public class TimeDialog extends DialogFragment {
                                     Toast.makeText(getContext(), getString(R.string.sent_to_session), Toast.LENGTH_SHORT).show();
                                     dbHandler.updateSolve(solve);
                                     updateList();
+                                    dismiss();
+                                    break;
+                                case R.id.retry:
+                                    new TTIntent.BroadcastBuilder(CATEGORY_UI_INTERACTIONS, ACTION_SET_SCRAMBLE)
+                                            .solve(solve)
+                                            .broadcast();
                                     dismiss();
                                     break;
                             }

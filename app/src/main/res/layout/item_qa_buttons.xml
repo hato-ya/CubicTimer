@@ -27,7 +27,7 @@
         android:background="?selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:tint="?colorTimerText"
-        app:srcCompat="@drawable/ic_outline_replay_24dp" />
+        app:srcCompat="@drawable/ic_baseline_replay_24dp" />
 
     <ImageView
         android:id="@+id/qa_dnf"

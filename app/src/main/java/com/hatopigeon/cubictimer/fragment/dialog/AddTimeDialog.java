@@ -367,9 +367,13 @@ public class AddTimeDialog extends DialogFragment {
         timeEditText.requestFocus();
 
         try {
-            timeEditText.postDelayed(() ->
-                    ((InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE))
-                        .showSoftInput(timeEditText, InputMethodManager.SHOW_IMPLICIT), 400);
+            timeEditText.postDelayed(() -> {
+                        if (mContext != null && timeEditText != null) {
+                            ((InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE))
+                                    .showSoftInput(timeEditText, InputMethodManager.SHOW_IMPLICIT);
+                        }
+                    }
+                    , 400);
         } catch (Exception e) {
             Log.e("AddTimeDialog", "Error showing keyboard: " + e);
         }

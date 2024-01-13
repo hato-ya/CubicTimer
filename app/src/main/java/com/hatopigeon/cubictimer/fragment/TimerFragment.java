@@ -140,6 +140,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCROLLED_PAGE;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SET_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMER_STARTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMER_STOPPED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMES_MODIFIED;
@@ -338,6 +339,8 @@ public class TimerFragment extends BaseFragment
 
     @BindView(R.id.qa_remove)
     ImageView deleteButton;
+    @BindView(R.id.qa_retry)
+    ImageView retryButton;
     @BindView(R.id.qa_dnf)
     ImageView dnfButton;
     @BindView(R.id.qa_plustwo)
@@ -480,6 +483,12 @@ public class TimerFragment extends BaseFragment
                     Log.d(TAG, "BLE : clicked");
                     startBleScan();
                     break;
+
+                case ACTION_SET_SCRAMBLE:
+                    Solve solve = TTIntent.getSolve(intent);
+                    scrambleGeneratorAsync.cancel(true);
+                    setScramble(solve.getScramble());
+                    break;
             }
         }
     };
@@ -530,6 +539,10 @@ public class TimerFragment extends BaseFragment
                                 hideButtons(true, true);
                             })
                             .build());
+                    break;
+                case R.id.qa_retry:
+                    scrambleGeneratorAsync.cancel(true);
+                    setScramble(currentScramble);
                     break;
                 case R.id.qa_dnf:
                     currentSolve = PuzzleUtils.applyPenalty(currentSolve, PENALTY_DNF);
@@ -689,6 +702,7 @@ public class TimerFragment extends BaseFragment
 
 
         deleteButton.setOnClickListener(buttonClickListener);
+        retryButton.setOnClickListener(buttonClickListener);
         dnfButton.setOnClickListener(buttonClickListener);
         plusTwoButton.setOnClickListener(buttonClickListener);
         commentButton.setOnClickListener(buttonClickListener);
@@ -876,17 +890,14 @@ public class TimerFragment extends BaseFragment
 
         // Enlarge quick action buttons
         if (largeQuickActionEnabled) {
-            ImageView viewRemove = quickActionButtons.findViewById(R.id.qa_remove);
-            ImageView viewDnf = quickActionButtons.findViewById(R.id.qa_dnf);
-            ImageView viewPlustwo = quickActionButtons.findViewById(R.id.qa_plustwo);
-            ImageView viewComment = quickActionButtons.findViewById(R.id.qa_comment);
-            ViewGroup.LayoutParams layoutParams = viewRemove.getLayoutParams();
+            ViewGroup.LayoutParams layoutParams = deleteButton.getLayoutParams();
             layoutParams.width = (int)(layoutParams.width * 1.7);
             layoutParams.height = (int)(layoutParams.height * 1.7);
-            viewRemove.setLayoutParams(layoutParams);
-            viewDnf.setLayoutParams(layoutParams);
-            viewPlustwo.setLayoutParams(layoutParams);
-            viewComment.setLayoutParams(layoutParams);
+            deleteButton.setLayoutParams(layoutParams);
+            retryButton.setLayoutParams(layoutParams);
+            dnfButton.setLayoutParams(layoutParams);
+            plusTwoButton.setLayoutParams(layoutParams);
+            commentButton.setLayoutParams(layoutParams);
 
             layoutParams = undoButton.getLayoutParams();
             layoutParams.width = (int)(layoutParams.width * 1.7);

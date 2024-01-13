@@ -219,6 +219,7 @@
     <string name="list_options_item_from_history">Unarchive</string>
     <string name="list_options_item_history">Archive</string>
     <string name="list_options_item_share">Share</string>
+    <string name="list_options_item_retry">Retry</string>
 
     <string name="loading_hints">Loading hints…</string>
 

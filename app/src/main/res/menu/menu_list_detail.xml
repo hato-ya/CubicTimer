@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_outline_archive_24dp"
         android:title="@string/list_options_item_history" />
     <item
+        android:id="@+id/retry"
+        android:icon="@drawable/ic_outline_replay_24dp"
+        android:title="@string/list_options_item_retry" />
+    <item
         android:id="@+id/share"
         android:icon="@drawable/ic_outline_share_24dp"
         android:title="@string/list_options_item_share" />

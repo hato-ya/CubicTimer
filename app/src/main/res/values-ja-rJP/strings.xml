@@ -141,6 +141,7 @@
     <string name="list_options_item_from_history">もとに戻す</string>
     <string name="list_options_item_history">アーカイブ</string>
     <string name="list_options_item_share">共有</string>
+    <string name="list_options_item_retry">再試行</string>
     <string name="loading_hints">ヒントを読み込んでいます</string>
     <string name="millisecondsEnabledSummary">ソルブ中のタイマーに小数点以下を表示する</string>
     <string name="millisecondsEnabledTitle">小数点以下の表示</string>

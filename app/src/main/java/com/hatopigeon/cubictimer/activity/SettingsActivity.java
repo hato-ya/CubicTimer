@@ -163,6 +163,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                     case R.string.pk_multi_phase_num:
                         createPhaseNumDialog(R.string.phase_num, R.string.pk_multi_phase_num);
+                        break;
 
                     case R.string.pk_show_scramble_x_cross_hints:
                         if (Prefs.getBoolean(R.string.pk_show_scramble_x_cross_hints, false)) {

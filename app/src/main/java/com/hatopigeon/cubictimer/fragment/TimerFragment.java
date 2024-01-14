@@ -1016,7 +1016,8 @@ public class TimerFragment extends BaseFragment
             holdRunnable = () -> {
                 isReady = true;
                 // Indicate to the user that the hold was long enough.
-                chronometer.setHighlighted(true);
+                if (chronometer != null)
+                    chronometer.setHighlighted(true);
                 if (!inspectionEnabled) {
                     // If inspection is enabled, the toolbar is already hidden.
                     hideToolbar();

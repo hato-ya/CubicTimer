@@ -52,6 +52,11 @@ public class ExportImportDialog extends DialogFragment
      */
     public static final int EXIM_FORMAT_BACKUP = 2;
 
+    /**
+     * The file format for csTimer session CSV
+     */
+    public static final int EXIM_FORMAT_CSTIMER_SESSION = 3;
+
     private Context mContext;
 
     /**
@@ -104,11 +109,13 @@ public class ExportImportDialog extends DialogFragment
     @BindView(R.id.export_external) View exportExternal;
     @BindView(R.id.import_backup)   View importBackup;
     @BindView(R.id.import_external) View importExternal;
+    @BindView(R.id.import_cstimer_session) View importCstimerSession;
     @BindView(R.id.import_to_archive) View importToArchive;
     @BindView(R.id.import_button)   View importButton;
     @BindView(R.id.export_button)   View exportButton;
 
     private boolean mIsExport;
+    private int mFileFormat;
 
     public static ExportImportDialog newInstance() {
         return new ExportImportDialog();
@@ -121,6 +128,8 @@ public class ExportImportDialog extends DialogFragment
             //
             switch (view.getId()) {
                 case R.id.export_backup:
+                    mIsExport = true;
+                    mFileFormat = EXIM_FORMAT_BACKUP;
                     // All puzzle types and categories are exported to a single back-up file.
                     // There is no need to identify the export file or the puzzle type/category.
                     // Just invoke the activity and dismiss this dialog.
@@ -130,6 +139,7 @@ public class ExportImportDialog extends DialogFragment
 
                 case R.id.export_external:
                     mIsExport = true;
+                    mFileFormat = EXIM_FORMAT_EXTERNAL;
                     // Select the single puzzle type and category that will be exported. When the
                     // call-back from this puzzle chooser is received ("onPuzzleTypeSelected"),
                     // this dialog will exit and hand control back to the activity to perform the
@@ -142,6 +152,8 @@ public class ExportImportDialog extends DialogFragment
                     break;
 
                 case R.id.import_backup:
+                    mIsExport = false;
+                    mFileFormat = EXIM_FORMAT_BACKUP;
                     boolean isToArchive = ((CheckBox)importToArchive).isChecked();
                     getExImActivity().onImportSolveTimes(EXIM_FORMAT_BACKUP, null, null, isToArchive);
                     dismiss();
@@ -149,10 +161,21 @@ public class ExportImportDialog extends DialogFragment
 
                 case R.id.import_external:
                     mIsExport = false;
+                    mFileFormat = EXIM_FORMAT_EXTERNAL;
                     // Need to get the puzzle type and category before importing the data. There will
                     // be a call-back to "onPuzzleSelected" before returning to the activity.
                     PuzzleChooserDialog.newInstance(
                             R.string.action_import, ExportImportDialog.this.getTag())
+                            .show(getActivity().getSupportFragmentManager(), null);
+                    break;
+
+                case R.id.import_cstimer_session:
+                    mIsExport = false;
+                    mFileFormat = EXIM_FORMAT_CSTIMER_SESSION;
+                    // Need to get the puzzle type and category before importing the data. There will
+                    // be a call-back to "onPuzzleSelected" before returning to the activity.
+                    PuzzleChooserDialog.newInstance(
+                                    R.string.action_import, ExportImportDialog.this.getTag())
                             .show(getActivity().getSupportFragmentManager(), null);
                     break;
 
@@ -161,7 +184,7 @@ public class ExportImportDialog extends DialogFragment
                     break;
 
                 case R.id.import_button:
-                    AnimUtils.toggleContentVisibility(importBackup, importExternal, importToArchive);
+                    AnimUtils.toggleContentVisibility(importBackup, importExternal, importCstimerSession, importToArchive);
                     break;
 
                 //case R.id.help_button:
@@ -180,6 +203,7 @@ public class ExportImportDialog extends DialogFragment
         exportExternal.setOnClickListener(clickListener);
         importBackup.setOnClickListener(clickListener);
         importExternal.setOnClickListener(clickListener);
+        importCstimerSession.setOnClickListener(clickListener);
         //helpButton.setOnClickListener(clickListener);
         importButton.setOnClickListener(clickListener);
         exportButton.setOnClickListener(clickListener);
@@ -216,22 +240,26 @@ public class ExportImportDialog extends DialogFragment
         if (mIsExport) {
             getExImActivity().onExportSolveTimes(EXIM_FORMAT_EXTERNAL, puzzleType, puzzleCategory);
         } else {
-            // Show a dialog that explains the required text format, then, when that is
-            // closed, select the file to import. When the call-back from this file chooser
-            // is received ("onFileSelection"), this dialog will check that the file name
-            // is valid. If valid, the puzzle chooser will be shown.  When the call-back
-            // from that puzzle chooser is received ("onPuzzleTypeSelected"), this dialog
-            // will exit and hand control back to the activity to perform the import.
-            ExportImportCallbacks activityMain = getExImActivity();
-            boolean isToArchive = ((CheckBox)importToArchive).isChecked();
-            ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
-                    .title(R.string.import_external_title)
-                    .content(R.string.import_external_content_first)
-                    .positiveText(R.string.action_ok)
-                    .onPositive((dialog, which) ->
-                            activityMain.onImportSolveTimes(EXIM_FORMAT_EXTERNAL, puzzleType,
-                                    puzzleCategory, isToArchive))
-                    .build());
+            boolean isToArchive = ((CheckBox) importToArchive).isChecked();
+            if (mFileFormat == EXIM_FORMAT_EXTERNAL) {
+                // Show a dialog that explains the required text format, then, when that is
+                // closed, select the file to import. When the call-back from this file chooser
+                // is received ("onFileSelection"), this dialog will check that the file name
+                // is valid. If valid, the puzzle chooser will be shown.  When the call-back
+                // from that puzzle chooser is received ("onPuzzleTypeSelected"), this dialog
+                // will exit and hand control back to the activity to perform the import.
+                ExportImportCallbacks activityMain = getExImActivity();
+                ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
+                        .title(R.string.import_external_title)
+                        .content(R.string.import_external_content_first)
+                        .positiveText(R.string.action_ok)
+                        .onPositive((dialog, which) ->
+                                activityMain.onImportSolveTimes(EXIM_FORMAT_EXTERNAL, puzzleType,
+                                        puzzleCategory, isToArchive))
+                        .build());
+            } else { // EXIM_FORMAT_CSTIMER_SESSION
+                getExImActivity().onImportSolveTimes(EXIM_FORMAT_CSTIMER_SESSION, puzzleType, puzzleCategory, isToArchive);
+            }
         }
         dismiss();
     }

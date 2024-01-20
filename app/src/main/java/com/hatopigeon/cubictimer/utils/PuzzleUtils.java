@@ -524,26 +524,39 @@ public class PuzzleUtils {
      * @return the time in milliseconds
      */
     public static long parseAddedTime(String time) {
-        long timeMillis = 0;
+        long timeMillis;
         String[] times = time.split("[h] *|:|\\.");
+        String strHours = "0", strMinutes = "0", strSeconds = "0", strMillis = "0";
 
         try {
             switch (times.length) {
             case 2: // ss.SS
-                timeMillis += Long.valueOf(times[0]) * 1_000
-                              + Long.valueOf(times[1]) * 10;
+                strSeconds = times[0];
+                strMillis = times[1];
                 break;
             case 3: // mm:ss.SS
-                timeMillis += Long.valueOf(times[0]) * 60_000
-                              + Long.valueOf(times[1]) * 1_000
-                              + Long.valueOf(times[2]) * 10;
+                strMinutes = times[0];
+                strSeconds = times[1];
+                strMillis = times[2];
                 break;
             case 4: // hh'h'mm:ss.SS
-                timeMillis += Long.valueOf(times[0]) * 3_600_000
-                              + Long.valueOf(times[1]) * 60_000
-                              + Long.valueOf(times[2]) * 1_000
-                              + Long.valueOf(times[3]) * 10;
+                strHours = times[0];
+                strMinutes = times[1];
+                strSeconds = times[2];
+                strMillis = times[3];
                 break;
+            }
+
+            timeMillis = Long.valueOf(strHours) * 3_600_000
+                    + Long.valueOf(strMinutes) * 60_000
+                    + Long.valueOf(strSeconds) * 1_000;
+
+            if (strMillis.length() == 2) {
+                // .SS
+                timeMillis += Long.valueOf(strMillis) * 10;
+            } else {
+                // .SSS
+                timeMillis += Long.valueOf(strMillis);
             }
         } catch (NumberFormatException ignore) {
             timeMillis = 0; // Invalid time format.

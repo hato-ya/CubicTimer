@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity
     private static final int EXPORT_EXTERNAL    = 51;
     private static final int IMPORT_BACKUP      = 60;
     private static final int IMPORT_EXTERNAL    = 61;
+    private static final int IMPORT_CSTIMER_SESSION = 62;
 
     /**
      * The fragment tag identifying the export/import dialog fragment.
@@ -524,16 +525,27 @@ public class MainActivity extends AppCompatActivity
                         uri, mExportPuzzleType, mExportPuzzleCategory)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
-        } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL)
+        } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL || requestCode == IMPORT_CSTIMER_SESSION)
                 && resultCode == Activity.RESULT_OK) {
             if (data.getData() != null) {
                 Uri uri = data.getData();
                 Log.d(TAG, "IMPORT : " + uri.toString());
                 Log.d(TAG, "IMPORT : " + mExportPuzzleType + "," + mExportPuzzleCategory);
 
-                new ImportSolves(this,
-                        (requestCode == IMPORT_BACKUP ? ExportImportDialog.EXIM_FORMAT_BACKUP
-                                : ExportImportDialog.EXIM_FORMAT_EXTERNAL),
+                int fileFormat = ExportImportDialog.EXIM_FORMAT_BACKUP;
+                switch(requestCode) {
+                    case IMPORT_BACKUP:
+                        fileFormat = ExportImportDialog.EXIM_FORMAT_BACKUP;
+                        break;
+                    case IMPORT_EXTERNAL:
+                        fileFormat = ExportImportDialog.EXIM_FORMAT_EXTERNAL;
+                        break;
+                    case IMPORT_CSTIMER_SESSION:
+                        fileFormat = ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION;
+                        break;
+                }
+
+                new ImportSolves(this, fileFormat,
                         uri, mExportPuzzleType, mExportPuzzleCategory, mIsToArchive)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
@@ -624,7 +636,7 @@ public class MainActivity extends AppCompatActivity
 
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/plain");
+        intent.setType("text/*");
 
         mExportPuzzleType = puzzleType;
         mExportPuzzleCategory = puzzleCategory;
@@ -634,6 +646,8 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, IMPORT_BACKUP);
         } else if (fileFormat == ExportImportDialog.EXIM_FORMAT_EXTERNAL) {
             startActivityForResult(intent, IMPORT_EXTERNAL);
+        } else if (fileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION) {
+            startActivityForResult(intent, IMPORT_CSTIMER_SESSION);
         }
     }
 
@@ -954,10 +968,12 @@ public class MainActivity extends AppCompatActivity
                 InputStream is = mContext.getContentResolver().openInputStream(mUri);
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
-                CSVReader csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+                CSVReader csvReader;
                 String[] line;
 
                 if (mFileFormat == ExportImportDialog.EXIM_FORMAT_BACKUP) {
+                    csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+
                     // throw away the header
                     csvReader.readNext();
 
@@ -971,6 +987,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 } else if (mFileFormat == ExportImportDialog.EXIM_FORMAT_EXTERNAL) {
+                    csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
                     final long now = DateTime.now().getMillis();
 
                     while ((line = csvReader.readNext()) != null) {
@@ -1008,6 +1025,53 @@ public class MainActivity extends AppCompatActivity
                                 solveList.add(new Solve(
                                         time, mPuzzleType, mPuzzleCategory,
                                         date, scramble, penalty, "", mIsToArchive));
+                            } catch (Exception e) {
+                                parseErrors++;
+                            }
+                        }  else {
+                            parseErrors++;
+                        }
+                    }
+                } else if (mFileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION) {
+                    csvReader = new CSVReader(br, ';', '"', '\\', 1, false);
+
+                    while ((line = csvReader.readNext()) != null) {
+                        if (line.length >= 6) {
+                            try {
+                                Log.d("IMPORTING EXTERNAL", "csTimer: " + line[1]);
+
+                                // csTimer session csv
+                                // No.;Time;Comment;Scramble;Date;P.1;
+                                int penalty = PuzzleUtils.NO_PENALTY;
+                                if (line[1].contains("DNF")) {
+                                    penalty = PuzzleUtils.PENALTY_DNF;
+                                } else if (line[1].contains("+")) {
+                                    penalty = PuzzleUtils.PENALTY_PLUSTWO;
+                                }
+
+                                String strTime = line[1].replaceAll("DNF\\(|\\)|\\+", "");
+                                long time = PuzzleUtils.parseAddedTime(strTime);
+
+                                String strDate = line[4].replaceAll(" ", "T");
+                                long date = DateTime.parse(strDate).getMillis();
+
+                                String comment = "";
+                                if (line.length >= 7 && !line[6].isEmpty()) { // if session csv has multi-phase record and this record has at least 2 phases
+                                    // parse phase time and add to comment
+                                    for (int i = 5; i < line.length; i++) {
+                                        if (!line[i].isEmpty()) {
+                                            if (i != 5) comment = comment + "\n";
+                                            comment = comment + "P" + (i - 4) + ": " + line[i];
+                                        }
+                                    }
+                                }
+                                if (!line[2].isEmpty() && !comment.isEmpty())
+                                    comment = comment + "\n";
+                                comment = comment + line[2];
+
+                                solveList.add(new Solve(
+                                        time, mPuzzleType, mPuzzleCategory,
+                                        date, line[3], penalty, comment, mIsToArchive));
                             } catch (Exception e) {
                                 parseErrors++;
                             }

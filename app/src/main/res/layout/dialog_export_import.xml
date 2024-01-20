@@ -90,6 +90,15 @@
             android:text="@string/export_import_dialog_from_txt_file"
             tools:visibility="visible" />
 
+        <TextView
+            android:id="@+id/import_cstimer_session"
+            style="@style/DialogExportImportActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="40dp"
+            android:text="@string/export_import_dialog_from_cstimer_session"
+            tools:visibility="visible" />
 
         <CheckBox
             android:id="@+id/import_to_archive"

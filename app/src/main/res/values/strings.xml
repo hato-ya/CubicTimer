@@ -144,6 +144,7 @@
     <string name="export_import_dialog_for_other_timers">For other timers</string>
     <string name="export_import_dialog_from_backup">From backup</string>
     <string name="export_import_dialog_from_txt_file">From .txt file</string>
+    <string name="export_import_dialog_from_cstimer_session">From csTimer session CSV</string>
     <string name="export_import_dialog_import_to_archive">Import to archive</string>
     <string name="export_progress_complete">Successfully exported to:</string>
     <string name="export_progress_complete_wo_to">Successfully exported</string>

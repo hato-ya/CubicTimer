@@ -85,8 +85,9 @@
     <string name="enter_type_name">カテゴリーの名前を入力する</string>
     <string name="export_import_dialog_for_backup">バックアップ用</string>
     <string name="export_import_dialog_for_other_timers">他のタイマー用</string>
-    <string name="export_import_dialog_from_backup">バックアップからインポート</string>
-    <string name="export_import_dialog_from_txt_file">.txt ファイルからインポート</string>
+    <string name="export_import_dialog_from_backup">バックアップから</string>
+    <string name="export_import_dialog_from_txt_file">.txt ファイルから</string>
+    <string name="export_import_dialog_from_cstimer_session">csTimerのセッションCSVから</string>
     <string name="export_import_dialog_import_to_archive">アーカイブにインポート</string>
     <string name="export_progress_complete">エクスポートに成功</string>
     <string name="export_progress_complete_wo_to">エクスポートに成功</string>

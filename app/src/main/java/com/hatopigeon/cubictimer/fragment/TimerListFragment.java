@@ -188,9 +188,12 @@ public class TimerListFragment extends BaseFragment
                                                                    .getNumArchivedSolves(currentPuzzle, currentPuzzleCategory)))
                                         .inputType(InputType.TYPE_CLASS_NUMBER)
                                         .input(null, null, false, (dialog, input) -> {
-                                            CubicTimer.getDBHandler().unarchiveSolves(
-                                                    currentPuzzle, currentPuzzleCategory, Integer.parseInt(input.toString()));
-                                            broadcast(CATEGORY_TIME_DATA_CHANGES, ACTION_TIME_ADDED);
+                                            try {
+                                                CubicTimer.getDBHandler().unarchiveSolves(
+                                                        currentPuzzle, currentPuzzleCategory, Integer.parseInt(input.toString()));
+                                                broadcast(CATEGORY_TIME_DATA_CHANGES, ACTION_TIME_ADDED);
+                                            } catch (NumberFormatException e) {
+                                            }
                                         })
                                         .positiveText(R.string.list_options_item_from_history)
                                         .negativeText(R.string.action_cancel)

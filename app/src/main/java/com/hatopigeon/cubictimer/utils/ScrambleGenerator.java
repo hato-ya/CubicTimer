@@ -52,64 +52,68 @@ public class ScrambleGenerator {
 
     public ScrambleGenerator(String type) {
         puzzleType = type;
-        switch (type) {
-            case PuzzleUtils.TYPE_222:
-                puzzle = new TwoByTwoCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_333:
-                puzzle = new ThreeByThreeCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_444:
-                puzzle = new FourByFourCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_555:
-                puzzle = new NbyNCubePuzzle(5);
-                break;
-            case PuzzleUtils.TYPE_666:
-                puzzle = new NbyNCubePuzzle(6);
-                break;
-            case PuzzleUtils.TYPE_777:
-                puzzle = new NbyNCubePuzzle(7);
-                break;
-            case PuzzleUtils.TYPE_MEGA:
-                puzzle = new MegaminxPuzzle();
-                break;
-            case PuzzleUtils.TYPE_PYRA:
-                puzzle = new PyraminxPuzzle();
-                break;
-            case PuzzleUtils.TYPE_SKEWB:
-                puzzle = new SkewbPuzzle();
-                break;
-            case PuzzleUtils.TYPE_CLOCK:
-                puzzle = new ClockPuzzle();
-                break;
-            case PuzzleUtils.TYPE_SQUARE1:
-                puzzle = new SquareOnePuzzle();
-                break;
-            case PuzzleUtils.TYPE_333OH:
-                puzzle = new ThreeByThreeCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_333BLD:
-                puzzle = new NoInspectionThreeByThreeCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_444BLD:
-                puzzle = new NoInspectionFourByFourCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_555BLD:
-                puzzle = new NoInspectionFiveByFiveCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_333MBLD:
-                puzzle = new NoInspectionThreeByThreeCubePuzzle();
-                break;
-            case PuzzleUtils.TYPE_333FMC:
-                puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
-                break;
-            case PuzzleUtils.TYPE_OTHER:
-                puzzle = null;
-                break;
-            default:
-                puzzle = new ThreeByThreeCubePuzzle();
-                break;
+        try {
+            switch (type) {
+                case PuzzleUtils.TYPE_222:
+                    puzzle = new TwoByTwoCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_333:
+                    puzzle = new ThreeByThreeCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_444:
+                    puzzle = new FourByFourCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_555:
+                    puzzle = new NbyNCubePuzzle(5);
+                    break;
+                case PuzzleUtils.TYPE_666:
+                    puzzle = new NbyNCubePuzzle(6);
+                    break;
+                case PuzzleUtils.TYPE_777:
+                    puzzle = new NbyNCubePuzzle(7);
+                    break;
+                case PuzzleUtils.TYPE_MEGA:
+                    puzzle = new MegaminxPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_PYRA:
+                    puzzle = new PyraminxPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_SKEWB:
+                    puzzle = new SkewbPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_CLOCK:
+                    puzzle = new ClockPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_SQUARE1:
+                    puzzle = new SquareOnePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_333OH:
+                    puzzle = new ThreeByThreeCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_333BLD:
+                    puzzle = new NoInspectionThreeByThreeCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_444BLD:
+                    puzzle = new NoInspectionFourByFourCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_555BLD:
+                    puzzle = new NoInspectionFiveByFiveCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_333MBLD:
+                    puzzle = new NoInspectionThreeByThreeCubePuzzle();
+                    break;
+                case PuzzleUtils.TYPE_333FMC:
+                    puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_OTHER:
+                    puzzle = null;
+                    break;
+                default:
+                    puzzle = new ThreeByThreeCubePuzzle();
+                    break;
+            }
+        } catch (Exception e) {
+            puzzle = null;
         }
     }
 

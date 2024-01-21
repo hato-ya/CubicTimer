@@ -2288,8 +2288,10 @@ public class TimerFragment extends BaseFragment
             set1.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    thumbView.setAlpha(1f);
-                    expandedImageView.setVisibility(View.GONE);
+                    if (thumbView != null)
+                        thumbView.setAlpha(1f);
+                    if (expandedImageView != null)
+                        expandedImageView.setVisibility(View.GONE);
                     mCurrentAnimator = null;
                 }
 

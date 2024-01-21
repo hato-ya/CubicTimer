@@ -15,7 +15,7 @@ Tap the found device name/address to connect to Smart Timer.
 
 ## Supported smart timer
 - Gan Smart Timer
-- Gan Halo Timer
+- Gan Halo Smart Timer
 
 # Stack timer support
 ## How to connect external stack timer
@@ -28,7 +28,7 @@ Output voltage level of G4 stack timer is lower than the specification of RS232C
 - Speed Stacks Pro Timer G4
 - Speed Stacks Pro Timer G3 (not confirmed, maybe)
 - YuXin Timer V2
-- Gan Halo Timer
+- Gan Halo Smart Timer
 - QiYi Smart Timer (only via RS232C-USB cable)
 
 ## Supported RS232C to USB converter device
@@ -38,6 +38,7 @@ I confirmed USB-RS232 cable using FT232R.
 
 # About translation
 [![Crowdin](https://badges.crowdin.net/cubic-timer/localized.svg)](https://crowdin.com/project/cubic-timer)
+
 Cubic Timer uses crowdin for multilingual translation. Your cooperation in translation is greatly appreciated.
 https://crowdin.com/project/cubic-timer
 

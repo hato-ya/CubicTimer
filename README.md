@@ -37,7 +37,9 @@ I confirmed USB-RS232 cable using FT232R.
 (https://www.amazon.co.jp/gp/product/B08F7GVJH3/)
 
 # About translation
-TBD
+[![Crowdin](https://badges.crowdin.net/cubic-timer/localized.svg)](https://crowdin.com/project/cubic-timer)
+Cubic Timer uses crowdin for multilingual translation. Your cooperation in translation is greatly appreciated.
+https://crowdin.com/project/cubic-timer
 
 # How to fork this project
 This project is licensed by GPL. So, you can fork this project and re-distribute/publish it as another application.

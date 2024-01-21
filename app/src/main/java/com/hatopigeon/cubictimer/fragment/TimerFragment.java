@@ -595,11 +595,6 @@ public class TimerFragment extends BaseFragment
                                 CommentDialog.COMMENT_DIALOG_TYPE_SCRAMBLE, currentPuzzle, "");
                         commentDialog.setCallback((str) -> {
                             setScramble(str.toString());
-
-                            // The hint solver will crash if you give it invalid scrambles,
-                            // so we shouldn't calculate hints for custom scrambles.
-                            // TODO: We can use the scramble image generator (which has a scramble validity checker) to check a scramble before calling a hint
-                            canShowHint = false;
                             hideButtons(true, true);
                         });
                         FragmentManager manager = getFragmentManager();
@@ -1933,6 +1928,7 @@ public class TimerFragment extends BaseFragment
         private boolean showHintsXCrossEnabled;
         private boolean isRunning;
         private BottomSheetDetailDialog scrambleDialog;
+        private boolean hasException;
 
         GetOptimalCross(String scramble,
                         RubiksCubeOptimalCross optimalCross,
@@ -1946,6 +1942,7 @@ public class TimerFragment extends BaseFragment
             this.showHintsXCrossEnabled = showHintsXCrossEnabled;
             this.isRunning = isRunning;
             this.scrambleDialog = scrambleDialog;
+            hasException = false;
         }
 
         @Override
@@ -1958,10 +1955,15 @@ public class TimerFragment extends BaseFragment
         @Override
         protected String doInBackground(Void... voids) {
             String text = "";
-            text += optimalCross.getTip(scramble);
-            if (showHintsXCrossEnabled) {
-                text += "\n\n";
-                text += optimalXCross.getTip(scramble);
+            // invalid scramble may crash app, so use try-catch to avoid crash
+            try {
+                text += optimalCross.getTip(scramble);
+                if (showHintsXCrossEnabled) {
+                    text += "\n\n";
+                    text += optimalXCross.getTip(scramble);
+                }
+            } catch(Exception e) {
+                hasException = true;
             }
             return text;
         }
@@ -1969,7 +1971,10 @@ public class TimerFragment extends BaseFragment
         @Override
         protected void onPostExecute(String text) {
             super.onPostExecute(text);
-            if (!isRunning) {
+            if (hasException) {
+                if (scrambleDialog != null)
+                    scrambleDialog.setHintVisibility(999);  // 999 = View.GONE for all components
+            } else if (!isRunning) {
                 // Set the hint text
                 if (scrambleDialog != null) {
                     scrambleDialog.setHintText(text);

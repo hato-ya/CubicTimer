@@ -87,6 +87,7 @@
     <string name="export_import_dialog_for_other_timers">他のタイマー用</string>
     <string name="export_import_dialog_from_backup">バックアップから</string>
     <string name="export_import_dialog_from_txt_file">.txt ファイルから</string>
+    <string name="export_import_dialog_from_cstimer_export">csTimerのエクスポートTXTから</string>
     <string name="export_import_dialog_from_cstimer_session">csTimerのセッションCSVから</string>
     <string name="export_import_dialog_import_to_archive">アーカイブにインポート</string>
     <string name="export_progress_complete">エクスポートに成功</string>

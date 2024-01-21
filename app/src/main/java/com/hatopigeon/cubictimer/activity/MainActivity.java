@@ -62,6 +62,8 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,6 +74,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -86,6 +89,8 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
 import static com.hatopigeon.cubictimer.fragment.TimerFragmentMain.TIMER_PAGE;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
+import static com.hatopigeon.cubictimer.utils.PuzzleUtils.convertTimeToString;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMES_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_TIME_DATA_CHANGES;
@@ -126,7 +131,8 @@ public class MainActivity extends AppCompatActivity
     private static final int EXPORT_EXTERNAL    = 51;
     private static final int IMPORT_BACKUP      = 60;
     private static final int IMPORT_EXTERNAL    = 61;
-    private static final int IMPORT_CSTIMER_SESSION = 62;
+    private static final int IMPORT_CSTIMER_EXPORT = 62;
+    private static final int IMPORT_CSTIMER_SESSION = 63;
 
     /**
      * The fragment tag identifying the export/import dialog fragment.
@@ -525,7 +531,8 @@ public class MainActivity extends AppCompatActivity
                         uri, mExportPuzzleType, mExportPuzzleCategory)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
-        } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL || requestCode == IMPORT_CSTIMER_SESSION)
+        } else if ((requestCode == IMPORT_BACKUP || requestCode == IMPORT_EXTERNAL
+                || requestCode == IMPORT_CSTIMER_EXPORT || requestCode == IMPORT_CSTIMER_SESSION)
                 && resultCode == Activity.RESULT_OK) {
             if (data.getData() != null) {
                 Uri uri = data.getData();
@@ -539,6 +546,9 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case IMPORT_EXTERNAL:
                         fileFormat = ExportImportDialog.EXIM_FORMAT_EXTERNAL;
+                        break;
+                    case IMPORT_CSTIMER_EXPORT:
+                        fileFormat = ExportImportDialog.EXIM_FORMAT_CSTIMER_EXPORT;
                         break;
                     case IMPORT_CSTIMER_SESSION:
                         fileFormat = ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION;
@@ -646,6 +656,8 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, IMPORT_BACKUP);
         } else if (fileFormat == ExportImportDialog.EXIM_FORMAT_EXTERNAL) {
             startActivityForResult(intent, IMPORT_EXTERNAL);
+        } else if (fileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_EXPORT) {
+            startActivityForResult(intent, IMPORT_CSTIMER_EXPORT);
         } else if (fileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION) {
             startActivityForResult(intent, IMPORT_CSTIMER_SESSION);
         }
@@ -968,11 +980,10 @@ public class MainActivity extends AppCompatActivity
                 InputStream is = mContext.getContentResolver().openInputStream(mUri);
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
-                CSVReader csvReader;
-                String[] line;
 
                 if (mFileFormat == ExportImportDialog.EXIM_FORMAT_BACKUP) {
-                    csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+                    CSVReader csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+                    String[] line;
 
                     // throw away the header
                     csvReader.readNext();
@@ -987,7 +998,8 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 } else if (mFileFormat == ExportImportDialog.EXIM_FORMAT_EXTERNAL) {
-                    csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+                    CSVReader csvReader = new CSVReader(br, ';', '"', '\\', 0, true);
+                    String[] line;
                     final long now = DateTime.now().getMillis();
 
                     while ((line = csvReader.readNext()) != null) {
@@ -1032,8 +1044,117 @@ public class MainActivity extends AppCompatActivity
                             parseErrors++;
                         }
                     }
+                } else if (mFileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_EXPORT) {
+                    try {
+                        String strJSON = br.readLine();
+                        JSONObject json = new JSONObject(strJSON);
+                        String strSessionData = json.getJSONObject("properties").getString("sessionData");
+                        JSONObject jsonSessionDatas = new JSONObject(strSessionData);
+
+                        Iterator<String> keys = jsonSessionDatas.keys();
+                        while (keys.hasNext()) {
+                            try {
+                                // parse session setting (session name, scramble type)
+                                String key = keys.next();
+                                JSONObject jsonSessionData = jsonSessionDatas.getJSONObject(key);
+                                Log.d("IMPORTING EXTERNAL", "SessionData" + key + " : " + jsonSessionData);
+
+                                String strName = jsonSessionData.getString("name");
+                                String strScrType;
+                                try {
+                                    strScrType = jsonSessionData.getJSONObject("opt").getString("scrType");
+                                } catch (org.json.JSONException e) {
+                                    strScrType = "333";
+                                }
+
+                                // convert csTimer scramble type, session name to Cubic Timer puzzleType, puzzleCategory
+                                String puzzleType = PuzzleUtils.convertCstimerPuzzleType(strScrType);
+                                String puzzleCategory = strName;
+                                if (puzzleType == PuzzleUtils.TYPE_OTHER)
+                                    puzzleCategory = strScrType + "_" + puzzleCategory;
+                                Log.d("IMPORTING EXTERNAL", "SessionData" + key + " : " + strScrType + "," + strName + " -> " + puzzleType + "," + puzzleCategory);
+
+                                // open session record data
+                                String strSession = "session" + key;
+                                JSONArray jsonSession;
+                                try {
+                                    jsonSession = json.getJSONArray(strSession);
+                                } catch (org.json.JSONException e) {
+                                    continue;
+                                }
+
+                                for (int i = 0; i < jsonSession.length(); i++) {
+                                    try {
+                                        JSONArray jsonRecord = jsonSession.getJSONArray(i);
+
+                                        // time in milli-seconds at times[1]
+                                        JSONArray jsonTimes = jsonRecord.getJSONArray(0);
+                                        long time = jsonTimes.getLong(1);
+
+                                        // penalty is recorded at times[0]
+                                        //  2000 : +2
+                                        //  -1   : DNF
+                                        int rawPenalty = jsonTimes.getInt(0);
+                                        int penalty = PuzzleUtils.NO_PENALTY;
+                                        if (rawPenalty == 2000) {
+                                            penalty = PuzzleUtils.PENALTY_PLUSTWO;
+                                            time += 2000;
+                                        } else if (rawPenalty == -1) {
+                                            penalty = PuzzleUtils.PENALTY_DNF;
+                                        }
+
+                                        // multi-phase result is recorded at times[2] - times[length-1] by reverse order
+                                        // It is recorded as cumulative time
+                                        // Save these phase times as comment
+                                        String strPhase = "";
+                                        if (jsonTimes.length() > 2) {
+                                            jsonTimes.put(0L);
+                                            for (int j = jsonTimes.length() - 2; j > 0; j--) {
+                                                long phase = jsonTimes.getLong(j) - jsonTimes.getLong(j + 1);
+                                                int phaseNum = jsonTimes.length() - j - 1;
+                                                if (phaseNum != 1) strPhase += "\n";
+                                                strPhase += "P" + phaseNum + ": "
+                                                        + convertTimeToString(phase, FORMAT_SINGLE, PuzzleUtils.TYPE_333);
+                                                ;
+                                            }
+                                        }
+
+                                        String scramble = jsonRecord.getString(1);
+                                        // adjust scramble text to generate scramble image by tnoodle-lib
+                                        if (puzzleType.equals(PuzzleUtils.TYPE_SQUARE1))
+                                            scramble = scramble.replaceAll("/", " /").replaceAll("^ ", "");
+                                        else if (puzzleType.equals(PuzzleUtils.TYPE_MEGA))
+                                            scramble = scramble.replaceAll("  ", "");
+
+                                        String comment = strPhase;
+                                        String rawComment = jsonRecord.getString(2);
+
+                                        // concatenate multi-pahse result as comment and comment
+                                        if (!comment.isEmpty() && !rawComment.isEmpty())
+                                            comment = comment + "\n";
+                                        comment = comment + rawComment;
+
+                                        // date is recorded in seconds of unix time
+                                        long date = jsonRecord.getLong(3) * 1000;
+                                        Log.d("IMPORTING EXTERNAL", "Record : " + i + "," + penalty + "," + time + "," + scramble + "," + comment + "," + date);
+
+                                        solveList.add(new Solve(
+                                                time, puzzleType, puzzleCategory, date,
+                                                scramble, penalty, comment, mIsToArchive));
+                                    } catch (Exception e ) {
+                                        parseErrors++;
+                                    }
+                                }
+                            } catch (org.json.JSONException e) {
+                                parseErrors++;
+                            }
+                        }
+                    } catch (org.json.JSONException e) {
+                        parseErrors++;
+                    }
                 } else if (mFileFormat == ExportImportDialog.EXIM_FORMAT_CSTIMER_SESSION) {
-                    csvReader = new CSVReader(br, ';', '"', '\\', 1, false);
+                    CSVReader csvReader = new CSVReader(br, ';', '"', '\\', 1, false);
+                    String[] line;
 
                     while ((line = csvReader.readNext()) != null) {
                         if (line.length >= 6) {

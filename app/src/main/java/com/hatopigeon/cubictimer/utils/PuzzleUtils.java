@@ -872,4 +872,57 @@ public class PuzzleUtils {
     public static boolean isTimeDisabled (String puzzleType) {
         return puzzleType.equals(TYPE_333FMC) || puzzleType.equals(TYPE_333MBLD);
     }
+
+    /**
+     * Convert the scramble type of csTimer to puzzleType of Cubic Timer
+     * For WCA puzzles converted to each puzzleType except for 333MBLD
+     * For other puzzles converted to TYPE_OTHER
+     *
+     * For 333MBLD, Cubic Timer needs solved/attempted and time
+     * so, fall back to "other"
+     *
+     * @param scrambleType scramble type of csTimer
+     * @return puzzleType of Cubic Timer
+     */
+    public static String convertCstimerPuzzleType(String scrambleType) {
+        switch (scrambleType) {
+            case "333":
+                return TYPE_333;
+            case "222so":
+                return TYPE_222;
+            case "444wca":
+                return TYPE_444;
+            case "555wca":
+                return TYPE_555;
+            case "666wca":
+                return TYPE_666;
+            case "777wca":
+                return TYPE_777;
+            case "333ni":
+                return TYPE_333BLD;
+            case "333fm":
+                return TYPE_333FMC;
+            case "333oh":
+                return TYPE_333OH;
+            case "clkwca":
+                return TYPE_CLOCK;
+            case "mgmp":
+                return TYPE_MEGA;
+            case "pyrso":
+                return TYPE_PYRA;
+            case "skbso":
+                return TYPE_SKEWB;
+            case "sqrs":
+                return TYPE_SQUARE1;
+            case "444bld":
+                return TYPE_444BLD;
+            case "555bld":
+                return TYPE_555BLD;
+            case "r3ni":
+                // fall back to other
+                return TYPE_OTHER;
+        }
+
+        return TYPE_OTHER;
+    }
 }

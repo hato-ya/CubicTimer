@@ -2037,8 +2037,10 @@ public class TimerFragment extends BaseFragment
                 return scramble;
             } catch (Exception e) {
                 Log.e(TAG, "Invalid puzzle for generator");
+            } catch (java.lang.VerifyError e) {
+                Log.e(TAG, "java.lang.VerifyError");
             }
-            return "An error has ocurred";
+            return "An error has occurred";
         }
 
         @Override

@@ -53,9 +53,14 @@ public class ExportImportDialog extends DialogFragment
     public static final int EXIM_FORMAT_BACKUP = 2;
 
     /**
+     * The file format for csTimer export TXT
+     */
+    public static final int EXIM_FORMAT_CSTIMER_EXPORT = 3;
+
+    /**
      * The file format for csTimer session CSV
      */
-    public static final int EXIM_FORMAT_CSTIMER_SESSION = 3;
+    public static final int EXIM_FORMAT_CSTIMER_SESSION = 4;
 
     private Context mContext;
 
@@ -109,6 +114,7 @@ public class ExportImportDialog extends DialogFragment
     @BindView(R.id.export_external) View exportExternal;
     @BindView(R.id.import_backup)   View importBackup;
     @BindView(R.id.import_external) View importExternal;
+    @BindView(R.id.import_cstimer_export) View importCstimerExport;
     @BindView(R.id.import_cstimer_session) View importCstimerSession;
     @BindView(R.id.import_to_archive) View importToArchive;
     @BindView(R.id.import_button)   View importButton;
@@ -126,6 +132,7 @@ public class ExportImportDialog extends DialogFragment
         public void onClick(View view) {
             // NOTE: The call-backs from the "PuzzleChooserDialog"
             //
+            boolean isToArchive = ((CheckBox)importToArchive).isChecked();
             switch (view.getId()) {
                 case R.id.export_backup:
                     mIsExport = true;
@@ -154,7 +161,6 @@ public class ExportImportDialog extends DialogFragment
                 case R.id.import_backup:
                     mIsExport = false;
                     mFileFormat = EXIM_FORMAT_BACKUP;
-                    boolean isToArchive = ((CheckBox)importToArchive).isChecked();
                     getExImActivity().onImportSolveTimes(EXIM_FORMAT_BACKUP, null, null, isToArchive);
                     dismiss();
                     break;
@@ -167,6 +173,12 @@ public class ExportImportDialog extends DialogFragment
                     PuzzleChooserDialog.newInstance(
                             R.string.action_import, ExportImportDialog.this.getTag())
                             .show(getActivity().getSupportFragmentManager(), null);
+                    break;
+
+                case R.id.import_cstimer_export:
+                    mIsExport = false;
+                    mFileFormat = EXIM_FORMAT_CSTIMER_EXPORT;
+                    getExImActivity().onImportSolveTimes(EXIM_FORMAT_CSTIMER_EXPORT, null, null, isToArchive);
                     break;
 
                 case R.id.import_cstimer_session:
@@ -184,7 +196,7 @@ public class ExportImportDialog extends DialogFragment
                     break;
 
                 case R.id.import_button:
-                    AnimUtils.toggleContentVisibility(importBackup, importExternal, importCstimerSession, importToArchive);
+                    AnimUtils.toggleContentVisibility(importBackup, importExternal, importCstimerExport, importCstimerSession, importToArchive);
                     break;
 
                 //case R.id.help_button:
@@ -203,6 +215,7 @@ public class ExportImportDialog extends DialogFragment
         exportExternal.setOnClickListener(clickListener);
         importBackup.setOnClickListener(clickListener);
         importExternal.setOnClickListener(clickListener);
+        importCstimerExport.setOnClickListener(clickListener);
         importCstimerSession.setOnClickListener(clickListener);
         //helpButton.setOnClickListener(clickListener);
         importButton.setOnClickListener(clickListener);

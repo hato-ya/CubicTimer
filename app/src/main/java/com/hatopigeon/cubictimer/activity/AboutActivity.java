@@ -54,13 +54,11 @@ public class AboutActivity extends AppCompatActivity {
                         .show();
                     break;
                 case R.id.rateButton:
-/*
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-*/
                     break;
                 case R.id.testersButton:
                     ThemeUtils.roundAndShowDialog(AboutActivity.this, new MaterialDialog.Builder(AboutActivity.this)
@@ -88,10 +86,8 @@ public class AboutActivity extends AppCompatActivity {
                     startActivity(browserIntent);
                     break;
                 case R.id.translateButton:
-/*
-                    Intent translateBrowserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://crwd.in/twisty-timer"));
+                    Intent translateBrowserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://crwd.in/cubic-timer"));
                     startActivity(translateBrowserIntent);
- */
                     break;
             }
         }
@@ -127,8 +123,5 @@ public class AboutActivity extends AppCompatActivity {
         translatorsButton.setOnClickListener(clickListener);
         contributorsButton.setOnClickListener(clickListener);
         translateButton.setOnClickListener(clickListener);
-
-        rateButton.setVisibility(View.GONE);
-        translateButton.setVisibility(View.GONE);
     }
 }

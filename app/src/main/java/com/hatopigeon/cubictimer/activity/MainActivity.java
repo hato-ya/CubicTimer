@@ -1190,9 +1190,16 @@ public class MainActivity extends AppCompatActivity
                                     comment = comment + "\n";
                                 comment = comment + line[2];
 
+                                // adjust scramble text to generate scramble image by tnoodle-lib
+                                String scramble = line[3];
+                                if (mPuzzleType.equals(PuzzleUtils.TYPE_SQUARE1))
+                                    scramble = scramble.replaceAll("/", " /").replaceAll("^ ", "");
+                                else if (mPuzzleType.equals(PuzzleUtils.TYPE_MEGA))
+                                    scramble = scramble.replaceAll("  ", "");
+
                                 solveList.add(new Solve(
                                         time, mPuzzleType, mPuzzleCategory,
-                                        date, line[3], penalty, comment, mIsToArchive));
+                                        date, scramble, penalty, comment, mIsToArchive));
                             } catch (Exception e) {
                                 parseErrors++;
                             }

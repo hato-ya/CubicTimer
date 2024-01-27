@@ -1651,6 +1651,20 @@ public class TimerFragment extends BaseFragment
                     .translationY(0)
                     .setDuration(mAnimationDuration);
         }
+        if (serialStatusEnabled) {
+            serialStatusMessage.setVisibility(View.VISIBLE);
+            serialStatusMessage.animate()
+                    .alpha(1)
+                    .translationY(0)
+                    .setDuration(mAnimationDuration);
+        }
+        if (bleStatusEnabled) {
+            bleStatusMessage.setVisibility(View.VISIBLE);
+            bleStatusMessage.animate()
+                    .alpha(1)
+                    .translationY(0)
+                    .setDuration(mAnimationDuration);
+        }
     }
 
     private void showImage() {
@@ -1744,6 +1758,20 @@ public class TimerFragment extends BaseFragment
                     .alpha(0)
                     .setDuration(mAnimationDuration)
                     .withEndAction(() -> {if(detailAverageRecordMesssage!=null) detailAverageRecordMesssage.setVisibility(View.GONE);});
+        }
+        if (serialStatusEnabled && !isSerialConnected) {
+            serialStatusMessage
+                    .animate()
+                    .alpha(0)
+                    .setDuration(mAnimationDuration)
+                    .withEndAction(() -> {if(serialStatusMessage!=null) serialStatusMessage.setVisibility(View.INVISIBLE);});
+        }
+        if (bleStatusEnabled && (bleClientManager != null && !bleClientManager.isConnected())) {
+            bleStatusMessage
+                    .animate()
+                    .alpha(0)
+                    .setDuration(mAnimationDuration)
+                    .withEndAction(() -> {if(bleStatusMessage!=null) bleStatusMessage.setVisibility(View.INVISIBLE);});
         }
     }
 

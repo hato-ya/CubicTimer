@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The country flag of the current locale-->
-    <drawable name="locale_current_flag">@drawable/flag_united_kingdom</drawable>
+    <drawable name="locale_current_flag">@drawable/ic_outline_language_24</drawable>
 </resources>

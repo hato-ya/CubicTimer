@@ -78,6 +78,15 @@ public class LocaleUtils {
         return Prefs.getString(R.string.pk_locale, Locale.getDefault().getLanguage());
     }
 
+    /**
+     * Gets current locale
+     *
+     * @return the locale
+     */
+    public static void resetLocale() {
+        Prefs.edit().remove(R.string.pk_locale).apply();
+    }
+
     private static LinkedHashMap<String, Pair<Integer, Integer>> localeHash = null;
 
     /**

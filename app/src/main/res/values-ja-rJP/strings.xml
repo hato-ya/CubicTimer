@@ -189,6 +189,7 @@
     <string name="pref_scramble_box_title">スクランブルの背景</string>
     <string name="pref_scramble_box_description">スクランブルの背景を白にする</string>
     <string name="preference_application_language_title">言語</string>
+    <string name="preference_application_reset_language_title">言語をデフォルトに戻す</string>
     <string name="rate_app">Googleプレイでこのアプリを評価する</string>
     <string name="remove_session_confirmation_content">もとには戻せません！</string>
     <string name="remove_session_title">このセッションから全ての記録を消去しますか？</string>

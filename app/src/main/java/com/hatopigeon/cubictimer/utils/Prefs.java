@@ -194,6 +194,21 @@ public final class Prefs {
         }
 
         /**
+         * Remove the value of a shared preference.
+         *
+         * @param prefKeyResID
+         *     The string resource ID for the name of the preference key.
+         *     See {@code values/pref_keys.xml}.
+         *
+         * @return
+         *     This editor, to allow method calls to be chained.
+         */
+        public Editor remove(@StringRes int prefKeyResID) {
+            mSPEditor.remove(CubicTimer.getAppContext().getString(prefKeyResID));
+            return this;
+        }
+
+        /**
          * Sets the value of a shared preference to the given string.
          *
          * @param prefKeyResID

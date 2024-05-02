@@ -191,7 +191,6 @@ public class SettingsActivity extends AppCompatActivity {
                         break;
 
                     case R.string.pk_reset_locale:
-                        Log.e(TAG, "Reset locale");
                         LocaleUtils.resetLocale();
                         ((SettingsActivity)getActivity()).onRecreateRequired();
                         break;

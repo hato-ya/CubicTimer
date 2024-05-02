@@ -543,6 +543,7 @@ public class TimerFragment extends BaseFragment
                 case R.id.qa_retry:
                     scrambleGeneratorAsync.cancel(true);
                     setScramble(currentScramble);
+                    retryButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_replay_circle_filled_24));
                     break;
                 case R.id.qa_dnf:
                     currentSolve = PuzzleUtils.applyPenalty(currentSolve, PENALTY_DNF);
@@ -2098,6 +2099,8 @@ public class TimerFragment extends BaseFragment
             // save the scramble especially for MBLD
             Prefs.edit().putString(R.string.pk_last_used_scramble, realScramble).apply();
         }
+
+        retryButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_replay_24dp));
 
         scrambleText.setText(scramble);
         scrambleText.post(() -> {

@@ -279,6 +279,7 @@
     <string name="pref_scramble_box_description">Show a white background behind the scramble</string>
 
     <string name="preference_application_language_title">Language</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
 
     <string name="rate_app">Rate this app on Google Play</string>
 

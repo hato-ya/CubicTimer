@@ -147,6 +147,7 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_show_scramble_x_cross_hints,
                         R.string.pref_screen_title_timer_appearance_settings,
                         R.string.pk_locale,
+                        R.string.pk_reset_locale,
                         R.string.pk_options_show_scramble_hints,
                         R.string.pk_timer_text_size,
                         R.string.pk_timer_text_offset,
@@ -187,6 +188,12 @@ public class SettingsActivity extends AppCompatActivity {
                         } else {
                             Log.e(TAG, "Could not find correct activity to launch dialog!");
                         }
+                        break;
+
+                    case R.string.pk_reset_locale:
+                        Log.e(TAG, "Reset locale");
+                        LocaleUtils.resetLocale();
+                        ((SettingsActivity)getActivity()).onRecreateRequired();
                         break;
 
                     case R.string.pk_timer_text_size:
@@ -348,6 +355,7 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pref_screen_title_timer_appearance_settings,
                     R.string.pk_show_scramble_x_cross_hints,
                     R.string.pk_locale,
+                    R.string.pk_reset_locale,
                     R.string.pk_options_show_scramble_hints,
                     R.string.pk_timer_text_size,
                     R.string.pk_scramble_text_size,

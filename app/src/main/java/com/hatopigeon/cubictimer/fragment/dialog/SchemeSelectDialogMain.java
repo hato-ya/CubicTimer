@@ -12,6 +12,8 @@ import androidx.annotation.ColorInt;
 import androidx.fragment.app.DialogFragment;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +25,10 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
+import com.hatopigeon.cubictimer.fragment.TimerFragmentMain;
 import com.hatopigeon.cubictimer.spans.ChromaDialogFixed;
+import com.hatopigeon.cubictimer.utils.Prefs;
+import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.pavelsikun.vintagechroma.IndicatorMode;
 import com.pavelsikun.vintagechroma.OnColorSelectedListener;
@@ -37,9 +42,15 @@ import butterknife.Unbinder;
  * Created by Ari on 09/02/2016.
  */
 public class SchemeSelectDialogMain extends DialogFragment {
+    /**
+     * A "tag" to identify this class in log messages.
+     */
+    private static final String TAG = TimerFragmentMain.class.getSimpleName();
 
     private Unbinder mUnbinder;
     private Context mContext;
+
+    private String mColorSchemeType;
 
     @BindView(R.id.top)   View top;
     @BindView(R.id.left)  View left;
@@ -62,22 +73,22 @@ public class SchemeSelectDialogMain extends DialogFragment {
             String currentHex = "FFFFFF";
             switch (view.getId()) {
                 case R.id.top:
-                    currentHex = sp.getString("cubeTop", "FFFFFF");
+                    currentHex = sp.getString("cubeTop" + mColorSchemeType, "FFFFFF");
                     break;
                 case R.id.left:
-                    currentHex = sp.getString("cubeLeft", "FF8B24");
+                    currentHex = sp.getString("cubeLeft" + mColorSchemeType, "FF8B24");
                     break;
                 case R.id.front:
-                    currentHex = sp.getString("cubeFront", "02D040");
+                    currentHex = sp.getString("cubeFront" + mColorSchemeType, "02D040");
                     break;
                 case R.id.right:
-                    currentHex = sp.getString("cubeRight", "EC0000");
+                    currentHex = sp.getString("cubeRight" + mColorSchemeType, "EC0000");
                     break;
                 case R.id.back:
-                    currentHex = sp.getString("cubeBack", "304FFE");
+                    currentHex = sp.getString("cubeBack" + mColorSchemeType, "304FFE");
                     break;
                 case R.id.down:
-                    currentHex = sp.getString("cubeDown", "FDD835");
+                    currentHex = sp.getString("cubeDown" + mColorSchemeType, "FDD835");
                     break;
             }
 
@@ -92,27 +103,27 @@ public class SchemeSelectDialogMain extends DialogFragment {
                             switch (view.getId()) {
                                 case R.id.top:
                                     setColor(top, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeTop", hexColor);
+                                    editor.putString("cubeTop" + mColorSchemeType, hexColor);
                                     break;
                                 case R.id.left:
                                     setColor(left, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeLeft", hexColor);
+                                    editor.putString("cubeLeft" + mColorSchemeType, hexColor);
                                     break;
                                 case R.id.front:
                                     setColor(front, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeFront", hexColor);
+                                    editor.putString("cubeFront" + mColorSchemeType, hexColor);
                                     break;
                                 case R.id.right:
                                     setColor(right, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeRight", hexColor);
+                                    editor.putString("cubeRight" + mColorSchemeType, hexColor);
                                     break;
                                 case R.id.back:
                                     setColor(back, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeBack", hexColor);
+                                    editor.putString("cubeBack" + mColorSchemeType, hexColor);
                                     break;
                                 case R.id.down:
                                     setColor(down, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeDown", hexColor);
+                                    editor.putString("cubeDown" + mColorSchemeType, hexColor);
                                     break;
                             }
                             editor.apply();
@@ -134,14 +145,18 @@ public class SchemeSelectDialogMain extends DialogFragment {
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
+        String currentPuzzle = Prefs.getString(R.string.pk_last_used_puzzle, PuzzleUtils.TYPE_333);
+        mColorSchemeType = PuzzleUtils.getColorSchemeType(currentPuzzle);
+        Log.d(TAG, "CurrentPuzzle = " + currentPuzzle + ", colorSchemeType = " + mColorSchemeType);
+
         final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
 
-        setColor(top, Color.parseColor("#" + sp.getString("cubeTop", "FFFFFF")));
-        setColor(left, Color.parseColor("#" + sp.getString("cubeLeft", "FF8B24")));
-        setColor(front, Color.parseColor("#" + sp.getString("cubeFront", "02D040")));
-        setColor(right, Color.parseColor("#" + sp.getString("cubeRight", "EC0000")));
-        setColor(back, Color.parseColor("#" + sp.getString("cubeBack", "304FFE")));
-        setColor(down, Color.parseColor("#" + sp.getString("cubeDown", "FDD835")));
+        setColor(top, Color.parseColor("#" + sp.getString("cubeTop" + mColorSchemeType, "FFFFFF")));
+        setColor(left, Color.parseColor("#" + sp.getString("cubeLeft" + mColorSchemeType, "FF8B24")));
+        setColor(front, Color.parseColor("#" + sp.getString("cubeFront" + mColorSchemeType, "02D040")));
+        setColor(right, Color.parseColor("#" + sp.getString("cubeRight" + mColorSchemeType, "EC0000")));
+        setColor(back, Color.parseColor("#" + sp.getString("cubeBack" + mColorSchemeType, "304FFE")));
+        setColor(down, Color.parseColor("#" + sp.getString("cubeDown" + mColorSchemeType, "FDD835")));
 
         top.setOnClickListener(clickListener);
         left.setOnClickListener(clickListener);
@@ -156,12 +171,12 @@ public class SchemeSelectDialogMain extends DialogFragment {
                 .negativeText(R.string.action_cancel)
                 .onPositive((dialog, which) -> {
                     SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("cubeTop", "FFFFFF");
-                    editor.putString("cubeLeft", "EF6C00");
-                    editor.putString("cubeFront", "02D040");
-                    editor.putString("cubeRight", "EC0000");
-                    editor.putString("cubeBack", "304FFE");
-                    editor.putString("cubeDown", "FDD835");
+                    editor.putString("cubeTop" + mColorSchemeType, "FFFFFF");
+                    editor.putString("cubeLeft" + mColorSchemeType, "EF6C00");
+                    editor.putString("cubeFront" + mColorSchemeType, "02D040");
+                    editor.putString("cubeRight" + mColorSchemeType, "EC0000");
+                    editor.putString("cubeBack" + mColorSchemeType, "304FFE");
+                    editor.putString("cubeDown" + mColorSchemeType, "FDD835");
                     editor.apply();
                     setColor(top, Color.parseColor("#FFFFFF"));
                     setColor(left, Color.parseColor("#EF6C00"));

@@ -299,6 +299,41 @@ public class PuzzleUtils {
         }
     }
 
+    public static String getColorSchemeType(String puzzle) {
+        switch (puzzle) {
+            default:
+            case TYPE_333:
+            case TYPE_333OH:
+            case TYPE_333BLD:
+            case TYPE_333MBLD:
+            case TYPE_333FMC:
+            case TYPE_OTHER:
+                return "";  // default color scheme
+            case TYPE_222:
+                return TYPE_222;
+            case TYPE_444:
+            case TYPE_444BLD:
+                return TYPE_444;
+            case TYPE_555:
+            case TYPE_555BLD:
+                return TYPE_555;
+            case TYPE_666:
+                return TYPE_666;
+            case TYPE_777:
+                return TYPE_777;
+            case TYPE_SKEWB:
+                return TYPE_SKEWB;
+            case TYPE_MEGA:
+                return TYPE_MEGA;
+            case TYPE_PYRA:
+                return TYPE_PYRA;
+            case TYPE_SQUARE1:
+                return TYPE_SQUARE1;
+            case TYPE_CLOCK:
+                return TYPE_CLOCK;
+        }
+    }
+
     /**
      * Converts a duration value in milliseconds to a String
      * For other than FMC

@@ -133,6 +133,8 @@ public class ScrambleGenerator {
      */
 
     public Drawable generateImageFromScramble(SharedPreferences sp, String scramble) {
+        String colorSchemeType = PuzzleUtils.getColorSchemeType(puzzleType);
+
         // Getting the color scheme
         String top;
         String left;
@@ -143,19 +145,19 @@ public class ScrambleGenerator {
         // Due to a bug in the TNoodle library, the default Skewb scheme has the faces in a different order,
         // so we must account for this by creating a special case with some default colors flipped
         if (! puzzleType.equals(PuzzleUtils.TYPE_SKEWB)) {
-            top = sp.getString("cubeTop", "FFFFFF");
-            left = sp.getString("cubeLeft", "FF8B24");
-            front = sp.getString("cubeFront", "02D040");
-            right = sp.getString("cubeRight", "EC0000");
-            back = sp.getString("cubeBack", "304FFE");
-            down = sp.getString("cubeDown", "FDD835");
+            top = sp.getString("cubeTop" + colorSchemeType, "FFFFFF");
+            left = sp.getString("cubeLeft" + colorSchemeType, "FF8B24");
+            front = sp.getString("cubeFront" + colorSchemeType, "02D040");
+            right = sp.getString("cubeRight" + colorSchemeType, "EC0000");
+            back = sp.getString("cubeBack" + colorSchemeType, "304FFE");
+            down = sp.getString("cubeDown" + colorSchemeType, "FDD835");
         } else {
-            top = sp.getString("cubeTop", "FFFFFF");
-            left = sp.getString("cubeFront", "02D040");
-            front = sp.getString("cubeRight", "EC0000");
-            right = sp.getString("cubeBack", "304FFE");
-            back = sp.getString("cubeLeft", "EF6C00");
-            down = sp.getString("cubeDown", "FDD835");
+            top = sp.getString("cubeTop" + colorSchemeType, "FFFFFF");
+            left = sp.getString("cubeFront" + colorSchemeType, "02D040");
+            front = sp.getString("cubeRight" + colorSchemeType, "EC0000");
+            right = sp.getString("cubeBack" + colorSchemeType, "304FFE");
+            back = sp.getString("cubeLeft" + colorSchemeType, "EF6C00");
+            down = sp.getString("cubeDown" + colorSchemeType, "FDD835");
         }
 
         String cubeImg = null;

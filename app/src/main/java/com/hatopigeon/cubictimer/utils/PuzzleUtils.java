@@ -180,6 +180,39 @@ public class PuzzleUtils {
         }
     }
 
+    // Map for color scheme
+    public static class ColorInfo {
+        public String face;
+        public String defaultColor;
+        public ColorInfo(String face, String defaultColor) {
+            this.face = face;
+            this.defaultColor = defaultColor;
+        }
+    }
+    public static HashMap<Integer, ColorInfo> colorInfo = new HashMap<Integer, ColorInfo>();
+
+    static {
+        colorInfo.put(R.id.top,   new ColorInfo("cubeTop",   "FFFFFF"));
+        colorInfo.put(R.id.left,  new ColorInfo("cubeLeft",  "FF8B24"));
+        colorInfo.put(R.id.front, new ColorInfo("cubeFront", "02D040"));
+        colorInfo.put(R.id.right, new ColorInfo("cubeRight", "EC0000"));
+        colorInfo.put(R.id.back,  new ColorInfo("cubeBack",  "304FFE"));
+        colorInfo.put(R.id.down,  new ColorInfo("cubeDown",  "FDD835"));
+
+        colorInfo.put(R.id.megaBL,  new ColorInfo("cubeBL",  "FFCC00"));
+        colorInfo.put(R.id.megaBR,  new ColorInfo("cubeBR",  "0000B3"));
+        colorInfo.put(R.id.megaL,   new ColorInfo("cubeL",   "8A1AFF"));
+        colorInfo.put(R.id.megaU,   new ColorInfo("cubeU",   "FFFFFF"));
+        colorInfo.put(R.id.megaR,   new ColorInfo("cubeR",   "DD0000"));
+        colorInfo.put(R.id.megaF,   new ColorInfo("cubeF",   "006600"));
+        colorInfo.put(R.id.megaB,   new ColorInfo("cubeB",   "71E600"));
+        colorInfo.put(R.id.megaDBR, new ColorInfo("cubeDBR", "FF99FF"));
+        colorInfo.put(R.id.megaD,   new ColorInfo("cubeD",   "999999"));
+        colorInfo.put(R.id.megaDBL, new ColorInfo("cubeDBL", "FF8433"));
+        colorInfo.put(R.id.megaDR,  new ColorInfo("cubeDR",  "FFFFB3"));
+        colorInfo.put(R.id.megaDL,  new ColorInfo("cubeDL",  "88DDFF"));
+    }
+
     public PuzzleUtils() {
     }
 
@@ -300,6 +333,34 @@ public class PuzzleUtils {
     }
 
     public static String getColorSchemeType(String puzzle) {
+        switch (puzzle) {
+            default:
+            case TYPE_333:
+            case TYPE_333OH:
+            case TYPE_333BLD:
+            case TYPE_333MBLD:
+            case TYPE_333FMC:
+            case TYPE_OTHER:
+            case TYPE_222:
+            case TYPE_444:
+            case TYPE_444BLD:
+            case TYPE_555:
+            case TYPE_555BLD:
+            case TYPE_666:
+            case TYPE_777:
+            case TYPE_SKEWB:
+            case TYPE_SQUARE1:
+                return TYPE_333;    // Cube type
+            case TYPE_MEGA:
+                return TYPE_MEGA;
+            case TYPE_PYRA:
+                return TYPE_PYRA;
+            case TYPE_CLOCK:
+                return TYPE_CLOCK;
+        }
+    }
+
+    public static String getColorSchemeName(String puzzle) {
         switch (puzzle) {
             default:
             case TYPE_333:

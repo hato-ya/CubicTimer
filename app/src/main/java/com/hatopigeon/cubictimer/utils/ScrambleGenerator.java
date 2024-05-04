@@ -3,7 +3,10 @@ package com.hatopigeon.cubictimer.utils;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
+import android.util.Log;
 
+import com.hatopigeon.cubicify.R;
+import com.hatopigeon.cubictimer.fragment.dialog.SchemeSelectDialogMain;
 import com.hatopigeon.cubictimer.puzzle.NbyNCubePuzzle;
 import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGParseException;
@@ -125,40 +128,19 @@ public class ScrambleGenerator {
         this.puzzle = puzzle;
     }
 
+    private String getColorHex(SharedPreferences sp, int id, String colorSchemeName) {
+        return sp.getString(PuzzleUtils.colorInfo.get(id).face + colorSchemeName, PuzzleUtils.colorInfo.get(id).defaultColor);
+    }
+
     /**
      * Returns a scramble drawable showing the puzzled scrambled
      * Uses Tnoodle lib
      *
      * @return
      */
-
     public Drawable generateImageFromScramble(SharedPreferences sp, String scramble) {
-        String colorSchemeType = PuzzleUtils.getColorSchemeType(puzzleType);
-
-        // Getting the color scheme
-        String top;
-        String left;
-        String front;
-        String right;
-        String back;
-        String down;
-        // Due to a bug in the TNoodle library, the default Skewb scheme has the faces in a different order,
-        // so we must account for this by creating a special case with some default colors flipped
-        if (! puzzleType.equals(PuzzleUtils.TYPE_SKEWB)) {
-            top = sp.getString("cubeTop" + colorSchemeType, "FFFFFF");
-            left = sp.getString("cubeLeft" + colorSchemeType, "FF8B24");
-            front = sp.getString("cubeFront" + colorSchemeType, "02D040");
-            right = sp.getString("cubeRight" + colorSchemeType, "EC0000");
-            back = sp.getString("cubeBack" + colorSchemeType, "304FFE");
-            down = sp.getString("cubeDown" + colorSchemeType, "FDD835");
-        } else {
-            top = sp.getString("cubeTop" + colorSchemeType, "FFFFFF");
-            left = sp.getString("cubeFront" + colorSchemeType, "02D040");
-            front = sp.getString("cubeRight" + colorSchemeType, "EC0000");
-            right = sp.getString("cubeBack" + colorSchemeType, "304FFE");
-            back = sp.getString("cubeLeft" + colorSchemeType, "EF6C00");
-            down = sp.getString("cubeDown" + colorSchemeType, "FDD835");
-        }
+        HashMap<String, Color> colorScheme = new HashMap<String, Color>();
+        String colorSchemeName = PuzzleUtils.getColorSchemeName(puzzleType);
 
         String cubeImg = null;
         Drawable pic = null;
@@ -168,11 +150,51 @@ public class ScrambleGenerator {
 //            if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
 //                scramble = scramble.replaceAll("(UR|UL|DR|DL| )+$", "");
 //            }
+            switch (PuzzleUtils.getColorSchemeType(puzzleType)) {
+                default:
+                case PuzzleUtils.TYPE_333:
+                    // Getting the color scheme
+                    String top   = getColorHex(sp, R.id.top,   colorSchemeName);
+                    String left  = getColorHex(sp, R.id.left,  colorSchemeName);
+                    String front = getColorHex(sp, R.id.front, colorSchemeName);
+                    String right = getColorHex(sp, R.id.right, colorSchemeName);
+                    String back  = getColorHex(sp, R.id.back,  colorSchemeName);
+                    String down  = getColorHex(sp, R.id.down,  colorSchemeName);
+                    // Due to a bug in the TNoodle library, the default Skewb scheme has the faces in a different order,
+                    // so we must account for this by creating a special case with some default colors flipped
+                    if (! puzzleType.equals(PuzzleUtils.TYPE_SKEWB)) {
+                        colorScheme = puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top);
+                    } else {
+                        colorScheme = puzzle.parseColorScheme(left + "," + down + "," + right + "," + front + "," + back + "," + top);
+                    }
+                    break;
+                case PuzzleUtils.TYPE_MEGA:
+                    // Getting the color scheme
+                    String BL  = getColorHex(sp, R.id.megaBL,  colorSchemeName);
+                    String BR  = getColorHex(sp, R.id.megaBR,  colorSchemeName);
+                    String L   = getColorHex(sp, R.id.megaL,   colorSchemeName);
+                    String U   = getColorHex(sp, R.id.megaU,   colorSchemeName);
+                    String RT  = getColorHex(sp, R.id.megaR,   colorSchemeName);    // Avoid confusion with R by abbreviating to two letters
+                    String F   = getColorHex(sp, R.id.megaF,   colorSchemeName);
+                    String B   = getColorHex(sp, R.id.megaB,   colorSchemeName);
+                    String DBR = getColorHex(sp, R.id.megaDBR, colorSchemeName);
+                    String D   = getColorHex(sp, R.id.megaD,   colorSchemeName);
+                    String DBL = getColorHex(sp, R.id.megaDBL, colorSchemeName);
+                    String DR  = getColorHex(sp, R.id.megaDR,  colorSchemeName);
+                    String DL  = getColorHex(sp, R.id.megaDL,  colorSchemeName);
+                    colorScheme = puzzle.parseColorScheme(B + "," + BL + "," + BR + "," + D + "," + DBL + "," + DBR + "," + DL + "," + DR + "," + F + "," + L  + "," + RT  + "," + U);
+                    break;
+                case PuzzleUtils.TYPE_PYRA:
+                    break;
+                case PuzzleUtils.TYPE_CLOCK:
+                    break;
+            }
+
             try {
                 if (puzzleType.equals(PuzzleUtils.TYPE_CLOCK)) {
                     cubeImg = puzzle.drawScramble(scramble, clockColorScheme).toString();
                 } else {
-                    cubeImg = puzzle.drawScramble(scramble, puzzle.parseColorScheme(back + "," + down + "," + front + "," + left + "," + right + "," + top)).toString();
+                    cubeImg = puzzle.drawScramble(scramble, colorScheme).toString();
                 }
             } catch (InvalidScrambleException e) {
                 e.printStackTrace();

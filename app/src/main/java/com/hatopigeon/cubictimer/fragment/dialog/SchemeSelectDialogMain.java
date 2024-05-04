@@ -18,14 +18,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
-import com.hatopigeon.cubictimer.fragment.TimerFragmentMain;
 import com.hatopigeon.cubictimer.spans.ChromaDialogFixed;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
@@ -45,12 +44,13 @@ public class SchemeSelectDialogMain extends DialogFragment {
     /**
      * A "tag" to identify this class in log messages.
      */
-    private static final String TAG = TimerFragmentMain.class.getSimpleName();
+    private static final String TAG = SchemeSelectDialogMain.class.getSimpleName();
 
     private Unbinder mUnbinder;
     private Context mContext;
 
     private String mColorSchemeType;
+    private String mColorSchemeName;
 
     @BindView(R.id.top)   View top;
     @BindView(R.id.left)  View left;
@@ -61,6 +61,22 @@ public class SchemeSelectDialogMain extends DialogFragment {
     @BindView(R.id.reset) TextView reset;
     @BindView(R.id.done)  TextView done;
 
+    @BindView(R.id.megaBL)  PolygonView megaBL;
+    @BindView(R.id.megaBR)  PolygonView megaBR;
+    @BindView(R.id.megaL)   PolygonView megaL;
+    @BindView(R.id.megaU)   PolygonView megaU;
+    @BindView(R.id.megaR)   PolygonView megaR;
+    @BindView(R.id.megaF)   PolygonView megaF;
+    @BindView(R.id.megaB)   PolygonView megaB;
+    @BindView(R.id.megaDBR) PolygonView megaDBR;
+    @BindView(R.id.megaD)   PolygonView megaD;
+    @BindView(R.id.megaDBL) PolygonView megaDBL;
+    @BindView(R.id.megaDR)  PolygonView megaDR;
+    @BindView(R.id.megaDL)   PolygonView megaDL;
+
+    private int[] viewIdsCube = {R.id.top, R.id.left, R.id.front, R.id.right, R.id.back, R.id.down};
+    private int[] viewIdsMega = {R.id.megaBL, R.id.megaBR, R.id.megaL, R.id.megaU, R.id.megaR, R.id.megaF, R.id.megaB, R.id.megaDBR, R.id.megaD, R.id.megaDBL, R.id.megaDR, R.id.megaDL};
+
     public static SchemeSelectDialogMain newInstance() {
         return new SchemeSelectDialogMain();
     }
@@ -70,28 +86,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
         public void onClick(final View view) {
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
             final SharedPreferences.Editor editor = sp.edit();
-            String currentHex = "FFFFFF";
-            switch (view.getId()) {
-                case R.id.top:
-                    currentHex = sp.getString("cubeTop" + mColorSchemeType, "FFFFFF");
-                    break;
-                case R.id.left:
-                    currentHex = sp.getString("cubeLeft" + mColorSchemeType, "FF8B24");
-                    break;
-                case R.id.front:
-                    currentHex = sp.getString("cubeFront" + mColorSchemeType, "02D040");
-                    break;
-                case R.id.right:
-                    currentHex = sp.getString("cubeRight" + mColorSchemeType, "EC0000");
-                    break;
-                case R.id.back:
-                    currentHex = sp.getString("cubeBack" + mColorSchemeType, "304FFE");
-                    break;
-                case R.id.down:
-                    currentHex = sp.getString("cubeDown" + mColorSchemeType, "FDD835");
-                    break;
-            }
-
+            String currentHex = getHex(view.getId());
             new ChromaDialogFixed.Builder()
                     .initialColor(Color.parseColor("#" + currentHex))
                     .colorMode(ColorMode.RGB)
@@ -100,33 +95,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
                         @Override
                         public void onColorSelected(@ColorInt int color) {
                             String hexColor = Integer.toHexString(color).toUpperCase().substring(2);
-                            switch (view.getId()) {
-                                case R.id.top:
-                                    setColor(top, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeTop" + mColorSchemeType, hexColor);
-                                    break;
-                                case R.id.left:
-                                    setColor(left, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeLeft" + mColorSchemeType, hexColor);
-                                    break;
-                                case R.id.front:
-                                    setColor(front, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeFront" + mColorSchemeType, hexColor);
-                                    break;
-                                case R.id.right:
-                                    setColor(right, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeRight" + mColorSchemeType, hexColor);
-                                    break;
-                                case R.id.back:
-                                    setColor(back, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeBack" + mColorSchemeType, hexColor);
-                                    break;
-                                case R.id.down:
-                                    setColor(down, Color.parseColor("#" + hexColor));
-                                    editor.putString("cubeDown" + mColorSchemeType, hexColor);
-                                    break;
-                            }
-                            editor.apply();
+                            setAndSaveColor(view, PuzzleUtils.colorInfo.get(view.getId()).face, hexColor);
                         }
                     })
                     .create()
@@ -147,43 +116,52 @@ public class SchemeSelectDialogMain extends DialogFragment {
 
         String currentPuzzle = Prefs.getString(R.string.pk_last_used_puzzle, PuzzleUtils.TYPE_333);
         mColorSchemeType = PuzzleUtils.getColorSchemeType(currentPuzzle);
-        Log.d(TAG, "CurrentPuzzle = " + currentPuzzle + ", colorSchemeType = " + mColorSchemeType);
+        mColorSchemeName = PuzzleUtils.getColorSchemeName(currentPuzzle);
+        Log.d(TAG, "CurrentPuzzle = " + currentPuzzle + ", colorSchemeType = " + mColorSchemeType+ ", colorSchemeName = " + mColorSchemeName);
 
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
+        int[] viewIds;
+        int idRightMost;
+        switch (mColorSchemeType) {
+            default:
+            case PuzzleUtils.TYPE_333:
+                viewIds = viewIdsCube;
+                idRightMost = R.id.back;
+                break;
+            case PuzzleUtils.TYPE_MEGA:
+                viewIds = viewIdsMega;
+                idRightMost = R.id.megaDBL;
+                break;
+/*
+            case PuzzleUtils.TYPE_PYRA:
+                break;
+            case PuzzleUtils.TYPE_CLOCK:
+                break;
+ */
+        }
 
-        setColor(top, Color.parseColor("#" + sp.getString("cubeTop" + mColorSchemeType, "FFFFFF")));
-        setColor(left, Color.parseColor("#" + sp.getString("cubeLeft" + mColorSchemeType, "FF8B24")));
-        setColor(front, Color.parseColor("#" + sp.getString("cubeFront" + mColorSchemeType, "02D040")));
-        setColor(right, Color.parseColor("#" + sp.getString("cubeRight" + mColorSchemeType, "EC0000")));
-        setColor(back, Color.parseColor("#" + sp.getString("cubeBack" + mColorSchemeType, "304FFE")));
-        setColor(down, Color.parseColor("#" + sp.getString("cubeDown" + mColorSchemeType, "FDD835")));
+        for (int viewId : viewIds) {
+            View view = dialogView.findViewById(viewId);
+            setColor(view, getColor(viewId));
+            view.setOnClickListener(clickListener);
+            view.setVisibility(View.VISIBLE);
+            if (mColorSchemeType.equals(PuzzleUtils.TYPE_MEGA)) {
+                ((PolygonView) view).setRegion(5);
+            }
+        }
 
-        top.setOnClickListener(clickListener);
-        left.setOnClickListener(clickListener);
-        front.setOnClickListener(clickListener);
-        right.setOnClickListener(clickListener);
-        back.setOnClickListener(clickListener);
-        down.setOnClickListener(clickListener);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) done.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_RIGHT, idRightMost);
+        done.setLayoutParams(params);
 
         reset.setOnClickListener(view -> ThemeUtils.roundAndShowDialog(mContext, new MaterialDialog.Builder(mContext)
                 .content(R.string.reset_colorscheme)
                 .positiveText(R.string.action_reset_colorscheme)
                 .negativeText(R.string.action_cancel)
                 .onPositive((dialog, which) -> {
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("cubeTop" + mColorSchemeType, "FFFFFF");
-                    editor.putString("cubeLeft" + mColorSchemeType, "EF6C00");
-                    editor.putString("cubeFront" + mColorSchemeType, "02D040");
-                    editor.putString("cubeRight" + mColorSchemeType, "EC0000");
-                    editor.putString("cubeBack" + mColorSchemeType, "304FFE");
-                    editor.putString("cubeDown" + mColorSchemeType, "FDD835");
-                    editor.apply();
-                    setColor(top, Color.parseColor("#FFFFFF"));
-                    setColor(left, Color.parseColor("#EF6C00"));
-                    setColor(front, Color.parseColor("#02D040"));
-                    setColor(right, Color.parseColor("#EC0000"));
-                    setColor(back, Color.parseColor("#304FFE"));
-                    setColor(down, Color.parseColor("#FDD835"));
+                    for (int viewId : viewIds) {
+                        PuzzleUtils.ColorInfo colorInfo = PuzzleUtils.colorInfo.get(viewId);
+                        setAndSaveColor(dialogView.findViewById(viewId), colorInfo.face, colorInfo.defaultColor);
+                    }
                 })
                 .build()));
 
@@ -197,8 +175,39 @@ public class SchemeSelectDialogMain extends DialogFragment {
         return dialogView;
     }
 
+    private String getHex(int id) {
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
+        return sp.getString(PuzzleUtils.colorInfo.get(id).face + mColorSchemeName, PuzzleUtils.colorInfo.get(id).defaultColor);
+    }
+    private int getColor(int id) {
+        return Color.parseColor("#"+getHex(id));
+    }
+
+    private void setAndSaveColor(View view, String key, String color) {
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(key + mColorSchemeName, color).apply();
+        setColor(view, Color.parseColor("#"+color));
+    }
+
     private void setColor(View view, int color) {
-        Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.square);
+        int Rid;
+        switch (mColorSchemeType) {
+            default:
+            case PuzzleUtils.TYPE_333:
+                Rid = R.drawable.square;
+                break;
+            case PuzzleUtils.TYPE_MEGA:
+                Rid = R.drawable.pentagon;
+                break;
+/*
+            case PuzzleUtils.TYPE_PYRA:
+                break;
+            case PuzzleUtils.TYPE_CLOCK:
+                break;
+*/
+        }
+        Drawable drawable = ContextCompat.getDrawable(getContext(), Rid);
         Drawable wrap = DrawableCompat.wrap(drawable);
         DrawableCompat.setTint(wrap, color);
         DrawableCompat.setTintMode(wrap, PorterDuff.Mode.MULTIPLY);

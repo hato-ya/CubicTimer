@@ -59,6 +59,8 @@ public class SchemeSelectDialogMain extends DialogFragment {
     private int[] viewIdsCube = {R.id.top, R.id.left, R.id.front, R.id.right, R.id.back, R.id.down};
     private int[] viewIdsMega = {R.id.megaBL, R.id.megaBR, R.id.megaL, R.id.megaU, R.id.megaR, R.id.megaF, R.id.megaB, R.id.megaDBR, R.id.megaD, R.id.megaDBL, R.id.megaDR, R.id.megaDL};
     private int[] viewIdsPyra = {R.id.pyraL, R.id.pyraF, R.id.pyraR, R.id.pyraD};
+    private int[] viewIdsClock = {R.id.clockFront, R.id.clockFrontClock, R.id.clockBack, R.id.clockBackClock, R.id.clockHand, R.id.clockHandBorder, R.id.clockPinUp, R.id.clockPinDown};
+    private int[] viewIdsClockText = {R.id.clockFrontText, R.id.clockFrontClockText, R.id.clockBackText, R.id.clockBackClockText, R.id.clockHandText, R.id.clockHandBorderText, R.id.clockPinUpText, R.id.clockPinDownText};
 
     public static SchemeSelectDialogMain newInstance() {
         return new SchemeSelectDialogMain();
@@ -69,7 +71,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
         public void onClick(final View view) {
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
             final SharedPreferences.Editor editor = sp.edit();
-            String currentHex = getHex(view.getId());
+            String currentHex = getColorHex(view.getId());
             new ChromaDialogFixed.Builder()
                     .initialColor(Color.parseColor("#" + currentHex))
                     .colorMode(ColorMode.RGB)
@@ -118,10 +120,28 @@ public class SchemeSelectDialogMain extends DialogFragment {
                 viewIds = viewIdsPyra;
                 idRightMost = R.id.pyraR;
                 break;
-/*
             case PuzzleUtils.TYPE_CLOCK:
+                viewIds = viewIdsClock;
+                idRightMost = R.id.clockHandBorderText;
                 break;
- */
+        }
+
+        if (mColorSchemeType.equals(PuzzleUtils.TYPE_CLOCK)) {
+            int maxWidth = 0;
+            int maxId = idRightMost;
+            for (int viewId: viewIdsClockText) {
+                TextView view = dialogView.findViewById(viewId);
+                view.setVisibility(View.VISIBLE);
+
+                // Find the longest string to align "Done" button
+                view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                int width = view.getMeasuredWidth();
+                if (width > maxWidth) {
+                    maxWidth = width;
+                    maxId = viewId;
+                }
+            }
+            idRightMost = maxId;
         }
 
         for (int viewId : viewIds) {
@@ -162,12 +182,12 @@ public class SchemeSelectDialogMain extends DialogFragment {
         return dialogView;
     }
 
-    private String getHex(int id) {
+    private String getColorHex(int id) {
         final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
         return sp.getString(PuzzleUtils.colorInfo.get(id).face + mColorSchemeName, PuzzleUtils.colorInfo.get(id).defaultColor);
     }
     private int getColor(int id) {
-        return Color.parseColor("#"+getHex(id));
+        return Color.parseColor("#"+ getColorHex(id));
     }
 
     private void setAndSaveColor(View view, String key, String color) {
@@ -182,6 +202,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
         switch (mColorSchemeType) {
             default:
             case PuzzleUtils.TYPE_333:
+            case PuzzleUtils.TYPE_CLOCK:
                 Rid = R.drawable.square;
                 break;
             case PuzzleUtils.TYPE_MEGA:
@@ -190,10 +211,6 @@ public class SchemeSelectDialogMain extends DialogFragment {
             case PuzzleUtils.TYPE_PYRA:
                 Rid = R.drawable.triangle;
                 break;
-/*
-            case PuzzleUtils.TYPE_CLOCK:
-                break;
-*/
         }
         Drawable drawable = ContextCompat.getDrawable(getContext(), Rid);
         Drawable wrap = DrawableCompat.wrap(drawable);

@@ -304,6 +304,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"マルチフェイズ : "</string>
+    <string name="clock_front_clock">表面のクロック</string>
+    <string name="clock_front">表面の背景</string>
+    <string name="clock_back_clock">裏面のクロック</string>
+    <string name="clock_back">裏面の背景</string>
+    <string name="clock_hand">針</string>
+    <string name="clock_hand_border">針の縁</string>
+    <string name="clock_pin_up">上がっているピン</string>
+    <string name="clock_pin_down">下がっているピン</string>
     <string name="pref_inspection_alert_type_title">アラートの種類</string>
     <string name="pref_inspection_alert_type_summary">アラート方法を選択</string>
     <string name="pref_inspection_alert_vibration">バイブレーション</string>

@@ -449,6 +449,15 @@
 
     <string name="multi_phase_status_message">"Multi-phase : "</string>
 
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
+
     <string name="pref_inspection_alert_type_title">Alert type</string>
     <string name="pref_inspection_alert_type_summary">Choose how the timer will alert you</string>
     <string name="pref_inspection_alert_vibration">Vibration</string>

@@ -192,6 +192,7 @@ public class PuzzleUtils {
     public static HashMap<Integer, ColorInfo> colorInfo = new HashMap<Integer, ColorInfo>();
 
     static {
+        // define face name and default color of color scheme
         colorInfo.put(R.id.top,   new ColorInfo("cubeTop",   "FFFFFF"));
         colorInfo.put(R.id.left,  new ColorInfo("cubeLeft",  "FF8B24"));
         colorInfo.put(R.id.front, new ColorInfo("cubeFront", "02D040"));
@@ -216,6 +217,15 @@ public class PuzzleUtils {
         colorInfo.put(R.id.pyraF, new ColorInfo("faceF", "00FF00"));
         colorInfo.put(R.id.pyraR, new ColorInfo("faceR", "0000FF"));
         colorInfo.put(R.id.pyraD, new ColorInfo("faceD", "FFFF00"));
+
+        colorInfo.put(R.id.clockFront,      new ColorInfo("faceFront", "113366"));
+        colorInfo.put(R.id.clockFrontClock, new ColorInfo("faceFrontClock", "CCDDEE"));
+        colorInfo.put(R.id.clockBack,       new ColorInfo("faceBack", "CCDDEE"));
+        colorInfo.put(R.id.clockBackClock,  new ColorInfo("faceBackClock", "113366"));
+        colorInfo.put(R.id.clockHand,       new ColorInfo("faceHand", "F5FFFA"));
+        colorInfo.put(R.id.clockHandBorder, new ColorInfo("faceHandBorder", "708090"));
+        colorInfo.put(R.id.clockPinUp,      new ColorInfo("facePinUp", "88AACC"));
+        colorInfo.put(R.id.clockPinDown,    new ColorInfo("facePinDown", "446699"));
     }
 
     public PuzzleUtils() {

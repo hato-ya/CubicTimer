@@ -1,6 +1,7 @@
 package com.hatopigeon.cubictimer.fragment.dialog;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -52,30 +53,12 @@ public class SchemeSelectDialogMain extends DialogFragment {
     private String mColorSchemeType;
     private String mColorSchemeName;
 
-    @BindView(R.id.top)   View top;
-    @BindView(R.id.left)  View left;
-    @BindView(R.id.front) View front;
-    @BindView(R.id.right) View right;
-    @BindView(R.id.back)  View back;
-    @BindView(R.id.down)  View down;
     @BindView(R.id.reset) TextView reset;
     @BindView(R.id.done)  TextView done;
 
-    @BindView(R.id.megaBL)  PolygonView megaBL;
-    @BindView(R.id.megaBR)  PolygonView megaBR;
-    @BindView(R.id.megaL)   PolygonView megaL;
-    @BindView(R.id.megaU)   PolygonView megaU;
-    @BindView(R.id.megaR)   PolygonView megaR;
-    @BindView(R.id.megaF)   PolygonView megaF;
-    @BindView(R.id.megaB)   PolygonView megaB;
-    @BindView(R.id.megaDBR) PolygonView megaDBR;
-    @BindView(R.id.megaD)   PolygonView megaD;
-    @BindView(R.id.megaDBL) PolygonView megaDBL;
-    @BindView(R.id.megaDR)  PolygonView megaDR;
-    @BindView(R.id.megaDL)   PolygonView megaDL;
-
     private int[] viewIdsCube = {R.id.top, R.id.left, R.id.front, R.id.right, R.id.back, R.id.down};
     private int[] viewIdsMega = {R.id.megaBL, R.id.megaBR, R.id.megaL, R.id.megaU, R.id.megaR, R.id.megaF, R.id.megaB, R.id.megaDBR, R.id.megaD, R.id.megaDBL, R.id.megaDR, R.id.megaDL};
+    private int[] viewIdsPyra = {R.id.pyraL, R.id.pyraF, R.id.pyraR, R.id.pyraD};
 
     public static SchemeSelectDialogMain newInstance() {
         return new SchemeSelectDialogMain();
@@ -131,9 +114,11 @@ public class SchemeSelectDialogMain extends DialogFragment {
                 viewIds = viewIdsMega;
                 idRightMost = R.id.megaDBL;
                 break;
-/*
             case PuzzleUtils.TYPE_PYRA:
+                viewIds = viewIdsPyra;
+                idRightMost = R.id.pyraR;
                 break;
+/*
             case PuzzleUtils.TYPE_CLOCK:
                 break;
  */
@@ -146,6 +131,8 @@ public class SchemeSelectDialogMain extends DialogFragment {
             view.setVisibility(View.VISIBLE);
             if (mColorSchemeType.equals(PuzzleUtils.TYPE_MEGA)) {
                 ((PolygonView) view).setRegion(5);
+            } else if (mColorSchemeType.equals(PuzzleUtils.TYPE_PYRA)) {
+                ((PolygonView) view).setRegion(3);
             }
         }
 
@@ -200,9 +187,10 @@ public class SchemeSelectDialogMain extends DialogFragment {
             case PuzzleUtils.TYPE_MEGA:
                 Rid = R.drawable.pentagon;
                 break;
-/*
             case PuzzleUtils.TYPE_PYRA:
+                Rid = R.drawable.triangle;
                 break;
+/*
             case PuzzleUtils.TYPE_CLOCK:
                 break;
 */
@@ -213,6 +201,14 @@ public class SchemeSelectDialogMain extends DialogFragment {
         DrawableCompat.setTintMode(wrap, PorterDuff.Mode.MULTIPLY);
         wrap = wrap.mutate();
         view.setBackground(wrap);
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (getActivity() != null) {
+            ((MainActivity) getActivity()).onRecreateRequired();
+        }
     }
 
     @Override

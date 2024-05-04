@@ -40,10 +40,10 @@ public class PolygonView extends View {
 
         Path path = new Path();
         for (int i = 0; i < mVertex; i++) {
-            double rad = toRadians(-90.0+72.0*i);
+            double rad = toRadians(-90.0+360.0/mVertex*i);
             if (i != 0) path.lineTo((float)cos(rad),(float)sin(rad));
             else        path.moveTo((float)cos(rad),(float)sin(rad));
-            // Log.d(TAG, i + ":" + cos(rad) + "," +sin(rad));
+            //Log.d(TAG, i + ":" + cos(rad) + "," +sin(rad));
         }
         path.close();
 
@@ -55,6 +55,7 @@ public class PolygonView extends View {
         path.transform(matrix);
 
         path.computeBounds(rectF, true);
+        //Log.d(TAG, "rectF : " + rectF.left + "," + rectF.top + " " + rectF.right + "," + rectF.bottom);
 
         mRegion = new Region();
         mRegion.setPath(path, new Region((int)rectF.left, (int)rectF.top, (int)rectF.right, (int)rectF.bottom));
@@ -62,16 +63,13 @@ public class PolygonView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            Log.d(TAG,"x = " + event.getX() + " y = " + event.getY() + " w = " + this.getWidth() + " h = " + this.getHeight());
-            if (mRegion.contains((int)event.getX(), (int)event.getY())) {
-                Log.d(TAG, "Contain");
-                return super.onTouchEvent(event);
-            } else {
-                Log.d(TAG, "Not Contain");
-                return false;
-            }
+        //Log.d(TAG, "x = " + event.getX() + " y = " + event.getY() + " w = " + this.getWidth() + " h = " + this.getHeight());
+        if (mRegion.contains((int)event.getX(), (int)event.getY())) {
+            //Log.d(TAG, "Contain");
+            return super.onTouchEvent(event);
+        } else {
+            //Log.d(TAG, "Not Contain");
+            return false;
         }
-        return super.onTouchEvent(event);
     }
 }

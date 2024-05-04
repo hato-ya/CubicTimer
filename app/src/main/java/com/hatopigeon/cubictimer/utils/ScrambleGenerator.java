@@ -169,22 +169,33 @@ public class ScrambleGenerator {
                     }
                     break;
                 case PuzzleUtils.TYPE_MEGA:
-                    // Getting the color scheme
-                    String BL  = getColorHex(sp, R.id.megaBL,  colorSchemeName);
-                    String BR  = getColorHex(sp, R.id.megaBR,  colorSchemeName);
-                    String L   = getColorHex(sp, R.id.megaL,   colorSchemeName);
-                    String U   = getColorHex(sp, R.id.megaU,   colorSchemeName);
-                    String RT  = getColorHex(sp, R.id.megaR,   colorSchemeName);    // Avoid confusion with R by abbreviating to two letters
-                    String F   = getColorHex(sp, R.id.megaF,   colorSchemeName);
-                    String B   = getColorHex(sp, R.id.megaB,   colorSchemeName);
-                    String DBR = getColorHex(sp, R.id.megaDBR, colorSchemeName);
-                    String D   = getColorHex(sp, R.id.megaD,   colorSchemeName);
-                    String DBL = getColorHex(sp, R.id.megaDBL, colorSchemeName);
-                    String DR  = getColorHex(sp, R.id.megaDR,  colorSchemeName);
-                    String DL  = getColorHex(sp, R.id.megaDL,  colorSchemeName);
-                    colorScheme = puzzle.parseColorScheme(B + "," + BL + "," + BR + "," + D + "," + DBL + "," + DBR + "," + DL + "," + DR + "," + F + "," + L  + "," + RT  + "," + U);
+                    {
+                        // Getting the color scheme
+                        String BL  = getColorHex(sp, R.id.megaBL, colorSchemeName);
+                        String BR  = getColorHex(sp, R.id.megaBR, colorSchemeName);
+                        String L   = getColorHex(sp, R.id.megaL, colorSchemeName);
+                        String U   = getColorHex(sp, R.id.megaU, colorSchemeName);
+                        String RT  = getColorHex(sp, R.id.megaR, colorSchemeName);    // Avoid confusion with R by abbreviating to two letters
+                        String F   = getColorHex(sp, R.id.megaF, colorSchemeName);
+                        String B   = getColorHex(sp, R.id.megaB, colorSchemeName);
+                        String DBR = getColorHex(sp, R.id.megaDBR, colorSchemeName);
+                        String D   = getColorHex(sp, R.id.megaD, colorSchemeName);
+                        String DBL = getColorHex(sp, R.id.megaDBL, colorSchemeName);
+                        String DR  = getColorHex(sp, R.id.megaDR, colorSchemeName);
+                        String DL  = getColorHex(sp, R.id.megaDL, colorSchemeName);
+                        colorScheme = puzzle.parseColorScheme(B + "," + BL + "," + BR + "," + D + "," + DBL + "," + DBR + "," + DL + "," + DR + "," + F + "," + L + "," + RT + "," + U);
+                    }
                     break;
                 case PuzzleUtils.TYPE_PYRA:
+                    {
+                        // Getting the color scheme
+                        String L  = getColorHex(sp, R.id.pyraL, colorSchemeName);
+                        String F  = getColorHex(sp, R.id.pyraF, colorSchemeName);
+                        String RT = getColorHex(sp, R.id.pyraR, colorSchemeName);    // Avoid confusion with R by abbreviating to two letters
+                        String D  = getColorHex(sp, R.id.pyraD, colorSchemeName);
+                        Log.d("ScrambleGenerator", "pyra " + L + " " + F + " " + RT + " " + D);
+                        colorScheme = puzzle.parseColorScheme(D + "," + F + "," + L + "," + RT);
+                    }
                     break;
                 case PuzzleUtils.TYPE_CLOCK:
                     break;

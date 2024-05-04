@@ -258,6 +258,68 @@
         tools:visibility="visible"
         />
 
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraL"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="-24dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraF"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:layout_toRightOf="@id/pyraL"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraR"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:layout_toRightOf="@id/pyraF"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="-24dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraD"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/pyraF"
+        android:layout_toRightOf="@id/pyraL"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/reset"
         android:layout_width="wrap_content"
@@ -266,7 +328,7 @@
         android:background="?attr/selectableItemBackground"
         app:drawableLeftCompat="@drawable/ic_outline_cached_24px"
         android:drawablePadding="8dp"
-        android:layout_below="@id/megaF"
+        android:layout_below="@id/pyraD"
         android:gravity="center"
         android:padding="8dp" />
 
@@ -275,7 +337,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_below="@id/megaF"
+        android:layout_below="@id/pyraD"
         android:layout_alignRight="@id/megaDBL"
         android:background="?attr/selectableItemBackground"
         android:textAllCaps="true"

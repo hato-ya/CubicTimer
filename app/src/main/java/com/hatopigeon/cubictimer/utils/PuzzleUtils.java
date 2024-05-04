@@ -199,18 +199,23 @@ public class PuzzleUtils {
         colorInfo.put(R.id.back,  new ColorInfo("cubeBack",  "304FFE"));
         colorInfo.put(R.id.down,  new ColorInfo("cubeDown",  "FDD835"));
 
-        colorInfo.put(R.id.megaBL,  new ColorInfo("cubeBL",  "FFCC00"));
-        colorInfo.put(R.id.megaBR,  new ColorInfo("cubeBR",  "0000B3"));
-        colorInfo.put(R.id.megaL,   new ColorInfo("cubeL",   "8A1AFF"));
-        colorInfo.put(R.id.megaU,   new ColorInfo("cubeU",   "FFFFFF"));
-        colorInfo.put(R.id.megaR,   new ColorInfo("cubeR",   "DD0000"));
-        colorInfo.put(R.id.megaF,   new ColorInfo("cubeF",   "006600"));
-        colorInfo.put(R.id.megaB,   new ColorInfo("cubeB",   "71E600"));
-        colorInfo.put(R.id.megaDBR, new ColorInfo("cubeDBR", "FF99FF"));
-        colorInfo.put(R.id.megaD,   new ColorInfo("cubeD",   "999999"));
-        colorInfo.put(R.id.megaDBL, new ColorInfo("cubeDBL", "FF8433"));
-        colorInfo.put(R.id.megaDR,  new ColorInfo("cubeDR",  "FFFFB3"));
-        colorInfo.put(R.id.megaDL,  new ColorInfo("cubeDL",  "88DDFF"));
+        colorInfo.put(R.id.megaBL,  new ColorInfo("faceBL",  "FFCC00"));
+        colorInfo.put(R.id.megaBR,  new ColorInfo("faceBR",  "0000B3"));
+        colorInfo.put(R.id.megaL,   new ColorInfo("faceL",   "8A1AFF"));
+        colorInfo.put(R.id.megaU,   new ColorInfo("faceU",   "FFFFFF"));
+        colorInfo.put(R.id.megaR,   new ColorInfo("faceR",   "DD0000"));
+        colorInfo.put(R.id.megaF,   new ColorInfo("faceF",   "006600"));
+        colorInfo.put(R.id.megaB,   new ColorInfo("faceB",   "71E600"));
+        colorInfo.put(R.id.megaDBR, new ColorInfo("faceDBR", "FF99FF"));
+        colorInfo.put(R.id.megaD,   new ColorInfo("faceD",   "999999"));
+        colorInfo.put(R.id.megaDBL, new ColorInfo("faceDBL", "FF8433"));
+        colorInfo.put(R.id.megaDR,  new ColorInfo("faceDR",  "FFFFB3"));
+        colorInfo.put(R.id.megaDL,  new ColorInfo("faceDL",  "88DDFF"));
+
+        colorInfo.put(R.id.pyraL, new ColorInfo("faceL", "FF0000"));
+        colorInfo.put(R.id.pyraF, new ColorInfo("faceF", "00FF00"));
+        colorInfo.put(R.id.pyraR, new ColorInfo("faceR", "0000FF"));
+        colorInfo.put(R.id.pyraD, new ColorInfo("faceD", "FFFF00"));
     }
 
     public PuzzleUtils() {

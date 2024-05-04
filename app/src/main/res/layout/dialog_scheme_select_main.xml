@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -14,7 +20,9 @@
         android:layout_height="44dp"
         android:layout_toRightOf="@+id/left"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <View
         android:id="@id/left"
@@ -22,7 +30,9 @@
         android:layout_height="44dp"
         android:layout_below="@id/top"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <View
         android:id="@+id/front"
@@ -31,7 +41,9 @@
         android:layout_height="44dp"
         android:layout_below="@id/top"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <View
         android:id="@+id/down"
@@ -40,7 +52,9 @@
         android:layout_height="44dp"
         android:layout_below="@id/front"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <View
         android:id="@+id/right"
@@ -49,7 +63,9 @@
         android:layout_below="@id/top"
         android:layout_toRightOf="@id/front"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <View
         android:id="@+id/back"
@@ -58,7 +74,457 @@
         android:layout_toRightOf="@id/right"
         android:layout_below="@id/top"
         tools:background="@drawable/square"
-        android:layout_margin="4dp"/>
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaBL"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/down"
+        android:layout_toRightOf="@id/megaL"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="-25.6dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:paddingLeft="10dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaBR"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_toRightOf="@id/megaBL"
+        android:layout_below="@id/down"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="3.6dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaL"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaBL"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-1dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="-6dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaU"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaBL"
+        android:layout_toRightOf="@id/megaL"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-14.6dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaR"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaBL"
+        android:layout_toRightOf="@id/megaU"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-1dp"
+        android:layout_marginLeft="-6dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaF"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaU"
+        android:layout_toRightOf="@id/megaL"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="2.5dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaB"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/down"
+        android:layout_toRightOf="@id/megaDBR"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaDBR"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaB"
+        android:layout_toRightOf="@id/megaR"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-17.9dp"
+        android:layout_marginLeft="-6dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="-6dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaD"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaB"
+        android:layout_toRightOf="@id/megaDBR"
+        android:rotation="180"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="2.5dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaDBL"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaB"
+        android:layout_toRightOf="@id/megaD"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-17.9dp"
+        android:layout_marginLeft="-6dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaDR"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaD"
+        android:layout_toRightOf="@id/megaDBR"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-14.6dp"
+        android:layout_marginLeft="-25.6dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/megaDL"
+        android:layout_width="48dp"
+        android:layout_height="46dp"
+        android:layout_below="@id/megaD"
+        android:layout_toRightOf="@id/megaDR"
+        tools:background="@drawable/pentagon"
+        android:layout_marginTop="-14.6dp"
+        android:layout_marginLeft="3.6dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraL"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="-24dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraF"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:layout_toRightOf="@id/pyraL"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraR"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/megaF"
+        android:layout_toRightOf="@id/pyraF"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="-24dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/pyraD"
+        android:layout_width="56dp"
+        android:layout_height="49dp"
+        android:layout_below="@id/pyraF"
+        android:layout_toRightOf="@id/pyraL"
+        android:rotation="180"
+        tools:background="@drawable/triangle"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <TextView
+        android:id="@+id/clockFrontClockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockFrontClock"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/pyraD"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_front_clock"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockFrontClock"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockFrontClockText"
+        android:layout_alignBottom="@+id/clockFrontClockText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockFrontText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockFront"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockFrontClockText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_front"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockFront"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockFrontText"
+        android:layout_alignBottom="@+id/clockFrontText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockBackClockText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockBackClock"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockFrontText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_back_clock"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockBackClock"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockBackClockText"
+        android:layout_alignBottom="@+id/clockBackClockText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockBackText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockBack"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockBackClockText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_back"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockBack"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockBackText"
+        android:layout_alignBottom="@+id/clockBackText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockHandText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockHand"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockBackText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_hand"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockHand"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockHandText"
+        android:layout_alignBottom="@+id/clockHandText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockHandBorderText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockHandBorder"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockHandText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_hand_border"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockHandBorder"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockHandBorderText"
+        android:layout_alignBottom="@+id/clockHandBorderText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockPinUpText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockPinUp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockHandBorderText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_pin_up"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockPinUp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockPinUpText"
+        android:layout_alignBottom="@+id/clockPinUpText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/clockPinDownText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/clockPinDown"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:layout_below="@id/clockPinUpText"
+        android:background="?attr/selectableItemBackground"
+        android:text="@string/clock_pin_down"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+    <View
+        android:id="@+id/clockPinDown"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@+id/clockPinDownText"
+        android:layout_alignBottom="@+id/clockPinDownText"
+        tools:background="@drawable/square"
+        android:layout_margin="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/reset"
@@ -68,7 +534,7 @@
         android:background="?attr/selectableItemBackground"
         app:drawableLeftCompat="@drawable/ic_outline_cached_24px"
         android:drawablePadding="8dp"
-        android:layout_below="@id/down"
+        android:layout_below="@id/clockPinDownText"
         android:gravity="center"
         android:padding="8dp" />
 
@@ -76,10 +542,9 @@
         android:id="@+id/done"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:layout_below="@id/down"
-        android:layout_alignRight="@id/back"
+        android:layout_below="@id/clockPinDownText"
+        android:layout_alignRight="@id/megaDBL"
         android:background="?attr/selectableItemBackground"
         android:textAllCaps="true"
         android:layout_alignBottom="@id/reset"
@@ -92,3 +557,4 @@
 
 
 </RelativeLayout>
+</ScrollView>

@@ -861,6 +861,10 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
                 .commit();
     }
 
+    public int getCurrentPage() {
+        return viewPager.getCurrentItem();
+    }
+
     protected class NavigationAdapter extends FragmentPagerAdapter {
 
         public NavigationAdapter(FragmentManager fm) {

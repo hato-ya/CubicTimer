@@ -2460,6 +2460,12 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
+        // If current page is not TIMER, do nothing
+        int currentPage = ((TimerFragmentMain)getParentFragment()).getCurrentPage();
+        if (currentPage != TimerFragmentMain.TIMER_PAGE) {
+            return;
+        }
+
         // update debug string
         serialStatusMessage.setText(str);
 
@@ -2874,6 +2880,12 @@ public class TimerFragment extends BaseFragment
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
                 && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
+
+        // If current page is not TIMER, do nothing
+        int currentPage = ((TimerFragmentMain)getParentFragment()).getCurrentPage();
+        if (currentPage != TimerFragmentMain.TIMER_PAGE) {
+            return;
+        }
 
         // update debug string
         String[] strState = getResources().getStringArray(R.array.timer_gan_timer_state);

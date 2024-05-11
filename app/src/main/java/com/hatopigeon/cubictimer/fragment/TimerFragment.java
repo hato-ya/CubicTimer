@@ -1697,6 +1697,11 @@ public class TimerFragment extends BaseFragment
         congratsText.setVisibility(View.GONE);
         congratsText.setCompoundDrawables(null, null, null, null);
 
+        // close the expanded scramble image
+        scrambleImg.setAlpha(1f);
+        expandedImageView.setVisibility(View.GONE);
+        mCurrentAnimator = null;
+
         // bring chronometer up a bit
         chronometer.animate()
                 .scaleX(1.15f)

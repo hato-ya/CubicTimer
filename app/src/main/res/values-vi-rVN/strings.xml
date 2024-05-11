@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Nút hành động nhanh</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">Nút \"Xóa\" được hiển thị trong danh sách thời gian và cho phép bạn xóa tất cả lượt giải khỏi phiên hiện tại</string>
     <string name="clearEnabledTitle">Hiển thị nút \"Xóa\"</string>
     <string name="contact">Liên lạc</string>
@@ -189,6 +190,7 @@
     <string name="pref_scramble_box_title">Nền scramble</string>
     <string name="pref_scramble_box_description">Hiển thị một nền trắng đằng sau scramble</string>
     <string name="preference_application_language_title">Ngôn ngữ</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Đánh giá ứng dụng trên Google Play</string>
     <string name="remove_session_confirmation_content">Bạn sẽ không thể hoàn tác hành động này.</string>
     <string name="remove_session_title">Loại bỏ tất cả các solves từ phiên này?</string>
@@ -303,6 +305,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Kiểu cảnh báo</string>
     <string name="pref_inspection_alert_type_summary">Kiểu cảnh báo</string>
     <string name="pref_inspection_alert_vibration">Rung</string>
@@ -337,6 +347,7 @@
     <string name="pref_screen_title_general">Chung</string>
     <string name="pref_screen_title_list">Danh sách</string>
     <string name="unarchive_dialog_summary">Bạn hiện đang có %1$d lượt giải lưu trữ.\n\n bạn muốn hủy bao nhiêu lượt giải? Điều này sẽ hủy lưu trữ các lượt giải gần đây nhất đầu tiên.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Thời gian hiệu ứng</string>
     <string name="pref_animation_duration_summary">Kiểm soát thời lượng tính bằng mili giây cho tất cả hiệu ứng bấm giờ</string>
     <string name="pref_screen_title_statistics">Số Liệu Thống Kê</string>

@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Botons d\'acció ràpida</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">El botó \"Netejar\" es mostra en la llista de temps y permitix borrar totes les resolucions de la sessió actual</string>
     <string name="clearEnabledTitle">Mostrar botó \"Netejar\"</string>
     <string name="contact">Contacte</string>
@@ -186,6 +187,7 @@
     <string name="pref_scramble_box_title">Fons de la mescla</string>
     <string name="pref_scramble_box_description">Mostrar un fons blanc rere la mescla</string>
     <string name="preference_application_language_title">Idioma</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Puntuar aquesta app al Google Play</string>
     <string name="remove_session_confirmation_content">No podràs desfer esta acció.</string>
     <string name="remove_session_title">¿Llevar totes les resolucions d\'esta sessió?</string>
@@ -301,6 +303,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Tipo de avís</string>
     <string name="pref_inspection_alert_type_summary">Tria com t\'avisarà el temporisador</string>
     <string name="pref_inspection_alert_vibration">Vibració</string>
@@ -335,6 +345,7 @@
     <string name="pref_screen_title_general">General</string>
     <string name="pref_screen_title_list">Llistat</string>
     <string name="unarchive_dialog_summary">Actualment tens %1$d resolucions arxivades.\n\nQuantes resolucions vols treure de l\'arxiu? Açò treurà les resolucions més noves primer.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Duració de l\'animació</string>
     <string name="pref_animation_duration_summary">Controla la duració de l\'animació en milisegons per a totes les animacions del cronòmetre</string>
     <string name="pref_screen_title_statistics">Estadístiques</string>

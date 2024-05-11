@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Bottoni per azioni rapide</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">Il bottone \"Pulisci\" viene mostrato nella lista dei tempi e permette di eliminare tutti i tempi della sessione corrente</string>
     <string name="clearEnabledTitle">Mostra il bottone \"Pulisci\"</string>
     <string name="contact">Contattaci</string>
@@ -186,6 +187,7 @@
     <string name="pref_scramble_box_title">Sfondo dello scramble</string>
     <string name="pref_scramble_box_description">Mostra uno sfondo bianco dietro allo scramble</string>
     <string name="preference_application_language_title">Lingua</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Valuta questa app su Google Play</string>
     <string name="remove_session_confirmation_content">Non potrai annullare questa azione.</string>
     <string name="remove_session_title">Rimuovere tutte le solve di questa sessione?</string>
@@ -301,6 +303,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Tipo di avviso</string>
     <string name="pref_inspection_alert_type_summary">Scegliere come avvisa il timer</string>
     <string name="pref_inspection_alert_vibration">Vibrazione</string>
@@ -336,6 +346,7 @@
     <string name="pref_screen_title_list">Lista</string>
     <string name="unarchive_dialog_summary">Al momento hai %1$d solves archiviate.\n\n
 Quante solves vuoi rimuovere dall\'archivio? Verranno rimosse le solves piu\' recenti per prime.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Durata animazione</string>
     <string name="pref_animation_duration_summary">Controlla la durata in millisecondi per tutte le animazioni nel timer</string>
     <string name="pref_screen_title_statistics">Statistiche</string>

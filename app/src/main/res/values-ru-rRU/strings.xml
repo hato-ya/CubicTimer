@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Кнопки быстрых действий</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">Кнопка \"Очистить\" показывается в списке с результатами и позволяет удалить результаты сборок последней сессии</string>
     <string name="clearEnabledTitle">Показывать кнопку \"Очистить\"</string>
     <string name="contact">Связаться</string>
@@ -186,6 +187,7 @@
     <string name="pref_scramble_box_title">Фон скрамбла</string>
     <string name="pref_scramble_box_description">Показывать белый фон за скрамблом</string>
     <string name="preference_application_language_title">Язык</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Оценить это приложение в Google Play</string>
     <string name="remove_session_confirmation_content">Вы не сможете отменить это действие.</string>
     <string name="remove_session_title">Удалить все сборки этой сесии?</string>
@@ -303,6 +305,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Тип оповещения</string>
     <string name="pref_inspection_alert_type_summary">Выберите как таймер будет вас оповещать</string>
     <string name="pref_inspection_alert_vibration">Вибрация</string>
@@ -337,6 +347,7 @@
     <string name="pref_screen_title_general">Общее</string>
     <string name="pref_screen_title_list">Список</string>
     <string name="unarchive_dialog_summary">У вас в настоящее время архивировано %1$d сборок.\n\nСколько разрешений вы хотите разархивировать? Это приведет к отсрочке последних сборок.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Длительность анимации</string>
     <string name="pref_animation_duration_summary">Управление длительностью в миллисекундах для всех анимаций таймера</string>
     <string name="pref_screen_title_statistics">Статистика</string>

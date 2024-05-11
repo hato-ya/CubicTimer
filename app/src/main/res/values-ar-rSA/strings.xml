@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">أزرار الإجراءات السريعة</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">زر الـ \"مسح\" ظاهر في قائمة الازمنة ، و يمكّنك من مسح جميع الحلول في الجلسة الحالية</string>
     <string name="clearEnabledTitle">إظهار زر الـ \"مسح\"</string>
     <string name="contact">اتصال</string>
@@ -190,6 +191,7 @@
     <string name="pref_scramble_box_title">خلفية البعثرة</string>
     <string name="pref_scramble_box_description">إظهار خلفية بيضاء خلف خوارزمية البعثرة</string>
     <string name="preference_application_language_title">اللغة</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">قيّم هذا التطبيق على جوجل بلاي</string>
     <string name="remove_session_confirmation_content">لن تتمكن من التراجع عن هذا الإجراء.</string>
     <string name="remove_session_title">حذف جميع الحلول من هذه الجلسة؟</string>
@@ -309,6 +311,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">نوع التنبيه</string>
     <string name="pref_inspection_alert_type_summary">اختر كيف تريد ان ينبّهك المؤقت</string>
     <string name="pref_inspection_alert_vibration">الاهتزاز</string>
@@ -343,6 +353,7 @@
     <string name="pref_screen_title_general">الإعدادات العامة</string>
     <string name="pref_screen_title_list">القائمة</string>
     <string name="unarchive_dialog_summary">لديك حالياً %1$d حل مؤرشف.\n\n كم عدد الحلول التي تريد إلغاء أرشفتها؟ سيتم إلغاء أرشفة الحلول الأحدث أولاً.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">مدة المؤثرات</string>
     <string name="pref_animation_duration_summary">يتحكّم بمدة كل مؤثرات (أنيميشن) المؤقت بالميلي ثانية</string>
     <string name="pref_screen_title_statistics">الإحصائيات</string>

@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Tlačidlá rýchlej akcie</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">Tlačidlo \"Vyčistiť\" je zobrazené v zozname časov a umožňuje odstrániť všetky zloženia z aktuálnej relácie</string>
     <string name="clearEnabledTitle">Zobraziť tlačidlo \"Vyčistiť\"</string>
     <string name="contact">Kontaktovať</string>
@@ -189,6 +190,7 @@
     <string name="pref_scramble_box_title">Pozadie rozloženia</string>
     <string name="pref_scramble_box_description">Zobraziť biele pozadie za rozložením</string>
     <string name="preference_application_language_title">Jazyk</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Ohodnoťte túto aplikáciu na Google Play</string>
     <string name="remove_session_confirmation_content">Túto operáciu nebude možné odvolať.</string>
     <string name="remove_session_title">Odstrániť všetky zloženia z tejto relácie?</string>
@@ -306,6 +308,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Typ upozornenia</string>
     <string name="pref_inspection_alert_type_summary">Vyberte ako vás časovač upozorní</string>
     <string name="pref_inspection_alert_vibration">Vibrácie</string>
@@ -340,6 +350,7 @@
     <string name="pref_screen_title_general">Všeobecné</string>
     <string name="pref_screen_title_list">Zoznam</string>
     <string name="unarchive_dialog_summary">Aktuálne máte %1$d archivovaných zložení.\n\nKoľkým zloženiam chcete zrušiť archiváciu? Táto operácia zruší archiváciu posledným zloženiam.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Dĺžka animácie</string>
     <string name="pref_animation_duration_summary">Ovláda dĺžku animácie v milisekundách pre všetky animácie v časovači</string>
     <string name="pref_screen_title_statistics">Štatistiky</string>

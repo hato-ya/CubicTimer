@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">Snelle acties knop</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">De \"Wissen\" knop is zichtbaar in de tijdenlijst, en laat je alle oplossingen van de huidige sessie verwijderen</string>
     <string name="clearEnabledTitle">Toon \"Wissen\" knop</string>
     <string name="contact">Contact</string>
@@ -188,6 +189,7 @@
     <string name="pref_scramble_box_title">Scramble achtergrond</string>
     <string name="pref_scramble_box_description">Toon een witte achtergrond achter de scramble</string>
     <string name="preference_application_language_title">Taal</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">Beoordeel deze app op Google Play</string>
     <string name="remove_session_confirmation_content">Niet mogelijk om deze actie terug te draaien.</string>
     <string name="remove_session_title">Verwijder alle oplossingen van deze sessie?</string>
@@ -303,6 +305,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">Alarm type</string>
     <string name="pref_inspection_alert_type_summary">Kies hoe het alarm jouw alarmeert</string>
     <string name="pref_inspection_alert_vibration">Vibratie</string>
@@ -337,6 +347,7 @@
     <string name="pref_screen_title_general">Algemeen</string>
     <string name="pref_screen_title_list">Lijst</string>
     <string name="unarchive_dialog_summary">Je hebt op dit moment %1$d oplossingen gearchiveerd.\n\nHoeveel oplossingen wil je dearchiveren? Dit zal eerst de meest recente oplossingen eerst dearchiveren.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Animatieduur</string>
     <string name="pref_animation_duration_summary">Het aantal milliseconden dat alle timer animaties duren</string>
     <string name="pref_screen_title_statistics">Statistieken</string>

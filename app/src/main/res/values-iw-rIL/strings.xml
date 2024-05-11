@@ -38,6 +38,7 @@
     <string name="buttonsEnabledTitle">כפתורי פעולה מהירה</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
+    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">כפתור ה\"נקה\" מופיע ברשימת התזמונים, ומאפשר לך להסיר את כל הפתרונות מהרשימה הנוכחית</string>
     <string name="clearEnabledTitle">הצג את כפתור ה\"נקה\"</string>
     <string name="contact">צור קשר</string>
@@ -188,6 +189,7 @@
     <string name="pref_scramble_box_title">רקע ערבוב</string>
     <string name="pref_scramble_box_description">הצג רקע לבן מאחורי הערבוב</string>
     <string name="preference_application_language_title">שפה</string>
+    <string name="preference_application_reset_language_title">Reset to default language</string>
     <string name="rate_app">דרגו את היישומון ב-Google Play</string>
     <string name="remove_session_confirmation_content">לא תהיה לך אפשרות לבטל פעולה זו לאחר הביצוע.</string>
     <string name="remove_session_title">האם אתה בטוח שברצונך להסיר את כל הפתירות מאוסף זה?</string>
@@ -305,6 +307,14 @@
     <string name="timer_gan_timer_state_hands_on">HANDS_ON</string>
     <string name="timer_gan_timer_state_finished">FINISHED</string>
     <string name="multi_phase_status_message">"Multi-phase : "</string>
+    <string name="clock_front_clock">Front clock</string>
+    <string name="clock_front">Front background</string>
+    <string name="clock_back_clock">Back clock</string>
+    <string name="clock_back">Back background</string>
+    <string name="clock_hand">Hand</string>
+    <string name="clock_hand_border">Hand border</string>
+    <string name="clock_pin_up">Pin up</string>
+    <string name="clock_pin_down">Pin down</string>
     <string name="pref_inspection_alert_type_title">סוג התראה</string>
     <string name="pref_inspection_alert_type_summary">בחר כיצד הטיימר יראה התראה</string>
     <string name="pref_inspection_alert_vibration">רטט</string>
@@ -339,6 +349,7 @@
     <string name="pref_screen_title_general">כללי</string>
     <string name="pref_screen_title_list">רשימה</string>
     <string name="unarchive_dialog_summary">כרגע יש לך %1$d תזמונים בארכיון. \n\n כמה תזמונים תרצה לשחזר? הפעולה תשחזר קודם את התזמונים הכי אחרונים.</string>
+    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">משך אנימציה</string>
     <string name="pref_animation_duration_summary">שולט במשך האנימציה בשניות בעבור כל הנפשות הטיימר</string>
     <string name="pref_screen_title_statistics">סטטיסטיקה</string>

@@ -7,9 +7,9 @@ android {
     }
     defaultConfig {
         applicationId "com.hatopigeon.cubictimer"
-        minSdkVersion 19
-        compileSdk 33
-        targetSdkVersion 33
+        minSdkVersion 23
+        compileSdk 34
+        targetSdkVersion 34
         versionCode 67
         versionName "3.3.1"
         vectorDrawables.useSupportLibrary = true
@@ -28,6 +28,9 @@ android {
             resValue "string", "app_name", "Cubic Timer (Debug)"
             resValue "string", "file_provider_authority", "com.hatopigeon.cubictimer.debug.fileprovider"
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     productFlavors {
     }
@@ -101,6 +104,8 @@ dependencies {
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
 
     testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 
 repositories {

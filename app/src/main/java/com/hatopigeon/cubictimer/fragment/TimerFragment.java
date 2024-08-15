@@ -1632,39 +1632,49 @@ public class TimerFragment extends BaseFragment
 
     private void showDetailStats() {
         if (sessionStatsEnabled) {
-            detailTextAvg.setVisibility(View.VISIBLE);
-            detailTextAvg.animate()
-                    .alpha(1)
-                    .translationY(0)
-                    .setDuration(mAnimationDuration);
+            if (detailTextAvg != null) {
+                detailTextAvg.setVisibility(View.VISIBLE);
+                detailTextAvg.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
 
-            detailTextOther.setVisibility(View.VISIBLE);
-            detailTextOther.animate()
-                    .alpha(1)
-                    .translationY(0)
-                    .setDuration(mAnimationDuration);
+            if (detailTextOther != null) {
+                detailTextOther.setVisibility(View.VISIBLE);
+                detailTextOther.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
         }
 
         if (recentResultsEnabled) {
-            recentResultText.setVisibility(View.VISIBLE);
-            recentResultText.animate()
-                    .alpha(1)
-                    .translationY(0)
-                    .setDuration(mAnimationDuration);
+            if (recentResultText != null) {
+                recentResultText.setVisibility(View.VISIBLE);
+                recentResultText.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
         }
         if (serialStatusEnabled) {
-            serialStatusMessage.setVisibility(View.VISIBLE);
-            serialStatusMessage.animate()
-                    .alpha(1)
-                    .translationY(0)
-                    .setDuration(mAnimationDuration);
+            if (serialStatusMessage != null) {
+                serialStatusMessage.setVisibility(View.VISIBLE);
+                serialStatusMessage.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
         }
         if (bleStatusEnabled) {
-            bleStatusMessage.setVisibility(View.VISIBLE);
-            bleStatusMessage.animate()
-                    .alpha(1)
-                    .translationY(0)
-                    .setDuration(mAnimationDuration);
+            if (bleStatusMessage != null) {
+                bleStatusMessage.setVisibility(View.VISIBLE);
+                bleStatusMessage.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+                }
         }
     }
 

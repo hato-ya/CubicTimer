@@ -27,7 +27,12 @@ public class LockedViewPager extends ViewPager {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return this.isPagingEnabled && super.onInterceptTouchEvent(event);
+        try {
+            return this.isPagingEnabled && super.onInterceptTouchEvent(event);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void setPagingEnabled(boolean b) {

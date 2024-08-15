@@ -283,6 +283,7 @@ public class TimerFragment extends BaseFragment
     private MaterialDialog dialogBleScan;
     private ArrayList<BluetoothDevice> bleDevices;
     private long bleScanPeriod;
+    private boolean isScanning = false;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
     private static final int GAN_MANUFACTUREID = 0x4147;
@@ -2629,6 +2630,11 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
+        if (isScanning) {
+            Log.d(TAG, "BLE Scan : " + "canceled due to scanning");
+            return;
+        }
+
         ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -2692,21 +2698,25 @@ public class TimerFragment extends BaseFragment
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
                 .itemsCallback((dialog, view, which, text) -> {
-                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                    scanner.stopScan(mLeScanCallback);
+                    stopBleScanInternal();
                     Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
                     bleClientManager.connect(bleDevices.get(which)).enqueue();
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))
                 .onAny((dialog, which) -> {
-                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                    scanner.stopScan(mLeScanCallback);
+                    stopBleScanInternal();
                 })
                 .show());
-        dialogBleScan.setOnCancelListener(dialog -> BluetoothLeScannerCompat.getScanner().stopScan(mLeScanCallback));
+        dialogBleScan.setOnCancelListener(dialog -> stopBleScanInternal());
     }
 
     private void startBleScanInternal(long reportDelayMillis) {
+        if (isScanning) {
+            Log.d(TAG, "BLE Scan : " + "canceled due to scanning");
+            return;
+        }
+        isScanning = true;
+
         bleScanPeriod = reportDelayMillis;
 
         // scan bluetooth devices
@@ -2725,6 +2735,12 @@ public class TimerFragment extends BaseFragment
                 .setManufacturerData(GAN_MANUFACTUREID, new byte[]{}, new byte[]{})
                 .build());
         scanner.startScan(filters, settings, mLeScanCallback);
+    }
+
+    private void stopBleScanInternal() {
+        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+        scanner.stopScan(mLeScanCallback);
+        isScanning = false;
     }
 
     private ScanCallback mLeScanCallback = new ScanCallback() {
@@ -2767,8 +2783,7 @@ public class TimerFragment extends BaseFragment
 
             // Slow down scanning period after first device found
             if (bleScanPeriod == 500 && !results.isEmpty()) {
-                BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-                scanner.stopScan(mLeScanCallback);
+                stopBleScanInternal();
                 startBleScanInternal(5000);
             }
         }
@@ -2777,8 +2792,7 @@ public class TimerFragment extends BaseFragment
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
             Log.d(TAG, "BLE Scan : " + "onScanFailed");
-            BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-            scanner.stopScan(mLeScanCallback);
+            stopBleScanInternal();
         }
     };
 

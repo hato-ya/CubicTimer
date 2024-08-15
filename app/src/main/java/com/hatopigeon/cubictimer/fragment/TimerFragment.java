@@ -1907,6 +1907,10 @@ public class TimerFragment extends BaseFragment
     }
 
     private static void lockOrientation(Activity activity) {
+        if (activity == null) {
+            return;
+        }
+
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         } else {

@@ -1302,6 +1302,7 @@ public class TimerFragment extends BaseFragment
                 return (multiplier / 4) * 3;
             case PuzzleUtils.TYPE_SQUARE1: // Square-1
             case PuzzleUtils.TYPE_333MBLD:
+            case PuzzleUtils.TYPE_FTO:
             case PuzzleUtils.TYPE_OTHER:
                 return multiplier;
         }

@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.fragment.dialog.SchemeSelectDialogMain;
+import com.hatopigeon.cubictimer.puzzle.FtoPuzzle;
 import com.hatopigeon.cubictimer.puzzle.NbyNCubePuzzle;
 import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGParseException;
@@ -91,6 +92,9 @@ public class ScrambleGenerator {
                     break;
                 case PuzzleUtils.TYPE_333FMC:
                     puzzle = new ThreeByThreeCubeFewestMovesPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_FTO:
+                    puzzle = new FtoPuzzle();
                     break;
                 case PuzzleUtils.TYPE_OTHER:
                     puzzle = null;
@@ -196,6 +200,20 @@ public class ScrambleGenerator {
                         colorScheme = puzzle.parseColorScheme(back + "," + backClock + "," + front + "," + frontClock + "," + hand + "," + handBorder + "," + pinDown + "," + pinUp);
                     }
                     break;
+                case PuzzleUtils.TYPE_FTO:
+                    {
+                        // Getting the color scheme
+                        String U  = getColorHex(sp, R.id.ftoU,  colorSchemeName);
+                        String L  = getColorHex(sp, R.id.ftoL,  colorSchemeName);
+                        String F  = getColorHex(sp, R.id.ftoF,  colorSchemeName);
+                        String RT = getColorHex(sp, R.id.ftoR,  colorSchemeName);    // Avoid confusion with R by abbreviating to two letters
+                        String BR = getColorHex(sp, R.id.ftoBR, colorSchemeName);
+                        String B  = getColorHex(sp, R.id.ftoB,  colorSchemeName);
+                        String BL = getColorHex(sp, R.id.ftoBL, colorSchemeName);
+                        String D  = getColorHex(sp, R.id.ftoD,  colorSchemeName);
+                        colorScheme = puzzle.parseColorScheme(B + "," + BL + "," + BR + "," + D + "," + F + "," + L + "," + RT + "," + U);
+                    }
+                break;
             }
 
             try {

@@ -90,6 +90,11 @@
         <copyright>Copyright (c) 2015 Nordic Semiconductor - BSD 3-Clause License</copyright>
     </notice>
     <notice>
+        <name>FTODrawer</name>
+        <url>https://github.com/Sixstringcal/FTODrawer</url>
+        <copyright>Copyright (c) 2020 Calvin Nielson</copyright>
+    </notice>
+    <notice>
         <name>Apache Software License 2.0</name>
         <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         <license>Apache Software License 2.0</license>

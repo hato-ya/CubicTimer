@@ -123,6 +123,7 @@ public class CommentDialog  extends DialogFragment {
             case PuzzleUtils.TYPE_SKEWB:
             case PuzzleUtils.TYPE_CLOCK:
             case PuzzleUtils.TYPE_SQUARE1:
+            case PuzzleUtils.TYPE_FTO:
                 swkbNxNxN.setVisibility(View.GONE);
                 break;
 

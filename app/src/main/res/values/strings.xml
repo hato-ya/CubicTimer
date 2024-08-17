@@ -102,6 +102,7 @@
     <string name="cube_333mbld_informal">3x3MBLD</string>
     <string name="cube_333fmc">3x3 FMC</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
+    <string name="cube_fto">FTO</string>
     <string name="cube_other">Other</string>
 
     <string name="delete_dialog_cancel_button">Cancel</string>

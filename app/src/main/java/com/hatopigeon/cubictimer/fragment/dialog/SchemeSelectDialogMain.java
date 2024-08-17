@@ -61,6 +61,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
     private int[] viewIdsPyra = {R.id.pyraL, R.id.pyraF, R.id.pyraR, R.id.pyraD};
     private int[] viewIdsClock = {R.id.clockFront, R.id.clockFrontClock, R.id.clockBack, R.id.clockBackClock, R.id.clockHand, R.id.clockHandBorder, R.id.clockPinUp, R.id.clockPinDown};
     private int[] viewIdsClockText = {R.id.clockFrontText, R.id.clockFrontClockText, R.id.clockBackText, R.id.clockBackClockText, R.id.clockHandText, R.id.clockHandBorderText, R.id.clockPinUpText, R.id.clockPinDownText};
+    private int[] viewIdsFto = {R.id.ftoU, R.id.ftoL, R.id.ftoF, R.id.ftoR, R.id.ftoBR, R.id.ftoB, R.id.ftoBL, R.id.ftoD};
 
     public static SchemeSelectDialogMain newInstance() {
         return new SchemeSelectDialogMain();
@@ -124,6 +125,10 @@ public class SchemeSelectDialogMain extends DialogFragment {
                 viewIds = viewIdsClock;
                 idRightMost = R.id.clockHandBorderText;
                 break;
+            case PuzzleUtils.TYPE_FTO:
+                viewIds = viewIdsFto;
+                idRightMost = R.id.ftoBL;
+                break;
         }
 
         if (mColorSchemeType.equals(PuzzleUtils.TYPE_CLOCK)) {
@@ -152,6 +157,8 @@ public class SchemeSelectDialogMain extends DialogFragment {
             if (mColorSchemeType.equals(PuzzleUtils.TYPE_MEGA)) {
                 ((PolygonView) view).setRegion(5);
             } else if (mColorSchemeType.equals(PuzzleUtils.TYPE_PYRA)) {
+                ((PolygonView) view).setRegion(3);
+            } else if (mColorSchemeType.equals(PuzzleUtils.TYPE_FTO)) {
                 ((PolygonView) view).setRegion(3);
             }
         }
@@ -210,6 +217,9 @@ public class SchemeSelectDialogMain extends DialogFragment {
                 break;
             case PuzzleUtils.TYPE_PYRA:
                 Rid = R.drawable.triangle;
+                break;
+            case PuzzleUtils.TYPE_FTO:
+                Rid = R.drawable.isosceles;
                 break;
         }
         Drawable drawable = ContextCompat.getDrawable(getContext(), Rid);

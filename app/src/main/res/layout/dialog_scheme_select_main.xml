@@ -5,11 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/outline_background_card_smoother"
     android:orientation="vertical"
     android:padding="16dp">
@@ -326,6 +324,130 @@
         tools:visibility="visible"
         />
 
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoU"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginBottom="4dp"
+        android:rotation="180"
+        android:visibility="gone"
+        tools:background="@drawable/isosceles"
+        tools:visibility="visible" />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoL"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:rotation="90"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="34dp"
+        android:layout_marginLeft="-18dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoF"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/ftoU"
+        android:rotation="0"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="6dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoR"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:layout_toRightOf="@id/ftoL"
+        android:rotation="270"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="34dp"
+        android:layout_marginLeft="-34dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoB"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:layout_toRightOf="@id/ftoR"
+        android:rotation="180"
+        tools:background="@drawable/isosceles"
+        android:layout_marginLeft="-8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoBR"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:layout_toRightOf="@id/ftoR"
+        android:rotation="90"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="34dp"
+        android:layout_marginLeft="-38dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoD"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/ftoU"
+        android:layout_toRightOf="@id/ftoR"
+        android:rotation="0"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="6dp"
+        android:layout_marginLeft="-8dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+    <com.hatopigeon.cubictimer.fragment.dialog.PolygonView
+        android:id="@+id/ftoBL"
+        android:layout_width="92dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/pyraD"
+        android:layout_toRightOf="@id/ftoBR"
+        android:rotation="270"
+        tools:background="@drawable/isosceles"
+        android:layout_marginTop="34dp"
+        android:layout_marginLeft="-34dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="0dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
     <TextView
         android:id="@+id/clockFrontClockText"
         android:layout_width="wrap_content"
@@ -334,7 +456,7 @@
         android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
         android:padding="8dp"
-        android:layout_below="@id/pyraD"
+        android:layout_below="@id/ftoF"
         android:background="?attr/selectableItemBackground"
         android:text="@string/clock_front_clock"
         android:visibility="gone"

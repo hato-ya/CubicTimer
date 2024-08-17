@@ -43,6 +43,7 @@ public class PuzzleUtils {
     public static final String TYPE_555BLD  = "555bld";
     public static final String TYPE_333MBLD = "333mbld";
     public static final String TYPE_333FMC  = "333fmc";
+    public static final String TYPE_FTO     = "fto";
     public static final String TYPE_OTHER   = "other";
 
     public static final int NO_PENALTY       = 0;
@@ -226,6 +227,15 @@ public class PuzzleUtils {
         colorInfo.put(R.id.clockHandBorder, new ColorInfo("faceHandBorder", "708090"));
         colorInfo.put(R.id.clockPinUp,      new ColorInfo("facePinUp", "88AACC"));
         colorInfo.put(R.id.clockPinDown,    new ColorInfo("facePinDown", "446699"));
+
+        colorInfo.put(R.id.ftoU,  new ColorInfo("faceU",  "FFFFFF"));
+        colorInfo.put(R.id.ftoL,  new ColorInfo("faceL",  "8A1AFF"));
+        colorInfo.put(R.id.ftoF,  new ColorInfo("faceF",  "02D040"));
+        colorInfo.put(R.id.ftoR,  new ColorInfo("faceR",  "EC0000"));
+        colorInfo.put(R.id.ftoBR, new ColorInfo("faceBR", "999999"));
+        colorInfo.put(R.id.ftoB,  new ColorInfo("faceB",  "304FFE"));
+        colorInfo.put(R.id.ftoBL, new ColorInfo("faceBL", "FF8B24"));
+        colorInfo.put(R.id.ftoD,  new ColorInfo("faceD",  "FDD835"));
     }
 
     public PuzzleUtils() {
@@ -252,7 +262,8 @@ public class PuzzleUtils {
             case 14: return TYPE_555BLD;
             case 15: return TYPE_333MBLD;
             case 16: return TYPE_333FMC;
-            case 17: return TYPE_OTHER;
+            case 17: return TYPE_FTO;
+            case 18: return TYPE_OTHER;
         }
     }
 
@@ -285,7 +296,8 @@ public class PuzzleUtils {
             case TYPE_555BLD:  return 14;
             case TYPE_333MBLD: return 15;
             case TYPE_333FMC:  return 16;
-            case TYPE_OTHER:   return 17;
+            case TYPE_FTO:     return 17;
+            case TYPE_OTHER:   return 18;
         }
     }
 
@@ -317,6 +329,7 @@ public class PuzzleUtils {
             case TYPE_555BLD:  return R.string.cube_555bld_informal;
             case TYPE_333MBLD: return R.string.cube_333mbld_informal;
             case TYPE_333FMC:  return R.string.cube_333fmc_informal;
+            case TYPE_FTO:     return R.string.cube_fto;
             case TYPE_OTHER:   return R.string.cube_other;
             default:           return 0;
         }
@@ -343,6 +356,7 @@ public class PuzzleUtils {
             case TYPE_555BLD:  return R.string.cube_555bld;
             case TYPE_333MBLD: return R.string.cube_333mbld;
             case TYPE_333FMC:  return R.string.cube_333fmc;
+            case TYPE_FTO:     return R.string.cube_fto;
             case TYPE_OTHER:   return R.string.cube_other;
         }
     }
@@ -372,6 +386,8 @@ public class PuzzleUtils {
                 return TYPE_PYRA;
             case TYPE_CLOCK:
                 return TYPE_CLOCK;
+            case TYPE_FTO:
+                return TYPE_FTO;
         }
     }
 
@@ -407,6 +423,8 @@ public class PuzzleUtils {
                 return TYPE_SQUARE1;
             case TYPE_CLOCK:
                 return TYPE_CLOCK;
+            case TYPE_FTO:
+                return TYPE_FTO;
         }
     }
 
@@ -1032,6 +1050,9 @@ public class PuzzleUtils {
             case "r3ni":
                 // fall back to other
                 return TYPE_OTHER;
+            case "fto":
+            case "ftoso":
+                return TYPE_FTO;
         }
 
         return TYPE_OTHER;

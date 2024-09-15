@@ -65,7 +65,7 @@
     <string name="cube_555bld_informal">5x5bld</string>
     <string name="cube_333mbld">3×3×3 複数目隠し</string>
     <string name="cube_333mbld_informal">3x3MBLD</string>
-    <string name="cube_333fmc">3×3×3 最小手数</string>
+    <string name="cube_333fmc">3×3×3 最少手数</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
     <string name="cube_other">その他</string>
     <string name="delete_dialog_cancel_button">キャンセル</string>

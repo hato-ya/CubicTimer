@@ -95,6 +95,11 @@
         <copyright>Copyright (c) 2020 Calvin Nielson</copyright>
     </notice>
     <notice>
+        <name>csTimer</name>
+        <url>https://github.com/cs0x7f/cstimer</url>
+        <copyright>Copyright (c) 2024 Chen Shuang</copyright>
+    </notice>
+    <notice>
         <name>Apache Software License 2.0</name>
         <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         <license>Apache Software License 2.0</license>

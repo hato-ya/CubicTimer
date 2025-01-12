@@ -96,6 +96,9 @@ public class ScrambleGenerator {
                 case PuzzleUtils.TYPE_FTO:
                     puzzle = new FtoPuzzle();
                     break;
+                case PuzzleUtils.TYPE_BFTO:
+                    puzzle = new FtoPuzzle();
+                    break;
                 case PuzzleUtils.TYPE_OTHER:
                     puzzle = null;
                     break;

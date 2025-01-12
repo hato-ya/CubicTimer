@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +16,7 @@ import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
-import com.hatopigeon.cubictimer.listener.DialogListener;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 
 import butterknife.BindView;
@@ -124,6 +121,7 @@ public class CommentDialog  extends DialogFragment {
             case PuzzleUtils.TYPE_CLOCK:
             case PuzzleUtils.TYPE_SQUARE1:
             case PuzzleUtils.TYPE_FTO:
+            case PuzzleUtils.TYPE_BFTO:
                 swkbNxNxN.setVisibility(View.GONE);
                 break;
 

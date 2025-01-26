@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.fragment.dialog.SchemeSelectDialogMain;
+import com.hatopigeon.cubictimer.puzzle.BabyFtoPuzzle;
 import com.hatopigeon.cubictimer.puzzle.FtoPuzzle;
 import com.hatopigeon.cubictimer.puzzle.NbyNCubePuzzle;
 import com.caverock.androidsvg.SVG;
@@ -95,6 +96,9 @@ public class ScrambleGenerator {
                     break;
                 case PuzzleUtils.TYPE_FTO:
                     puzzle = new FtoPuzzle();
+                    break;
+                case PuzzleUtils.TYPE_BFTO:
+                    puzzle = new BabyFtoPuzzle();
                     break;
                 case PuzzleUtils.TYPE_OTHER:
                     puzzle = null;

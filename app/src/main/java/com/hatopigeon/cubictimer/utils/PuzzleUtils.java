@@ -44,6 +44,7 @@ public class PuzzleUtils {
     public static final String TYPE_333MBLD = "333mbld";
     public static final String TYPE_333FMC  = "333fmc";
     public static final String TYPE_FTO     = "fto";
+    public static final String TYPE_BFTO    = "bfto";
     public static final String TYPE_OTHER   = "other";
 
     public static final int NO_PENALTY       = 0;
@@ -263,7 +264,8 @@ public class PuzzleUtils {
             case 15: return TYPE_333MBLD;
             case 16: return TYPE_333FMC;
             case 17: return TYPE_FTO;
-            case 18: return TYPE_OTHER;
+            case 18: return TYPE_BFTO;
+            case 19: return TYPE_OTHER;
         }
     }
 
@@ -297,7 +299,8 @@ public class PuzzleUtils {
             case TYPE_333MBLD: return 15;
             case TYPE_333FMC:  return 16;
             case TYPE_FTO:     return 17;
-            case TYPE_OTHER:   return 18;
+            case TYPE_BFTO:    return 18;
+            case TYPE_OTHER:   return 19;
         }
     }
 
@@ -330,6 +333,7 @@ public class PuzzleUtils {
             case TYPE_333MBLD: return R.string.cube_333mbld_informal;
             case TYPE_333FMC:  return R.string.cube_333fmc_informal;
             case TYPE_FTO:     return R.string.cube_fto;
+            case TYPE_BFTO:     return R.string.cube_bfto;
             case TYPE_OTHER:   return R.string.cube_other;
             default:           return 0;
         }
@@ -357,6 +361,7 @@ public class PuzzleUtils {
             case TYPE_333MBLD: return R.string.cube_333mbld;
             case TYPE_333FMC:  return R.string.cube_333fmc;
             case TYPE_FTO:     return R.string.cube_fto;
+            case TYPE_BFTO:     return R.string.cube_bfto;
             case TYPE_OTHER:   return R.string.cube_other;
         }
     }
@@ -387,6 +392,7 @@ public class PuzzleUtils {
             case TYPE_CLOCK:
                 return TYPE_CLOCK;
             case TYPE_FTO:
+            case TYPE_BFTO:
                 return TYPE_FTO;
         }
     }
@@ -425,6 +431,8 @@ public class PuzzleUtils {
                 return TYPE_CLOCK;
             case TYPE_FTO:
                 return TYPE_FTO;
+            case TYPE_BFTO:
+                return TYPE_BFTO;
         }
     }
 

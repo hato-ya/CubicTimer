@@ -6,7 +6,6 @@
     <string name="action_choose">Kies</string>
     <string name="action_clear">Wissen</string>
     <string name="action_default">Standaard</string>
-    <string name="action_donate">Doneer</string>
     <string name="action_done">Klaar</string>
     <string name="action_export">Exporteren</string>
     <string name="action_import">Importeren</string>
@@ -38,7 +37,6 @@
     <string name="buttonsEnabledTitle">Snelle acties knop</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
-    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">De \"Wissen\" knop is zichtbaar in de tijdenlijst, en laat je alle oplossingen van de huidige sessie verwijderen</string>
     <string name="clearEnabledTitle">Toon \"Wissen\" knop</string>
     <string name="contact">Contact</string>
@@ -67,6 +65,8 @@
     <string name="cube_333mbld_informal">3x3MBLD</string>
     <string name="cube_333fmc">3x3 FMC</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
+    <string name="cube_fto">FTO</string>
+    <string name="cube_bfto">Baby FTO</string>
     <string name="cube_other">Other</string>
     <string name="delete_dialog_cancel_button">Anuleren</string>
     <string name="delete_dialog_confirmation_button">Verwijderen</string>
@@ -347,7 +347,6 @@
     <string name="pref_screen_title_general">Algemeen</string>
     <string name="pref_screen_title_list">Lijst</string>
     <string name="unarchive_dialog_summary">Je hebt op dit moment %1$d oplossingen gearchiveerd.\n\nHoeveel oplossingen wil je dearchiveren? Dit zal eerst de meest recente oplossingen eerst dearchiveren.</string>
-    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Animatieduur</string>
     <string name="pref_animation_duration_summary">Het aantal milliseconden dat alle timer animaties duren</string>
     <string name="pref_screen_title_statistics">Statistieken</string>

@@ -6,7 +6,6 @@
     <string name="action_choose">Scegli</string>
     <string name="action_clear">Elimina</string>
     <string name="action_default">Predefinito</string>
-    <string name="action_donate">Dona</string>
     <string name="action_done">Fatto</string>
     <string name="action_export">Esporta</string>
     <string name="action_import">Importa</string>
@@ -38,7 +37,6 @@
     <string name="buttonsEnabledTitle">Bottoni per azioni rapide</string>
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
-    <string name="choose_donation_amount">Choose an amount to donate</string>
     <string name="clearEnabledSummary">Il bottone \"Pulisci\" viene mostrato nella lista dei tempi e permette di eliminare tutti i tempi della sessione corrente</string>
     <string name="clearEnabledTitle">Mostra il bottone \"Pulisci\"</string>
     <string name="contact">Contattaci</string>
@@ -67,6 +65,8 @@
     <string name="cube_333mbld_informal">3x3MBLD</string>
     <string name="cube_333fmc">3x3 FMC</string>
     <string name="cube_333fmc_informal">3x3FMC</string>
+    <string name="cube_fto">FTO</string>
+    <string name="cube_bfto">Baby FTO</string>
     <string name="cube_other">Other</string>
     <string name="delete_dialog_cancel_button">Annulla</string>
     <string name="delete_dialog_confirmation_button">Cancella</string>
@@ -346,7 +346,6 @@
     <string name="pref_screen_title_list">Lista</string>
     <string name="unarchive_dialog_summary">Al momento hai %1$d solves archiviate.\n\n
 Quante solves vuoi rimuovere dall\'archivio? Verranno rimosse le solves piu\' recenti per prime.</string>
-    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Durata animazione</string>
     <string name="pref_animation_duration_summary">Controlla la durata in millisecondi per tutte le animazioni nel timer</string>
     <string name="pref_screen_title_statistics">Statistiche</string>

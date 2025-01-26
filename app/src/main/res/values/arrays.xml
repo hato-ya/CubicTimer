@@ -19,6 +19,7 @@
         <item>@string/cube_333mbld</item>
         <item>@string/cube_333fmc</item>
         <item>@string/cube_fto</item>
+        <item>@string/cube_bfto</item>
         <item>@string/cube_other</item>
     </string-array>
 

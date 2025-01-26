@@ -6,7 +6,6 @@
     <string name="action_choose">Choose</string>
     <string name="action_clear">Clear</string>
     <string name="action_default">Default</string>
-    <string name="action_donate">Donate</string>
     <string name="action_done">Done</string>
     <string name="action_export">Export</string>
     <string name="action_import">Import</string>
@@ -61,8 +60,6 @@
     <string name="largeQuickActionSummary">Enlarge the buttons under the timer after a solve</string>
     <string name="largeQuickActionTitle">Enlarge quick action buttons</string>
 
-    <string name="choose_donation_amount">Choose an amount to donate</string>
-
     <string name="clearEnabledSummary">The \"Clear\" button is shown in the time list, and lets you remove all solves from the current session</string>
 
     <string name="clearEnabledTitle">Show \"Clear\" button</string>
@@ -115,12 +112,6 @@
     <string name="dialog_revert_content_confirmation">Reset the algorithms for this case back to the default?</string>
     <string name="dialog_revert_title_confirmation">Reset algorithms</string>
     <string name="dialog_set_progress">Set progress</string>
-
-    <string name="donation_tier1" translatable="false">1 USD</string>
-    <string name="donation_tier2" translatable="false">2 USD</string>
-    <string name="donation_tier3" translatable="false">3 USD</string>
-    <string name="donation_tier4" translatable="false">5 USD</string>
-    <string name="donation_tier5" translatable="false">10 USD</string>
 
     <string name="drawer_about">About and feedback</string>
     <string name="drawer_close" translatable="false">Menu closed</string>
@@ -531,8 +522,6 @@
     <string name="pref_screen_title_general">General</string>
     <string name="pref_screen_title_list">List</string>
     <string name="unarchive_dialog_summary">You currently have %1$d solves archived.\n\nHow many solves do you wish to unarchive? This will unarchive the most recent solves first.</string>
-    <string translatable="false" name="title_activity_donate">DonateActivity</string>
-    <string name="donation_message">Your donation helps me make Cubic Timer even better for everyone :)</string>
     <string name="pref_animation_duration_title">Animation duration</string>
     <string name="pref_animation_duration_summary">Controls the duration in milliseconds for all timer animations</string>
     <string name="pref_screen_title_statistics">Statistics</string>

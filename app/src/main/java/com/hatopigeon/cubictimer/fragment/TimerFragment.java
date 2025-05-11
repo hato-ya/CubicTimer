@@ -1849,8 +1849,10 @@ public class TimerFragment extends BaseFragment
      * Stops the chronometer
      */
     private void stopChronometer() {
-        chronometer.stop();
-        chronometer.setHighlighted(false);
+        if (chronometer != null) {
+            chronometer.stop();
+            chronometer.setHighlighted(false);
+        }
         if (timeLimitWarning != null)
             timeLimitWarning.cancel();
         if (fiveMinutesWarning != null)

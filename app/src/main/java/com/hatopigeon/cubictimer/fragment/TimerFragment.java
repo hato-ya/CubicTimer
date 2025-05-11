@@ -1598,6 +1598,13 @@ public class TimerFragment extends BaseFragment
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) startTimerLayout.getLayoutParams();
         params.leftMargin = ThemeUtils.dpToPix(mContext, 16);
         startTimerLayout.requestLayout();
+        if (currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            if (manualEntryEnabled || isTimeDisabled(currentPuzzle))
+                scrambleButtonManualEntry.setVisibility(View.VISIBLE);
+            scrambleProgress.setVisibility(View.GONE);
+            scrambleButtonEdit.setVisibility(View.VISIBLE);
+            scrambleButtonReset.setVisibility(View.VISIBLE);
+        }
         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_TIMER_STOPPED);
     }
 
@@ -1733,15 +1740,24 @@ public class TimerFragment extends BaseFragment
         lapTimeText.setText("");
 
         if (scrambleEnabled) {
-            scrambleBox.setEnabled(false);
-            scrambleBox.animate()
-                    .alpha(0)
-                    .translationY(-scrambleBox.getHeight())
-                    .setDuration(mAnimationDuration)
-                    .withEndAction(() -> {if(scrambleBox!=null) scrambleBox.setVisibility(View.INVISIBLE);}); // FIXME: Attempt to invoke virtual method 'void androidx.cardview.widget.CardView.setVisibility(int)' on a null object reference
-            if (scrambleImgEnabled) {
-                scrambleImg.setEnabled(false);
-                hideImage();
+            if (!currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+                scrambleBox.setEnabled(false);
+                scrambleBox.animate()
+                        .alpha(0)
+                        .translationY(-scrambleBox.getHeight())
+                        .setDuration(mAnimationDuration)
+                        .withEndAction(() -> {
+                            if (scrambleBox != null) scrambleBox.setVisibility(View.INVISIBLE);
+                        }); // FIXME: Attempt to invoke virtual method 'void androidx.cardview.widget.CardView.setVisibility(int)' on a null object reference
+                if (scrambleImgEnabled) {
+                    scrambleImg.setEnabled(false);
+                    hideImage();
+                }
+            } else {
+                scrambleButtonManualEntry.setVisibility(View.GONE);
+                scrambleProgress.setVisibility(View.GONE);
+                scrambleButtonEdit.setVisibility(View.GONE);
+                scrambleButtonReset.setVisibility(View.GONE);
             }
         }
         if (sessionStatsEnabled) {

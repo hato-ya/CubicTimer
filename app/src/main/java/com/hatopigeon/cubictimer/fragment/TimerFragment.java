@@ -18,6 +18,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -2236,9 +2237,11 @@ public class TimerFragment extends BaseFragment
 
         @Override
         protected Drawable doInBackground(Void... voids) {
-            return generator.generateImageFromScramble(
-                    PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext()),
-                    realScramble);
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
+            if (generator == null || prefs == null) {
+                return null;
+            }
+            return generator.generateImageFromScramble(prefs,realScramble);
         }
 
         @Override

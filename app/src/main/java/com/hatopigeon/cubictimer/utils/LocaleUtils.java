@@ -2,10 +2,13 @@ package com.hatopigeon.cubictimer.utils;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.util.Pair;
+
+import androidx.preference.PreferenceManager;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
@@ -60,8 +63,9 @@ public class LocaleUtils {
 
 
     public static Context updateLocale(Context context) {
-        // toString returns language + "_" + country + "_" + (variant + "_#" | "#") + script + "-" + extensions
-        String language = Prefs.getString(R.string.pk_locale, Locale.getDefault().toString());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String language = prefs.getString(context.getString(R.string.pk_locale), Locale.getDefault().toString());
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             return updateResources(context, language);
         } else {

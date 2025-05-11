@@ -1714,6 +1714,17 @@ public class TimerFragment extends BaseFragment
         lockOrientation(getActivity());
         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_TIMER_STARTED);
 
+        // check if views are initialized
+        if (scrambleImg == null || expandedImageView == null || congratsText == null ||
+                chronometer == null || inspectionText == null || startTimerLayout == null ||
+                scrambleBox == null || scrambleButtonManualEntry == null || scrambleProgress == null ||
+                scrambleButtonEdit == null || scrambleButtonReset == null || detailTextAvg == null ||
+                detailTextOther == null || recentResultText == null || undoButton == null ||
+                quickActionButtons == null || detailAverageRecordMesssage == null ||
+                serialStatusMessage == null || bleStatusMessage == null) {
+            return;
+        }
+
         congratsText.setVisibility(View.GONE);
         congratsText.setCompoundDrawables(null, null, null, null);
 

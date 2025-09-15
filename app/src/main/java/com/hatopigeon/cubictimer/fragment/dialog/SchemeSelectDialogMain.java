@@ -26,13 +26,13 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
-import com.hatopigeon.cubictimer.spans.ChromaDialogFixed;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
-import com.pavelsikun.vintagechroma.IndicatorMode;
-import com.pavelsikun.vintagechroma.OnColorSelectedListener;
-import com.pavelsikun.vintagechroma.colormode.ColorMode;
+import com.kunzisoft.androidclearchroma.ChromaDialog;
+import com.kunzisoft.androidclearchroma.IndicatorMode;
+import com.kunzisoft.androidclearchroma.colormode.ColorMode;
+import com.kunzisoft.androidclearchroma.listener.OnColorSelectedListener;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -73,20 +73,26 @@ public class SchemeSelectDialogMain extends DialogFragment {
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
             final SharedPreferences.Editor editor = sp.edit();
             String currentHex = getColorHex(view.getId());
-            new ChromaDialogFixed.Builder()
+
+            ChromaDialog dialog = new ChromaDialog.Builder()
                     .initialColor(Color.parseColor("#" + currentHex))
                     .colorMode(ColorMode.RGB)
                     .indicatorMode(IndicatorMode.HEX)
-                    .onColorSelected(new OnColorSelectedListener() {
-                        @Override
-                        public void onColorSelected(@ColorInt int color) {
-                            String hexColor = Integer.toHexString(color).toUpperCase().substring(2);
-                            setAndSaveColor(view, PuzzleUtils.colorInfo.get(view.getId()).face, hexColor);
-                        }
-                    })
-                    .create()
-                    .show(getFragmentManager(), "ChromaDialog");
+                    .create();
 
+            dialog.setOnColorSelectedListener(new OnColorSelectedListener() {
+                @Override
+                public void onPositiveButtonClick(@ColorInt int color) {
+                    String hexColor = Integer.toHexString(color).toUpperCase().substring(2);
+                    setAndSaveColor(view, PuzzleUtils.colorInfo.get(view.getId()).face, hexColor);
+                }
+
+                @Override
+                public void onNegativeButtonClick(@ColorInt int color) {
+                }
+            });
+
+            dialog.show(getChildFragmentManager(), "ChromaDialog");
         }
     };
 

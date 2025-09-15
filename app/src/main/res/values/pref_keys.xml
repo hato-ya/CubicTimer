@@ -25,8 +25,10 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_hold_to_start_enabled">holdEnabled</string>
     <string translatable="false" name="pk_start_cue_enabled">startCue</string>
 
+    <string translatable="false" name="pk_screen_general">screenGeneral</string>
     <string translatable="false" name="pk_tab_swiping_enabled">pagerEnabled</string>
     <string translatable="false" name="pk_back_button_cancel_solve_enabled">backCancelEnabled</string>
+    <string translatable="false" name="pk_screen_list">screenList</string>
     <string translatable="false" name="pk_show_clear_button">clearEnabled</string>
     <string translatable="false" name="pk_tint_navigation_bar">pkTintNavigationBar</string>
     <string translatable="false" name="pk_menu_background">pkMenuBackground</string>
@@ -49,6 +51,7 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_time_limit_alert_enabled">timeLimitAlertEnabled</string>
     <string translatable="false" name="pk_time_limit_alert_type">timeLimitAlertType</string>
 
+    <string translatable="false" name="pk_screen_timer_appearance">screenTimerAppearance</string>
     <string translatable="false" name="pk_show_scramble_image">scrambleImageEnabled</string>
     <string translatable="false" name="pk_scramble_text_size">scrambleTextSize</string>
     <string translatable="false" name="pk_scramble_image_size">scrambleImageSize</string>

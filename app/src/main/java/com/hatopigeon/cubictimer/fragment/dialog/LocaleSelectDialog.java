@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
+import android.app.Dialog;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.activity.SettingsActivity;
@@ -47,6 +48,20 @@ public class LocaleSelectDialog extends DialogFragment implements DialogListener
     }
 
     @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        return dialog;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View dialogView = inflater.inflate(R.layout.dialog_settings_change_locale, container);
         mUnbinder = ButterKnife.bind(this, dialogView);
@@ -55,14 +70,6 @@ public class LocaleSelectDialog extends DialogFragment implements DialogListener
         recyclerView.setAdapter(new LocaleSelectAdapter(getActivity(), this));
 
         return dialogView;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
     }
 
     @Override

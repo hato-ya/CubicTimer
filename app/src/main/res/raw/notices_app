@@ -100,6 +100,16 @@
         <copyright>Copyright (c) 2024 Chen Shuang</copyright>
     </notice>
     <notice>
+        <name>AndroidX Preference eXtended</name>
+        <url>https://github.com/takisoft/preferencex-android</url>
+        <copyright>Copyright 2022 takisoft - Apache Software License 2.0</copyright>
+    </notice>
+    <notice>
+        <name>AndroidClearChroma</name>
+        <url>https://github.com/Kunzisoft/AndroidClearChroma</url>
+        <copyright>Copyright 2019 JAMET Jeremy - Apache Software License 2.0</copyright>
+    </notice>
+    <notice>
         <name>Apache Software License 2.0</name>
         <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         <license>Apache Software License 2.0</license>

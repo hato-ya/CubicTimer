@@ -38,7 +38,7 @@ import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
-import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
+import com.takisoft.preferencex.PreferenceFragmentCompat;
 
 import java.lang.ref.PhantomReference;
 import java.util.function.Function;
@@ -62,7 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_ME) Log.d(TAG, "updateLocale(savedInstanceState=" + savedInstanceState + ")");
+        if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState=" + savedInstanceState + ")");
 
         setTheme(R.style.SettingsTheme);
 
@@ -145,7 +145,6 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_inspection_time,
                         R.string.pk_multi_phase_num,
                         R.string.pk_show_scramble_x_cross_hints,
-                        R.string.pref_screen_title_timer_appearance_settings,
                         R.string.pk_locale,
                         R.string.pk_reset_locale,
                         R.string.pk_options_show_scramble_hints,
@@ -155,7 +154,6 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_scramble_text_size,
                         R.string.pk_advanced_timer_settings_enabled,
                         R.string.pk_stat_trim_size,
-                        R.string.pk_stat_acceptable_dnf_size,
                         R.string.pk_timer_animation_duration)) {
 
                     case R.string.pk_inspection_time:
@@ -284,51 +282,6 @@ public class SettingsActivity extends AppCompatActivity {
                         trimChangeListener.onProgressChanged(trimSeekBar, trimSeekBar.getProgress(), false);
                         trimDialogView.show();
                         break;
-                    case R.string.pk_stat_acceptable_dnf_size:
-                        MaterialDialog dnfDialogView = createAverageSeekDialog(R.string.pk_stat_acceptable_dnf_size,
-                                                                     0,
-                                                                     Prefs.getInt(R.string.pk_stat_trim_size,
-                                                                                  getResources().getInteger(R.integer.defaultTrimSize)),
-                                                                     R.integer.defaultAcceptableDNFSize);
-
-                        TextView dnfText = dnfDialogView.getView().findViewById(R.id.text);
-                        AppCompatSeekBar dnfSeekBar = dnfDialogView.getView().findViewById(R.id.seekbar);
-
-                        SeekBar.OnSeekBarChangeListener dnfChangeListener = new SeekBar.OnSeekBarChangeListener() {
-                            int ao50, ao100, ao1000;
-                            @SuppressLint("DefaultLocale")
-                            @Override
-                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                                ao50 = getAcceptableDNFCount(50, progress);
-                                ao100 = getAcceptableDNFCount(100, progress);
-                                ao1000 = getAcceptableDNFCount(1000, progress);
-                                dnfText.setText(String.format(
-                                        getString(R.string.pref_dialog_dnf_percent, progress) + "%%\n\n" +
-                                        getString(R.string.pref_dialog_acceptable_dnf) +
-                                                              "\n\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d",
-                                                               averageText + 3, 0,
-                                                               averageText + 5, 1,
-                                                               averageText + 12, 1,
-                                                               averageText + 50, ao50,
-                                                               averageText + 100, ao100,
-                                                               averageText + 1000, ao1000));
-                            }
-
-                            @Override
-                            public void onStartTrackingTouch(SeekBar seekBar) {
-
-                            }
-
-                            @Override
-                            public void onStopTrackingTouch(SeekBar seekBar) {
-
-                            }
-                        };
-
-                        dnfSeekBar.setOnSeekBarChangeListener(dnfChangeListener);
-                        dnfChangeListener.onProgressChanged(dnfSeekBar, dnfSeekBar.getProgress(), false);
-                        dnfDialogView.show();
-                        break;
                 }
                 return false;
             }
@@ -351,7 +304,6 @@ public class SettingsActivity extends AppCompatActivity {
 
             int listenerPrefIds[] = {R.string.pk_inspection_time,
                     R.string.pk_multi_phase_num,
-                    R.string.pref_screen_title_timer_appearance_settings,
                     R.string.pk_show_scramble_x_cross_hints,
                     R.string.pk_locale,
                     R.string.pk_reset_locale,
@@ -361,12 +313,15 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_scramble_image_size,
                     R.string.pk_advanced_timer_settings_enabled,
                     R.string.pk_stat_trim_size,
-                    R.string.pk_stat_acceptable_dnf_size,
                     R.string.pk_timer_animation_duration};
 
             for (int prefId : listenerPrefIds) {
-                findPreference(getString(prefId))
-                        .setOnPreferenceClickListener(clickListener);
+                Preference p = findPreference(getString(prefId));
+                if (p != null) {
+                    p.setOnPreferenceClickListener(clickListener);
+                } else {
+                    Log.w("SettingsActivity", "Preference not found at this root: " + getString(prefId));
+                }
             }
 
             mainScreen = getPreferenceScreen();

@@ -206,7 +206,7 @@
 
         <PreferenceScreen
             android:icon="@drawable/ic_format_shapes_black_24dp"
-            android:key="@string/pref_screen_title_timer_appearance_settings"
+            android:key="@string/pk_screen_timer_appearance"
             android:title="@string/pref_screen_title_timer_appearance">
 
             <PreferenceCategory android:title="@string/pref_category_title_features">
@@ -365,7 +365,7 @@
 
         <PreferenceScreen
             android:icon="@drawable/ic_outline_settings_pref"
-            android:key="@string/pref_screen_title_timer_appearance_settings"
+            android:key="@string/pk_screen_general"
             android:title="@string/pref_screen_title_general">
 
             <PreferenceCategory android:title="@string/pref_screen_title_general">
@@ -457,7 +457,7 @@
 
     <PreferenceScreen
         android:icon="@drawable/ic_outline_list_alt_pref"
-        android:key="@string/pref_screen_title_timer_appearance_settings"
+        android:key="@string/pk_screen_list"
         android:title="@string/pref_screen_title_list">
 
         <PreferenceCategory android:title="@string/pref_screen_title_list">

@@ -180,7 +180,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_ME) Log.d(TAG, "updateLocale(savedInstanceState=" + savedInstanceState + ")");
+        if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState=" + savedInstanceState + ")");
         super.onCreate(savedInstanceState);
 
         mContext = getContext();

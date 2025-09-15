@@ -637,7 +637,7 @@ public class TimerFragment extends BaseFragment
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_ME) Log.d(TAG, "onCreate updateLocale(savedInstanceState=" + savedInstanceState + ")");
+        if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState=" + savedInstanceState + ")");
         super.onCreate(savedInstanceState);
         mContext = getContext();
         if (getArguments() != null) {

@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (DEBUG_ME) Log.d(TAG, "updateLocale(savedInstanceState="
+        if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState="
                 + savedInstanceState + "): " + this);
 
         setTheme(ThemeUtils.getPreferredTheme());

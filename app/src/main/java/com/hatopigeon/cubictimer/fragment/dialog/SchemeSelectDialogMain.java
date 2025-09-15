@@ -53,6 +53,8 @@ public class SchemeSelectDialogMain extends DialogFragment {
     private String mColorSchemeType;
     private String mColorSchemeName;
 
+    private boolean mChanged = false;
+
     @BindView(R.id.reset) TextView reset;
     @BindView(R.id.done)  TextView done;
 
@@ -205,8 +207,13 @@ public class SchemeSelectDialogMain extends DialogFragment {
 
     private void setAndSaveColor(View view, String key, String color) {
         final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CubicTimer.getAppContext());
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString(key + mColorSchemeName, color).apply();
+        String prefKey = key + mColorSchemeName;
+        String old = sp.getString(prefKey, null);
+
+        if (!color.equalsIgnoreCase(old)) {
+            sp.edit().putString(prefKey, color).apply();
+            mChanged = true;
+        }
         setColor(view, Color.parseColor("#"+color));
     }
 
@@ -239,7 +246,7 @@ public class SchemeSelectDialogMain extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        if (getActivity() != null) {
+        if (mChanged && getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).onRecreateRequired();
         }
     }

@@ -60,17 +60,11 @@ public class LocaleUtils {
     public static final String HINDI             = "hi_IN";
     public static final String UKRANIAN          = "uk_UA";
 
-
-
     public static Context updateLocale(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String language = prefs.getString(context.getString(R.string.pk_locale), Locale.getDefault().toString());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            return updateResources(context, language);
-        } else {
-            return updateResourcesLegacy(context, language);
-        }
+        return updateResources(context, language);
     }
 
     /**
@@ -159,7 +153,6 @@ public class LocaleUtils {
     }
 
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private static Context updateResources(Context context, String language) {
         Locale locale = fetchLocaleFromString(language);
         Configuration configuration = context.getResources().getConfiguration();

@@ -91,12 +91,12 @@ public class LocaleSelectDialog extends DialogFragment implements DialogListener
 
 class LocaleSelectAdapter extends RecyclerView.Adapter<LocaleSelectAdapter.CardViewHolder> {
 
-    private FragmentActivity                              mActivity;
-    private String                                        oldLocale;
-    private String                                        newLocale;
-    private LinkedHashMap<String, Pair<Integer, Integer>> localeHash;
-    private String[]                                      locales;
-    private DialogListener                                dialogListener;
+    private FragmentActivity               mActivity;
+    private String                         oldLocale;
+    private String                         newLocale;
+    private LinkedHashMap<String, Integer> localeHash;
+    private String[]                       locales;
+    private DialogListener                 dialogListener;
 
     LocaleSelectAdapter(FragmentActivity mActivity, DialogListener listener) {
         this.mActivity = mActivity;
@@ -117,8 +117,7 @@ class LocaleSelectAdapter extends RecyclerView.Adapter<LocaleSelectAdapter.CardV
     @Override
     public void onBindViewHolder(CardViewHolder holder, int position) {
         String itemLocale = locales[position];
-        holder.localeItem.setText(localeHash.get(itemLocale).first);
-        holder.localeItem.setCompoundDrawablesWithIntrinsicBounds(localeHash.get(itemLocale).second, 0, 0, 0);
+        holder.localeItem.setText(localeHash.get(itemLocale));
 
         holder.localeItem.setOnClickListener(v -> {
             newLocale = itemLocale;

@@ -108,7 +108,7 @@ public class AboutActivity extends AppCompatActivity {
         setContentView(R.layout.activity_about);
         ButterKnife.bind(this);
 
-        backButton.setOnClickListener(v -> onBackPressed());
+        backButton.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         try {
             String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;

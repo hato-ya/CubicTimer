@@ -11,6 +11,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -40,7 +42,6 @@ import com.hatopigeon.cubictimer.fragment.dialog.PuzzleChooserDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.SchemeSelectDialogMain;
 import com.hatopigeon.cubictimer.fragment.dialog.ThemeSelectDialog;
 import com.hatopigeon.cubictimer.items.Solve;
-import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.puzzle.TrainerScrambler;
 import com.hatopigeon.cubictimer.utils.ExportImportUtils;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
@@ -211,8 +212,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-
-
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -228,6 +227,23 @@ public class MainActivity extends AppCompatActivity
         }
 
         handleDrawer(savedInstanceState);
+
+        // Close drawer on back pressed
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (mDrawer.isDrawerOpen()) {
+                    mDrawer.closeDrawer();
+                    // consume and return
+                    return;
+                }
+
+                // Not consumed -> temporarily disable this callback, delegate to the default back behavior,
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                // then re-enable it afterward so it can handle future back presses again
+                setEnabled(true);
+            }
+        });
     }
 
     /* NOTE: Leaving this here (commented out) as it may be useful again (probably soon).
@@ -595,29 +611,6 @@ public class MainActivity extends AppCompatActivity
                 recreate();
             }
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (DEBUG_ME) Log.d(TAG, "onBackPressed()");
-
-        if (mDrawer.isDrawerOpen()) {
-            mDrawer.closeDrawer();
-            return;
-        }
-
-        final Fragment mainFragment = fragmentManager.findFragmentByTag("fragment_main");
-
-        if (mainFragment instanceof OnBackPressedInFragmentListener) { // => not null
-            // If the main fragment is open, let it and its "child" fragments consume the "Back"
-            // button press if necessary.
-            if (((OnBackPressedInFragmentListener) mainFragment).onBackPressedInFragment()) {
-                // Button press was consumed. Stop here.
-                return;
-            }
-        }
-
-        super.onBackPressed();
     }
 
     @Override

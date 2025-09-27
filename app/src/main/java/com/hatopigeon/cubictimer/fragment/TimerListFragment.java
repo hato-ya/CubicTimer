@@ -5,11 +5,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -35,13 +32,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
@@ -49,18 +43,12 @@ import com.hatopigeon.cubictimer.adapter.TimeCursorAdapter;
 import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.database.TimeTaskLoader;
 import com.hatopigeon.cubictimer.fragment.dialog.AddTimeDialog;
-import com.hatopigeon.cubictimer.items.Theme;
-import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.stats.Statistics;
 import com.hatopigeon.cubictimer.stats.StatisticsCache;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.TTIntent;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
-
-import org.joda.time.DateTime;
-
-import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,7 +57,7 @@ import butterknife.Unbinder;
 import static com.hatopigeon.cubictimer.utils.TTIntent.*;
 
 public class TimerListFragment extends BaseFragment
-        implements LoaderManager.LoaderCallbacks<Cursor>, OnBackPressedInFragmentListener,
+        implements LoaderManager.LoaderCallbacks<Cursor>,
         StatisticsCache.StatisticsObserver {
     /**
      * Flag to enable debug logging for this class.
@@ -423,19 +411,6 @@ public class TimerListFragment extends BaseFragment
     public void setUserVisibleHint(boolean isVisibleToUser) {
         if (DEBUG_ME) Log.d(TAG, "setUserVisibleHint(isVisibleToUser=" + isVisibleToUser + ")");
         super.setUserVisibleHint(isVisibleToUser);
-    }
-
-    /**
-     * Note: FAB is no longer used. This method does nothing.
-     *
-     * @return
-     *     {@code true} if the "Back" button press was consumed to close the sheet; or
-     *     {@code false} if the sheet is not showing and the "Back" button press was ignored.
-     */
-    @Override
-    public boolean onBackPressedInFragment() {
-        if (DEBUG_ME) Log.d(TAG, "onBackPressedInFragment()");
-        return false;
     }
 
     @Override

@@ -5,12 +5,12 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.IntegerRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.view.WindowCompat;
-import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
@@ -34,7 +34,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
-import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -71,12 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
         ButterKnife.bind(this);
 
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        backButton.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         if (savedInstanceState == null) {
             // Add the main "parent" settings fragment. It is not added to be back stack, so that
@@ -102,26 +96,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        final Fragment settingsFragment = getSupportFragmentManager().findFragmentByTag("fragment_settings");
-
-        if (settingsFragment instanceof OnBackPressedInFragmentListener) { // => not null
-            // If the main fragment is open, let it and its "child" fragments consume the "Back"
-            // button press if necessary.
-            if (((OnBackPressedInFragmentListener) settingsFragment).onBackPressedInFragment()) {
-                // Button press was consumed. Stop here.
-                return;
-            }
-        }
-        super.onBackPressed();
-    }
-
-    @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(LocaleUtils.updateLocale(newBase));
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat implements OnBackPressedInFragmentListener {
+    public static class SettingsFragment extends PreferenceFragmentCompat {
 
         // Variables used to handle back button behavior
         // Stores last PreferenceScreen opened
@@ -328,6 +307,30 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+
+            // Return to the previous page on back press
+            requireActivity().getOnBackPressedDispatcher()
+                    .addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            if (lastPreferenceScreen != null && getPreferenceScreen() != lastPreferenceScreen) {
+                                setPreferenceScreen(lastPreferenceScreen);
+                                // consume and return
+                                return;
+                            }
+
+                            // Not consumed -> temporarily disable this callback, delegate to the default back behavior,
+                            setEnabled(false);
+                            requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                            // then re-enable it afterward so it can handle future back presses again
+                            setEnabled(true);
+                        }
+                    });
+        }
+
+        @Override
         public void onResume() {
             super.onResume();
             // Set the Inspection Alert preference summary to display the correct information
@@ -358,24 +361,6 @@ public class SettingsActivity extends AppCompatActivity {
         public void onNavigateToScreen(PreferenceScreen preferenceScreen) {
             lastPreferenceScreen = getPreferenceScreen();
             setPreferenceScreen(preferenceScreen);
-        }
-
-        /**
-         * PreferenceFragmentCompat does not handle back button behavior by default.
-         * To implement the correct behavior, we store the last opened {@link PreferenceScreen} and
-         * the main {@link PreferenceScreen}. When back button is pressed, we check if the current
-         * screen is the same as mainScreen, if it is, we return false so the Activity can handle
-         * it by closing {@link SettingsActivity}. If not, we set our screen to the last one we opened
-         *
-         * @return true if back button was consumed
-         */
-        @Override
-        public boolean onBackPressedInFragment() {
-            if (lastPreferenceScreen != null && getPreferenceScreen() != lastPreferenceScreen) {
-                setPreferenceScreen(lastPreferenceScreen);
-                return true;
-            }
-            return false;
         }
 
         private void createNumberDialog(@StringRes int title, final int prefKeyResID) {

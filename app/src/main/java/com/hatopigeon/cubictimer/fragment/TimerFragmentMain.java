@@ -56,7 +56,6 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.layout.LockedViewPager;
-import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.stats.Statistics;
 import com.hatopigeon.cubictimer.stats.StatisticsCache;
 import com.hatopigeon.cubictimer.stats.StatisticsLoader;
@@ -78,7 +77,6 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_CATEGORY;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_THEME;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_DELETE_SELECTED_TIMES;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_HISTORY_TIMES_SHOWN;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCROLLED_PAGE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SELECTION_MODE_OFF;
@@ -96,7 +94,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 import static com.hatopigeon.cubictimer.utils.TTIntent.registerReceiver;
 import static com.hatopigeon.cubictimer.utils.TTIntent.unregisterReceiver;
 
-public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFragmentListener, DialogListenerMessage {
+public class TimerFragmentMain extends BaseFragment implements DialogListenerMessage {
     /**
      * Flag to enable debug logging for this class.
      */
@@ -630,30 +628,6 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         // Sets up the toolbar with the icons appropriate to the current page.
         mToolbar.post(() -> setupPage(currentPage));
         super.onResume();
-    }
-
-    /**
-     * Passes on the "Back" button press event to subordinate fragments and indicates if any
-     * fragment consumed the event.
-     *
-     * @return {@code true} if the "Back" button press was consumed and no further action should be
-     * taken; or {@code false} if the "Back" button press was ignored and the caller should
-     * propagate it to the next interested party.
-     */
-    @Override
-    public boolean onBackPressedInFragment() {
-        if (DEBUG_ME) Log.d(TAG, "onBackPressedInFragment()");
-
-        for (Fragment fragment : getChildFragmentManager().getFragments()) {
-            if (DEBUG_ME) Log.d(TAG, "getFragments() " + fragment);
-
-            if (fragment instanceof OnBackPressedInFragmentListener) {
-                if (((OnBackPressedInFragmentListener)fragment).onBackPressedInFragment())
-                    return true;
-            }
-        }
-
-        return false;
     }
 
     @Override

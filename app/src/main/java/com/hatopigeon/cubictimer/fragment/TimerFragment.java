@@ -40,6 +40,7 @@ import android.os.ParcelUuid;
 import android.os.Process;
 import android.preference.PreferenceManager;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
@@ -75,7 +76,6 @@ import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetDetailDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CommentDialog;
 import com.hatopigeon.cubictimer.items.Solve;
 import com.hatopigeon.cubictimer.layout.ChronometerMilli;
-import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.puzzle.TrainerScrambler;
 import com.hatopigeon.cubictimer.solver.RubiksCubeOptimalCross;
 import com.hatopigeon.cubictimer.solver.RubiksCubeOptimalXCross;
@@ -157,7 +157,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.registerReceiver;
 import static com.hatopigeon.cubictimer.utils.TTIntent.unregisterReceiver;
 
 public class TimerFragment extends BaseFragment
-        implements OnBackPressedInFragmentListener, StatisticsCache.StatisticsObserver
+        implements StatisticsCache.StatisticsObserver
         , SerialInputOutputManager.Listener {
 
 
@@ -1148,6 +1148,27 @@ public class TimerFragment extends BaseFragment
                 return false;
             }
         });
+
+        // Stop the chronometer on back press
+        requireActivity().getOnBackPressedDispatcher()
+                .addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        if (isResumed() && (isRunning || countingDown)) {
+                            if (backCancelEnabled) {
+                                cancelChronometer();
+                            }
+                            // consume and return
+                            return;
+                        }
+
+                        // Not consumed -> temporarily disable this callback, delegate to the default back behavior,
+                        setEnabled(false);
+                        requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                        // then re-enable it afterward so it can handle future back presses again
+                        setEnabled(true);
+                    }
+                });
     }
 
     @Override
@@ -1187,26 +1208,6 @@ public class TimerFragment extends BaseFragment
             bleClientManager.close();
             bleClientManager = null;
         }
-    }
-
-    /**
-     * Stops the chronometer on back press.
-     *
-     * @return
-     *     {@code true} if the "Back" button press was consumed to hide the scramble or stop the
-     *     timer; or {@code false} if neither was necessary and the "Back" button press was ignored.
-     */
-    @Override
-    public boolean onBackPressedInFragment() {
-        if (DEBUG_ME) Log.d(TAG, "onBackPressedInFragment()");
-
-        if (isResumed()) {
-            if (isRunning || countingDown) {
-                cancelChronometer();
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -1869,15 +1870,13 @@ public class TimerFragment extends BaseFragment
      * reset to zero.
      */
     private void cancelChronometer() {
-        if (backCancelEnabled) {
-            stopInspectionCountdown();
-            stopChronometer();
+        stopInspectionCountdown();
+        stopChronometer();
 
-            chronometer.reset(); // Show "0.00".
-            lapTimeText.setText("");
-            isCanceled = true;
-            currentPenalty = NO_PENALTY;
-        }
+        chronometer.reset(); // Show "0.00".
+        lapTimeText.setText("");
+        isCanceled = true;
+        currentPenalty = NO_PENALTY;
     }
 
     private void setLapTimeText() {

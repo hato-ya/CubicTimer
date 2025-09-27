@@ -115,6 +115,12 @@
         <item name="md_negative_color">@color/black_secondary_icon</item>
         <item name="md_widget_color">@color/accentDarkColor</item>
 
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+        <item name="android:windowBackground">?colorPrimary</item>
     </style>
 
     <style name="BaseDefaultTheme.Launcher">
@@ -122,17 +128,20 @@
         <item name="colorPrimaryDark">#0062ff</item>
     </style>
 
-    <style name="SettingsTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="SettingsTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/md_white_1000</item>
         <item name="colorPrimaryDark">@color/md_white_1000</item>
-        <item name="colorSecondary">@color/md_blue_A700</item>
+        <item name="colorAccent">@color/md_blue_A700</item>
         <item name="android:fontFamily">?defaultFontFamily</item>
         <item name="colorItemListBackgroundSelected">@color/md_indigo_200</item>
         <item name="md_positive_color">@color/md_blue_A700</item>
 
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
     </style>
-
     <!--
     "DefaultTheme" may be defined differently in "values-v21/styles.xml" before being inherited
     by the "Base<Color>Theme" styles, which extend "DefaultTheme", not "BaseDefaultTheme".
@@ -431,7 +440,8 @@
     -->
     <style name="DefaultTheme.Light" parent="DefaultTheme">
         <item name="colorTimerText">@color/black_text_lighter</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="colorTabIconFaded">@color/tabFadedLight</item>
 
         <item name="isLightTheme">true</item>
@@ -516,11 +526,13 @@
         <item name="colorTimerText">#BDBDBD</item>
     </style>
 
-    <!-- Style is declared in styles (v21) -->
-    <style name="TintedNavigationBar"></style>
+    <style name="TintedNavigationBar">
+        <item name="android:navigationBarColor">?colorTabBar</item>
+    </style>
 
-    <!-- Style is declared in styles (v27) -->
-    <style name="LightNavBarIconStyle"></style>
+    <style name="LightNavBarIconStyle">
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+    </style>
 
     <!--
     Extensions to the "Base<Color>Theme" styles for the pre-v21 styles. These are all trivial.
@@ -720,22 +732,23 @@
         <item name="android:textStyle">normal</item>
     </style>
 
-    <!-- "ToolBarStyle" is defined differently for v21. -->
-    <style name="BaseToolBarStyle">
+    <style name="ToolBarStyle">
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="android:elevation">@dimen/toolbar_elevation</item>
     </style>
 
-    <style name="ToolBarStyle" parent="BaseToolBarStyle" />
+    <style name="ToolBarStyle.NoElevation">
+        <item name="android:elevation">1dp</item>
+    </style>
 
-    <!-- "Widget.Tarefa.Header.Spinner" is defined differently for v21. -->
-    <style name="Base.Widget.Tarefa.Header.Spinner" parent="Widget.AppCompat.Light.Spinner.DropDown.ActionBar">
+    <style name="Widget.Tarefa.Header.Spinner" parent="Widget.AppCompat.Light.Spinner.DropDown.ActionBar">
         <item name="android:background">?android:selectableItemBackground</item>
         <item name="android:dropDownSelector">?android:selectableItemBackground</item>
         <item name="android:divider">@null</item>
+        <item name="overlapAnchor">true</item>
+        <item name="android:overlapAnchor">true</item>
     </style>
-
-    <style name="Widget.Tarefa.Header.Spinner" parent="Base.Widget.Tarefa.Header.Spinner" />
 
     <style name="HeaderSwitch">
         <!-- Active thumb color & Active track color(30% transparency) -->

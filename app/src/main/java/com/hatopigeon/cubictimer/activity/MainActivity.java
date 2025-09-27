@@ -1,6 +1,5 @@
 package com.hatopigeon.cubictimer.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
@@ -13,10 +12,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +25,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -45,6 +43,7 @@ import com.hatopigeon.cubictimer.items.Solve;
 import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
 import com.hatopigeon.cubictimer.puzzle.TrainerScrambler;
 import com.hatopigeon.cubictimer.utils.ExportImportUtils;
+import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
@@ -66,8 +65,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -195,6 +192,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState="
                 + savedInstanceState + "): " + this);
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         setTheme(ThemeUtils.getPreferredTheme());
 
@@ -507,6 +506,12 @@ public class MainActivity extends AppCompatActivity
                 this, mDrawerLayout, null, R.string.drawer_open, R.string.drawer_close);
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
+        // pass through insets to the TimerFragmentMain
+        mDrawerLayout.setFitsSystemWindows(false);
+        ViewCompat.setOnApplyWindowInsetsListener(mDrawerLayout, (v, insets) -> insets);
+
+        // padding setting for drawer
+        InsetsUtils.applySafeInsetsPadding(mDrawer.getSlider(), true);
     }
 
     @Override

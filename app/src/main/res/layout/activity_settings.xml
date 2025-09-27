@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_settings"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -7,7 +8,8 @@
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
         android:layout_alignParentTop="true"
         android:background="?colorPrimary"
         android:textStyle="bold"
@@ -23,13 +25,14 @@
         android:layout_alignBottom="@id/title"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         app:srcCompat="@drawable/ic_arrow_back_black_24dp" />
 
     <FrameLayout
         android:id="@+id/main_activity_container"
-        android:background="@color/md_white_1000"
+        android:background="?colorPrimary"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/title" />

@@ -1,6 +1,5 @@
 package com.hatopigeon.cubictimer.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -10,6 +9,7 @@ import androidx.annotation.IntegerRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -35,13 +35,11 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
 import com.hatopigeon.cubictimer.listener.OnBackPressedInFragmentListener;
+import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.takisoft.preferencex.PreferenceFragmentCompat;
-
-import java.lang.ref.PhantomReference;
-import java.util.function.Function;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -63,6 +61,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (DEBUG_ME) Log.d(TAG, "onCreate(savedInstanceState=" + savedInstanceState + ")");
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         setTheme(R.style.SettingsTheme);
 
@@ -88,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .commit();
         }
 
+        InsetsUtils.applySafeInsetsPadding(findViewById(R.id.activity_settings), false);
     }
 
     public void onRecreateRequired() {

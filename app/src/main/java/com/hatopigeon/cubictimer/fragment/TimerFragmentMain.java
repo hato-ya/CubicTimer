@@ -18,13 +18,13 @@ import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetTrainerDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.PuzzleSelectDialog;
 import com.hatopigeon.cubictimer.listener.DialogListenerMessage;
 import com.hatopigeon.cubictimer.puzzle.TrainerScrambler;
+import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -46,7 +46,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -486,6 +485,7 @@ public class TimerFragmentMain extends BaseFragment implements OnBackPressedInFr
         super.onViewCreated(view, savedInstanceState);
         // setup background gradient
         rootLayout.setBackground(ThemeUtils.fetchBackgroundGradient(mContext, ThemeUtils.getPreferredTheme()));
+        InsetsUtils.applySafeInsetsPadding(rootLayout, false);
 
         navButtonCategory.setOnClickListener(clickListener);
         navButtonHistory.setOnClickListener(clickListener);

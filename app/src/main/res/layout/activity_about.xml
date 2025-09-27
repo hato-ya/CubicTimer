@@ -2,9 +2,11 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_about"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?colorPrimary"
+    android:clipToPadding="false"
     tools:context="com.hatopigeon.cubictimer.activity.AboutActivity">
 
 
@@ -15,7 +17,8 @@
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
+            android:layout_height="wrap_content"
+            android:minHeight="?actionBarSize"
             android:layout_alignParentTop="true"
             android:gravity="center"
             android:text="@string/title_activity_about"
@@ -31,6 +34,7 @@
             android:layout_alignBottom="@id/title"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:tint="?colorTimerText"

@@ -3,17 +3,17 @@ package com.hatopigeon.cubictimer.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatTextView;
-import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.WindowCompat;
+
 import android.view.View;
-import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
+import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.StoreUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
@@ -100,6 +100,8 @@ public class AboutActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setTheme(ThemeUtils.getPreferredTheme());
 
         super.onCreate(savedInstanceState);
@@ -123,5 +125,7 @@ public class AboutActivity extends AppCompatActivity {
         translatorsButton.setOnClickListener(clickListener);
         contributorsButton.setOnClickListener(clickListener);
         translateButton.setOnClickListener(clickListener);
+
+        InsetsUtils.applySafeInsetsPadding(findViewById(R.id.activity_about), false);
     }
 }

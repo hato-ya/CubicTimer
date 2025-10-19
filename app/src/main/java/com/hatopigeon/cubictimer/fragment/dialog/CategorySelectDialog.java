@@ -86,6 +86,7 @@ public class CategorySelectDialog extends DialogFragment {
         View view = inflater.inflate(R.layout.dialog_category_select, container, false);
         mUnbinder = ButterKnife.bind(this, view);
         mContext = getContext();
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         return view;
     }
@@ -96,7 +97,6 @@ public class CategorySelectDialog extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         // retrieve arguments
         currentPuzzle = getArguments().getString("puzzle");

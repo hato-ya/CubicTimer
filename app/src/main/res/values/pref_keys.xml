@@ -32,6 +32,13 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_show_clear_button">clearEnabled</string>
     <string translatable="false" name="pk_tint_navigation_bar">pkTintNavigationBar</string>
     <string translatable="false" name="pk_menu_background">pkMenuBackground</string>
+    <string translatable="false" name="pk_tab_background">pkTabBackground</string>
+
+    <string translatable="false" name="pk_screen_bg_image">screenBgImage</string>
+    <string translatable="false" name="pk_bg_image_enabled">pkBgImageEnabled</string>
+    <string translatable="false" name="pk_bg_image_portrait">pkBgImagePortrait</string>
+    <string translatable="false" name="pk_bg_image_landscape">pkBgImageLandscape</string>
+    <string translatable="false" name="pk_bg_image_opacity">pkBgImageOpacity</string>
 
     <string translatable="false" name="pk_multi_phase_enabled">multiPhaseEnabled</string>
     <string translatable="false" name="pk_multi_phase_num">multiPhaseNum</string>

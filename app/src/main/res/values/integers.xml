@@ -9,4 +9,5 @@
     <integer name="defaultAnimationDuration">250</integer>
     <integer name="defaultTrimSize">5</integer>
     <integer name="defaultAcceptableDNFSize">5</integer>
+    <integer name="defaultColorOverlayOpacity">40</integer>
 </resources>

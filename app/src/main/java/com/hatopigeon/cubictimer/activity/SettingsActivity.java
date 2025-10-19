@@ -1,11 +1,17 @@
 package com.hatopigeon.cubictimer.activity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IntegerRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +29,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -39,6 +46,11 @@ import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.takisoft.preferencex.PreferenceFragmentCompat;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -116,6 +128,9 @@ public class SettingsActivity extends AppCompatActivity {
         private final int maximumPhaseNum = 5;
         private final int defaultPhaseNum = 4;
 
+        private ActivityResultLauncher<Intent> openDocLauncher;
+        private boolean isBgImageSelectPortrait = true;
+
         private final androidx.preference.Preference.OnPreferenceClickListener clickListener
                 = new androidx.preference.Preference.OnPreferenceClickListener() {
             @Override
@@ -133,7 +148,10 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_scramble_text_size,
                         R.string.pk_advanced_timer_settings_enabled,
                         R.string.pk_stat_trim_size,
-                        R.string.pk_timer_animation_duration)) {
+                        R.string.pk_timer_animation_duration,
+                        R.string.pk_bg_image_portrait,
+                        R.string.pk_bg_image_landscape,
+                        R.string.pk_bg_image_opacity)) {
 
                     case R.string.pk_inspection_time:
                         createNumberDialog(R.string.inspection_time, R.string.pk_inspection_time);
@@ -261,6 +279,18 @@ public class SettingsActivity extends AppCompatActivity {
                         trimChangeListener.onProgressChanged(trimSeekBar, trimSeekBar.getProgress(), false);
                         trimDialogView.show();
                         break;
+                    case R.string.pk_bg_image_portrait:
+                        createImagePickerDialog(true);
+                        break;
+                    case R.string.pk_bg_image_landscape:
+                        createImagePickerDialog(false);
+                        break;
+                    case R.string.pk_bg_image_opacity:
+                        createSeekDialog(R.string.pk_bg_image_opacity,
+                                0, 100,
+                                R.integer.defaultColorOverlayOpacity,
+                                "%d %%");
+                        break;
                 }
                 return false;
             }
@@ -275,6 +305,18 @@ public class SettingsActivity extends AppCompatActivity {
             mContext = getContext();
 
             averageText = getString(R.string.graph_legend_avg_prefix);
+
+            openDocLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                            Uri uri = result.getData().getData();
+                            if (uri != null) {
+                                onImagePicked(uri);
+                            }
+                        }
+                    }
+            );
         }
 
         @Override
@@ -292,7 +334,10 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_scramble_image_size,
                     R.string.pk_advanced_timer_settings_enabled,
                     R.string.pk_stat_trim_size,
-                    R.string.pk_timer_animation_duration};
+                    R.string.pk_timer_animation_duration,
+                    R.string.pk_bg_image_portrait,
+                    R.string.pk_bg_image_landscape,
+                    R.string.pk_bg_image_opacity};
 
             for (int prefId : listenerPrefIds) {
                 Preference p = findPreference(getString(prefId));
@@ -617,6 +662,66 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     })
                     .build());
+        }
+
+        private void createImagePickerDialog(boolean isPortrait) {
+            isBgImageSelectPortrait = isPortrait;
+
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+
+            openDocLauncher.launch(intent);
+        }
+
+        private void onImagePicked(@NonNull Uri uri) {
+            final String fileName;
+            final int key;
+
+            // decide extension from mime type
+            String extension = "jpg"; // fallback
+            String mimeType = requireContext().getContentResolver().getType(uri);
+            if (mimeType != null) {
+                String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+                if (ext != null) extension = ext;
+            }
+
+            if (isBgImageSelectPortrait) {
+                fileName = "background_portrait." + extension;
+                key = R.string.pk_bg_image_portrait;
+            } else {
+                fileName = "background_landscape." + extension;
+                key = R.string.pk_bg_image_landscape;
+            }
+
+            File dst = new File(requireContext().getFilesDir(), fileName);
+
+            Log.d(TAG, "onImagePicked copy start : " + fileName);
+            // copy image to internal file (API26+ -> Files.copy, else -> manual copy)
+            try (InputStream in = requireContext().getContentResolver().openInputStream(uri)) {
+                if (Build.VERSION.SDK_INT >= 26) {
+                    java.nio.file.Files.copy(in, dst.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                } else {
+                    try (OutputStream out = new java.io.FileOutputStream(dst)) {
+                        byte[] buf = new byte[64 * 1024]; // 64KB
+                        int n;
+                        while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+                        out.flush();
+                    }
+                }
+
+                // set internal filename into preference
+                Prefs.edit()
+                        .putString(key, dst.getAbsolutePath())
+                        .apply();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), R.string.image_load_fail, Toast.LENGTH_SHORT).show();
+            }
+            Log.d(TAG, "onImagePicked copy finish");
         }
     }
 }

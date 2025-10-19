@@ -387,6 +387,45 @@
                     android:summary="@string/pref_summary_menu_background"
                     android:title="@string/pref_title_menu_background" />
 
+                <SwitchPreferenceCompat
+                    android:defaultValue="false"
+                    android:key="@string/pk_tab_background"
+                    android:summary="@string/pref_summary_tab_background"
+                    android:title="@string/pref_title_tab_background" />
+
+            </PreferenceCategory>
+
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_outline_image_pref"
+            android:key="@string/pk_screen_bg_image"
+            android:title="@string/pref_screen_title_bg_image">
+
+            <PreferenceCategory android:title="@string/pref_screen_title_bg_image">
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="false"
+                    android:key="@string/pk_bg_image_enabled"
+                    android:summary="@string/pref_summary_bg_image_enabled"
+                    android:title="@string/pref_title_bg_image_enabled" />
+
+                <Preference
+                    android:key="@string/pk_bg_image_portrait"
+                    android:summary="@string/pref_summary_bg_image_portrait"
+                    android:title="@string/pref_title_bg_image_portrait" />
+
+                <Preference
+                    android:key="@string/pk_bg_image_landscape"
+                    android:summary="@string/pref_summary_bg_image_landscape"
+                    android:title="@string/pref_title_bg_image_landscape" />
+
+                <Preference
+                    android:defaultValue="@integer/defaultColorOverlayOpacity"
+                    android:key="@string/pk_bg_image_opacity"
+                    android:summary="@string/pref_summary_bg_image_opacity"
+                    android:title="@string/pref_title_bg_image_opacity" />
+
             </PreferenceCategory>
 
         </PreferenceScreen>

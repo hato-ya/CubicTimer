@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -18,9 +20,13 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.AlgCursorAdapter;
 import com.hatopigeon.cubictimer.database.AlgTaskLoader;
+import com.hatopigeon.cubictimer.utils.InsetsUtils;
+import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.TTIntent.TTFragmentBroadcastReceiver;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.RecyclerView;
@@ -158,6 +164,24 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         registerReceiver(mUIInteractionReceiver);
 
         return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        InsetsUtils.applySafeInsetsPadding(rootLayout, false);
+
+        // Since windowLightNavigationBar is not supported below API level 27,
+        // set a dark navigation bar color to maintain contrast with light themes
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 &&
+                !Prefs.getBoolean(R.string.pk_tint_navigation_bar, false)) {
+            Activity activity = requireActivity();
+            Window window = activity.getWindow();
+            if (window != null) {
+                window.setNavigationBarColor(0xB3000000);
+            }
+        }
     }
 
     @Override

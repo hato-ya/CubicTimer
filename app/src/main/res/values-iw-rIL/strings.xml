@@ -341,10 +341,22 @@
     <string name="about_translate_title">עזור לתרגם את Cubic Timer!</string>
     <string name="dialog_add_time_use_scramble">שמור ערבוב נוכחי</string>
     <string name="pref_summary_new">העדפות שנוספו לאחרונה</string>
-    <string name="pref_summary_tint_navigation">נסיוני, משנה את צבע פס הניווט עם צבעי ערכת הנושא..\n עובד רק על גרסת Android Lollipop ומעלה!</string>
+    <string name="pref_summary_tint_navigation">Tints the navigation bar with the theme colors.</string>
     <string name="pref_title_tint_navigation">שינוי צבע פס הניווט</string>
     <string name="pref_title_menu_background">בטל את רקע התפריט</string>
     <string name="pref_summary_menu_background">מבטל את כהות צבע הרקע מאחורי שורת התפריטים העליונה</string>
+    <string name="pref_title_tab_background">Disable tab bar background</string>
+    <string name="pref_summary_tab_background">Disables the tinted background behind the bottom tab bar</string>
+    <string name="pref_screen_title_bg_image">Background image settings</string>
+    <string name="pref_title_bg_image_enabled">Show background image</string>
+    <string name="pref_summary_bg_image_enabled">Display the selected image as the background</string>
+    <string name="pref_title_bg_image_portrait">Choose background image (portrait)</string>
+    <string name="pref_summary_bg_image_portrait">Choose a background image for portrait orientation</string>
+    <string name="pref_title_bg_image_landscape">Choose background image (landscape)</string>
+    <string name="pref_summary_bg_image_landscape">Choose a background image for landscape orientation</string>
+    <string name="pref_title_bg_image_opacity">Theme color overlay opacity</string>
+    <string name="pref_summary_bg_image_opacity">Set the opacity of the theme color overlay above the background image (0% = fully transparent)</string>
+    <string name="image_load_fail">Failed to load image</string>
     <string name="dialog_theme_text_style">סגנון טקסט</string>
     <string name="pref_screen_title_general">כללי</string>
     <string name="pref_screen_title_list">רשימה</string>

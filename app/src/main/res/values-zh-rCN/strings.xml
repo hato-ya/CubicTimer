@@ -336,10 +336,22 @@
     <string name="about_translate_title">帮助翻译Cubic Timer</string>
     <string name="dialog_add_time_use_scramble">保存当前打乱</string>
     <string name="pref_summary_new">最近添加的首选项</string>
-    <string name="pref_summary_tint_navigation">测试中！导航栏显示主题颜色，仅支持安卓5.0以上版本！</string>
+    <string name="pref_summary_tint_navigation">Tints the navigation bar with the theme colors.</string>
     <string name="pref_title_tint_navigation">显示导航栏颜色</string>
     <string name="pref_title_menu_background">关闭菜单背景</string>
     <string name="pref_summary_menu_background">不显示顶部菜单栏的背景颜色</string>
+    <string name="pref_title_tab_background">Disable tab bar background</string>
+    <string name="pref_summary_tab_background">Disables the tinted background behind the bottom tab bar</string>
+    <string name="pref_screen_title_bg_image">Background image settings</string>
+    <string name="pref_title_bg_image_enabled">Show background image</string>
+    <string name="pref_summary_bg_image_enabled">Display the selected image as the background</string>
+    <string name="pref_title_bg_image_portrait">Choose background image (portrait)</string>
+    <string name="pref_summary_bg_image_portrait">Choose a background image for portrait orientation</string>
+    <string name="pref_title_bg_image_landscape">Choose background image (landscape)</string>
+    <string name="pref_summary_bg_image_landscape">Choose a background image for landscape orientation</string>
+    <string name="pref_title_bg_image_opacity">Theme color overlay opacity</string>
+    <string name="pref_summary_bg_image_opacity">Set the opacity of the theme color overlay above the background image (0% = fully transparent)</string>
+    <string name="image_load_fail">Failed to load image</string>
     <string name="dialog_theme_text_style">文字样式</string>
     <string name="pref_screen_title_general">通用</string>
     <string name="pref_screen_title_list">列表</string>

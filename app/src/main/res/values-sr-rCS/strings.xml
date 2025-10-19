@@ -342,10 +342,22 @@
     <string name="about_translate_title">Pomozi u prevodu Cubic Timer-a!</string>
     <string name="dialog_add_time_use_scramble">Sačuvaj trenutni scramble</string>
     <string name="pref_summary_new">Nedavno dodate preference</string>
-    <string name="pref_summary_tint_navigation">Eksperimentalno. Oboji traku za navigaciju sa bojama.\nRadi samo na Android Lollipop i naviše!</string>
+    <string name="pref_summary_tint_navigation">Tints the navigation bar with the theme colors.</string>
     <string name="pref_title_tint_navigation">Oboji traku za navigaciju</string>
     <string name="pref_title_menu_background">Onemogući pozadinu menija</string>
     <string name="pref_summary_menu_background">Onemogućuje obojenu pozadinu iza gornjeg meni bara</string>
+    <string name="pref_title_tab_background">Disable tab bar background</string>
+    <string name="pref_summary_tab_background">Disables the tinted background behind the bottom tab bar</string>
+    <string name="pref_screen_title_bg_image">Background image settings</string>
+    <string name="pref_title_bg_image_enabled">Show background image</string>
+    <string name="pref_summary_bg_image_enabled">Display the selected image as the background</string>
+    <string name="pref_title_bg_image_portrait">Choose background image (portrait)</string>
+    <string name="pref_summary_bg_image_portrait">Choose a background image for portrait orientation</string>
+    <string name="pref_title_bg_image_landscape">Choose background image (landscape)</string>
+    <string name="pref_summary_bg_image_landscape">Choose a background image for landscape orientation</string>
+    <string name="pref_title_bg_image_opacity">Theme color overlay opacity</string>
+    <string name="pref_summary_bg_image_opacity">Set the opacity of the theme color overlay above the background image (0% = fully transparent)</string>
+    <string name="image_load_fail">Failed to load image</string>
     <string name="dialog_theme_text_style">Stil teksta</string>
     <string name="pref_screen_title_general">Opšte</string>
     <string name="pref_screen_title_list">Lista</string>

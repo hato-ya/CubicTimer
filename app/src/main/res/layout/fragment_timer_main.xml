@@ -1,51 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/root"
+    android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?colorPrimary"
-    android:orientation="vertical">
+    android:background="?colorPrimary">
 
-    <com.hatopigeon.cubictimer.layout.LockedViewPager
-        android:id="@+id/pager"
+    <ImageView
+        android:id="@+id/bgImage"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        android:clickable="false"
+        android:focusable="false" />
 
-    <LinearLayout
-        android:id="@+id/toolbarLayout"
+    <View
+        android:id="@+id/bgGradientOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <include layout="@layout/main_actionbar" />
-
-    </LinearLayout>
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
 
     <RelativeLayout
-        android:id="@+id/tab_view"
+        android:id="@+id/root"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <View
+        <com.hatopigeon.cubictimer.layout.LockedViewPager
+            android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:background="@drawable/transparent_card_black"
-            android:layout_alignParentBottom="true"
-            android:layout_height="42dp"/>
+            android:layout_height="match_parent" />
 
-        <com.hatopigeon.cubictimer.layout.TimerTabLayout
-            android:id="@+id/main_tabs"
+        <LinearLayout
+            android:id="@+id/toolbarLayout"
             android:layout_width="match_parent"
-            android:layout_height="?tabBarSize"
-            android:alpha="1"
-            android:background="@drawable/outline_background_card_top_tab"
-            android:isScrollContainer="false"
-            app:tabGravity="fill"
-            android:layout_alignParentBottom="true"
-            app:tabMaxWidth="0dp"
-            app:tabMode="fixed" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include layout="@layout/main_actionbar" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/tab_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
+
+            <View
+                android:id="@+id/main_tab_background"
+                android:layout_width="match_parent"
+                android:background="@drawable/transparent_card_black"
+                android:layout_alignParentBottom="true"
+                android:layout_height="42dp"/>
+
+            <com.hatopigeon.cubictimer.layout.TimerTabLayout
+                android:id="@+id/main_tabs"
+                android:layout_width="match_parent"
+                android:layout_height="?tabBarSize"
+                android:alpha="1"
+                android:background="@drawable/outline_background_card_top_tab"
+                android:isScrollContainer="false"
+                app:tabGravity="fill"
+                android:layout_alignParentBottom="true"
+                app:tabMaxWidth="0dp"
+                app:tabMode="fixed" />
+        </RelativeLayout>
+
     </RelativeLayout>
 
-
-</RelativeLayout>
+</FrameLayout>

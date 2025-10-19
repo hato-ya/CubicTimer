@@ -96,6 +96,8 @@
         <item name="colorChartExtra2">@color/md_light_green_500</item>
         <item name="colorChartExtra3">@color/md_cyan_500</item>
 
+        <!-- Chart background color when background image is enabled -->
+        <item name="colorChartBackground">#80000000</item>
 
         <item name="graph_stats_card_background">@color/md_white_1000</item>
         <item name="graph_stats_card_background_alt">@color/md_grey_100</item>
@@ -450,6 +452,9 @@
         <item name="colorChartGrid">@color/black_light_50</item>
         <item name="colorChartAxis">@color/black_light_50</item>
         <item name="colorChartText">@color/black_light_100</item>
+
+        <!-- Chart background color when background image is enabled -->
+        <item name="colorChartBackground">#80FFFFFF</item>
     </style>
 
     <!-- Base Darker theme for dark list items -->

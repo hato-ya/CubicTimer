@@ -4,8 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
@@ -13,6 +15,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.signature.ObjectKey;
 import com.hatopigeon.cubictimer.fragment.dialog.CategorySelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetTrainerDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.PuzzleSelectDialog;
@@ -35,6 +40,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -62,6 +68,7 @@ import com.hatopigeon.cubictimer.stats.StatisticsLoader;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
 
+import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
@@ -142,6 +149,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
     @BindView(R.id.toolbar)      CardView        mToolbar;
     @BindView(R.id.pager)        LockedViewPager viewPager;
     @BindView(R.id.main_tabs)    TabLayout       tabLayout;
+    @BindView(R.id.main_tab_background) View     tabBackground;
     @BindView(R.id.tab_view)    View            tabView;
     @BindView(R.id.puzzleSpinner)View            puzzleSpinnerLayout;
 
@@ -153,6 +161,9 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
     @BindView(R.id.puzzleCategory) TextView puzzleCategoryText;
     @BindView(R.id.puzzleName) TextView puzzleNameText;
     @BindView(R.id.puzzleNumber) TextView puzzleNumber;
+
+    @BindView(R.id.bgImage) ImageView bgImage;
+    @BindView(R.id.bgGradientOverlay) View bgGradientOverlay;
 
     ActionMode actionMode;
 
@@ -174,6 +185,8 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
     private boolean pagerEnabled;
     private boolean smartTimerEnabled;
 
+    private boolean bgImageEnabled;
+    private int colorOverlayOpacity;
 
     private int selectCount = 0;
 
@@ -481,8 +494,23 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // setup background gradient
-        rootLayout.setBackground(ThemeUtils.fetchBackgroundGradient(mContext, ThemeUtils.getPreferredTheme()));
+
+        GradientDrawable grad = ThemeUtils.fetchBackgroundGradient(mContext, ThemeUtils.getPreferredTheme());
+
+        bgImageEnabled = Prefs.getBoolean(R.string.pk_bg_image_enabled, false);
+
+        if (bgImageEnabled) {
+            if (applyBackgroundImage()) {
+                colorOverlayOpacity = Prefs.getInt(R.string.pk_bg_image_opacity,
+                        mContext.getResources().getInteger(R.integer.defaultColorOverlayOpacity)) * 255 / 100;
+                colorOverlayOpacity = Math.max(0, Math.min(colorOverlayOpacity, 255));
+                grad.setAlpha(colorOverlayOpacity);
+            }
+        } else {
+            bgImage.setImageDrawable(null);
+        }
+        bgGradientOverlay.setBackground(grad);
+
         InsetsUtils.applySafeInsetsPadding(rootLayout, false);
 
         navButtonCategory.setOnClickListener(clickListener);
@@ -538,7 +566,13 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
         tabLayout.setTabIconTint(AppCompatResources.getColorStateList(mContext, R.color.tab_color));
         tabStrip = ((LinearLayout) tabLayout.getChildAt(0));
 
-        tabLayout.getBackground().setColorFilter(ThemeUtils.fetchAttrColor(mContext, R.attr.colorTabBar), PorterDuff.Mode.SRC_IN);
+        // Tab bar background
+        if (Prefs.getBoolean(R.string.pk_tab_background, false)) {
+            tabLayout.setBackground(null);
+            tabBackground.setVisibility(View.INVISIBLE);
+        } else {
+            tabLayout.getBackground().setColorFilter(ThemeUtils.fetchAttrColor(mContext, R.attr.colorTabBar), PorterDuff.Mode.SRC_IN);
+        }
 
         // Handle spinner AFTER reading from savedInstanceState, so we can correctly
         // fill the category field in the spinner
@@ -564,6 +598,48 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
 
         // Register a receiver to update if something has changed
         registerReceiver(mUIInteractionReceiver);
+    }
+
+    private boolean applyBackgroundImage() {
+        try {
+            int orientation = getResources().getConfiguration().orientation;
+            int key = (orientation == Configuration.ORIENTATION_PORTRAIT)
+                    ? R.string.pk_bg_image_portrait : R.string.pk_bg_image_landscape;
+
+            String path = Prefs.getString(key, null);
+
+            if (TextUtils.isEmpty(path) || !new File(path).exists()) {
+                if (isAdded()) {
+                    Glide.with(this).clear(bgImage);
+                    bgImage.setImageDrawable(null);
+                }
+                return false;
+            }
+
+            File f = new File(path);
+            RequestOptions opts = new RequestOptions()
+                    .centerCrop()
+                    .signature(new ObjectKey(f.lastModified()));
+
+            if (isAdded()) {
+                Glide.with(this)
+                        .load(f)
+                        .apply(opts)
+                        .into(bgImage);
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                if (isAdded()) {
+                    Glide.with(this).clear(bgImage);
+                    bgImage.setImageDrawable(null);
+                }
+            } catch (Exception ignored) {}
+            return false;
+        }
     }
 
     @Override
@@ -639,6 +715,12 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
 
     @Override
     public void onDestroyView() {
+        if (bgImage != null) {
+            Glide.with(this).clear(bgImage);
+            bgImage = null;
+        }
+        bgGradientOverlay = null;
+
         super.onDestroyView();
         mUnbinder.unbind();
     }

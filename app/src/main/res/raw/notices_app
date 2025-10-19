@@ -110,6 +110,11 @@
         <copyright>Copyright 2019 JAMET Jeremy - Apache Software License 2.0</copyright>
     </notice>
     <notice>
+        <name>glide</name>
+        <url>https://github.com/bumptech/glide</url>
+        <copyright>Copyright 2025 Sam Judd - BSD, part MIT and Apache 2.0</copyright>
+    </notice>
+    <notice>
         <name>Apache Software License 2.0</name>
         <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         <license>Apache Software License 2.0</license>

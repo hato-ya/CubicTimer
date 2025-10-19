@@ -273,7 +273,12 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
         // General chart settings
         //lineChartView.setPinchZoom(true);
-        lineChartView.setBackgroundColor(Color.TRANSPARENT);
+        if (Prefs.getBoolean(R.string.pk_bg_image_enabled, false)) {
+            // if background image is enabled set background color
+            lineChartView.setBackgroundColor(ThemeUtils.fetchAttrColor(mContext, R.attr.colorChartBackground));
+        } else {
+            lineChartView.setBackgroundColor(Color.TRANSPARENT);
+        }
         lineChartView.setDrawGridBackground(false);
         lineChartView.getAxisLeft().setEnabled(false);
         lineChartView.getLegend().setTextColor(chartTextColor);

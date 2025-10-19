@@ -4,17 +4,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.view.WindowCompat;
 
 import android.view.View;
+import android.view.Window;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
+import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.StoreUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
@@ -105,6 +108,17 @@ public class AboutActivity extends AppCompatActivity {
         setTheme(ThemeUtils.getPreferredTheme());
 
         super.onCreate(savedInstanceState);
+
+        // Since windowLightNavigationBar is not supported below API level 27,
+        // set a dark navigation bar color to maintain contrast with light themes
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 &&
+                !Prefs.getBoolean(R.string.pk_tint_navigation_bar, false)) {
+            Window window = getWindow();
+            if (window != null) {
+                window.setNavigationBarColor(0xB3000000);
+            }
+        }
+
         setContentView(R.layout.activity_about);
         ButterKnife.bind(this);
 

@@ -1,6 +1,7 @@
 package com.hatopigeon.cubictimer.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,6 +9,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
@@ -51,6 +53,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -512,6 +515,17 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
         bgGradientOverlay.setBackground(grad);
 
         InsetsUtils.applySafeInsetsPadding(rootLayout, false);
+
+        // Since windowLightNavigationBar is not supported below API level 27,
+        // set a dark navigation bar color to maintain contrast with light themes
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 &&
+                !Prefs.getBoolean(R.string.pk_tint_navigation_bar, false)) {
+            Activity activity = requireActivity();
+            Window window = activity.getWindow();
+            if (window != null) {
+                window.setNavigationBarColor(0xB3000000);
+            }
+        }
 
         navButtonCategory.setOnClickListener(clickListener);
         navButtonHistory.setOnClickListener(clickListener);

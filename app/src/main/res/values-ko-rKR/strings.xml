@@ -339,10 +339,22 @@
     <string name="about_translate_title">Cubic Timer 번역 도움!</string>
     <string name="dialog_add_time_use_scramble">현재 스크램블 저장</string>
     <string name="pref_summary_new">최근 추가된 설정</string>
-    <string name="pref_summary_tint_navigation">실험적입니다. 네비게이션 바를 테마 색상으로 맞춥니다.\n안드로이드 롤리팝 이상에서만 작동합니다!</string>
+    <string name="pref_summary_tint_navigation">Tints the navigation bar with the theme colors.</string>
     <string name="pref_title_tint_navigation">네비게이션 바 색상</string>
     <string name="pref_title_menu_background">메뉴 배경 비활성화</string>
     <string name="pref_summary_menu_background">상단 메뉴 표시줄 뒤의 색조 배경을 비활성화합니다.</string>
+    <string name="pref_title_tab_background">Disable tab bar background</string>
+    <string name="pref_summary_tab_background">Disables the tinted background behind the bottom tab bar</string>
+    <string name="pref_screen_title_bg_image">Background image settings</string>
+    <string name="pref_title_bg_image_enabled">Show background image</string>
+    <string name="pref_summary_bg_image_enabled">Display the selected image as the background</string>
+    <string name="pref_title_bg_image_portrait">Choose background image (portrait)</string>
+    <string name="pref_summary_bg_image_portrait">Choose a background image for portrait orientation</string>
+    <string name="pref_title_bg_image_landscape">Choose background image (landscape)</string>
+    <string name="pref_summary_bg_image_landscape">Choose a background image for landscape orientation</string>
+    <string name="pref_title_bg_image_opacity">Theme color overlay opacity</string>
+    <string name="pref_summary_bg_image_opacity">Set the opacity of the theme color overlay above the background image (0% = fully transparent)</string>
+    <string name="image_load_fail">Failed to load image</string>
     <string name="dialog_theme_text_style">글자 서식</string>
     <string name="pref_screen_title_general">일반</string>
     <string name="pref_screen_title_list">목록</string>

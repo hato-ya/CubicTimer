@@ -337,10 +337,22 @@
     <string name="about_translate_title">Hilf beim Übersetzen von Cubic Timer!</string>
     <string name="dialog_add_time_use_scramble">Aktuelles Schema speichern</string>
     <string name="pref_summary_new">Kürzlich hinzugefügte Einstellungen</string>
-    <string name="pref_summary_tint_navigation">Experimentelle. Färbt die Navigationsleiste in den Designfarben.\nFunktioniert nur auf Android Lollipop und besser!</string>
+    <string name="pref_summary_tint_navigation">Tints the navigation bar with the theme colors.</string>
     <string name="pref_title_tint_navigation">Farbige Navigationsleiste</string>
     <string name="pref_title_menu_background">Menü-Hintergrund deaktivieren</string>
     <string name="pref_summary_menu_background">Deaktiviert den getönten Hintergrund der oberen Menüleiste</string>
+    <string name="pref_title_tab_background">Disable tab bar background</string>
+    <string name="pref_summary_tab_background">Disables the tinted background behind the bottom tab bar</string>
+    <string name="pref_screen_title_bg_image">Background image settings</string>
+    <string name="pref_title_bg_image_enabled">Show background image</string>
+    <string name="pref_summary_bg_image_enabled">Display the selected image as the background</string>
+    <string name="pref_title_bg_image_portrait">Choose background image (portrait)</string>
+    <string name="pref_summary_bg_image_portrait">Choose a background image for portrait orientation</string>
+    <string name="pref_title_bg_image_landscape">Choose background image (landscape)</string>
+    <string name="pref_summary_bg_image_landscape">Choose a background image for landscape orientation</string>
+    <string name="pref_title_bg_image_opacity">Theme color overlay opacity</string>
+    <string name="pref_summary_bg_image_opacity">Set the opacity of the theme color overlay above the background image (0% = fully transparent)</string>
+    <string name="image_load_fail">Failed to load image</string>
     <string name="dialog_theme_text_style">Textstil</string>
     <string name="pref_screen_title_general">Allgemeines</string>
     <string name="pref_screen_title_list">Liste</string>

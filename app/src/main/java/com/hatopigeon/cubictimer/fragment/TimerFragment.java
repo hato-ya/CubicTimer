@@ -3000,6 +3000,8 @@ public class TimerFragment extends BaseFragment
         }
 
         private void initQiyiTimer() {
+            qiyiPreviousState = QIYITIMER_STATE_IDLE;
+
             try {
                 SecretKeySpec key = new SecretKeySpec(
                         new byte[] {

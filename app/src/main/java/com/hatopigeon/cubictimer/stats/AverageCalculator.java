@@ -38,7 +38,7 @@ public final class AverageCalculator extends AverageCalculatorSuper {
      *     If the added time is not greater than zero and is not {@code DNF}.
      */
     @Override
-    public void addTime(long time) {
+    public synchronized void addTime(long time) {
         if (time <= 0L && time != DNF) {
             // FIXME: throwing an IllegalArgumentException here is too harsh for the user. If the app
             // incorrectly imports an illegal solve, the app will keep crashing and the only way for

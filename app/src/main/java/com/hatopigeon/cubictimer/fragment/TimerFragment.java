@@ -2975,18 +2975,16 @@ public class TimerFragment extends BaseFragment
                                     int min = 0;
                                     int sec = 0;
                                     int milli = 0;
-                                    String timerStr = "";
 
                                     if ((state == GANTIMER_STATE_STOPPED || state == GANTIMER_STATE_IDLE)
                                             && length == 0x08) {
                                         min = data.getIntValue(Data.FORMAT_UINT8, 4);
                                         sec = data.getIntValue(Data.FORMAT_UINT8, 5);
                                         milli = data.getIntValue(Data.FORMAT_UINT16_LE, 6);
-                                        timerStr = String.format(" %01d%02d%03d", min, sec, milli);
                                     }
                                     if (header == 0xFE && prefix == 0x01) {
                                         Log.d(TAG, "BLE data notify OK : " + state + ", " + min + ":" + sec + ":" + milli);
-                                        updateGanTimer(state, timerStr);
+                                        updateGanTimer(state, min*60*1000 + sec*1000 + milli);
                                     } else {
                                         Log.d(TAG, "BLE data notify NG : " + data.toString());
                                     }
@@ -3230,10 +3228,9 @@ public class TimerFragment extends BaseFragment
                 // dp = |??(4)|solveTime(4)|inspectionTime(4)|
                 if (pld.length >= 16) {
                     long solveTime = ((dp[4] & 0xFFL) << 24) | ((dp[5] & 0xFF) << 16) | ((dp[6] & 0xFF) << 8) | (dp[7] & 0xFF);
-                    String timerStr = formatQiyiTime(solveTime);
-                    Log.d(TAG, "Qiyi RX timer : finished" + timerStr);
+                    Log.d(TAG, "Qiyi RX timer : finished " + solveTime);
 
-                    updateGanTimer(GANTIMER_STATE_STOPPED, timerStr);
+                    updateGanTimer(GANTIMER_STATE_STOPPED, solveTime);
                 }
             } else if (dpId == 4 && dpType == 4) {
                 // status update
@@ -3241,17 +3238,16 @@ public class TimerFragment extends BaseFragment
                 if (pld.length >= 9) {
                     int state = dp[0] & 0xFF;
                     long solveTime = ((dp[1] & 0xFFL) << 24) | ((dp[2] & 0xFF) << 16) | ((dp[3] & 0xFF) << 8) | (dp[4] & 0xFF);
-                    String timerStr = formatQiyiTime(solveTime);
-                    Log.d(TAG, "Qiyi RX timer : status " + state + timerStr + " solveTime " + solveTime);
+                    Log.d(TAG, "Qiyi RX timer : status " + state + " solveTime " + solveTime);
 
                     if (qiyiPreviousState != QIYITIMER_STATE_IDLE && state == QIYITIMER_STATE_IDLE) {
-                        updateGanTimer(GANTIMER_STATE_IDLE, timerStr);
+                        updateGanTimer(GANTIMER_STATE_IDLE, solveTime);
 //                    } else if (state == QIYITIMER_STATE_INSPECTION && solveTime == 0) {
-//                        updateGanTimer(GANTIMER_STATE_IDLE, timerStr);
+//                        updateGanTimer(GANTIMER_STATE_IDLE, solveTime);
                     } else if (state == QIYITIMER_STATE_GET_SET) {
-                        updateGanTimer(GANTIMER_STATE_GET_SET, timerStr);
+                        updateGanTimer(GANTIMER_STATE_GET_SET, solveTime);
                     } else if (state == QIYITIMER_STATE_RUNNING) {
-                        updateGanTimer(GANTIMER_STATE_RUNNIG, timerStr);
+                        updateGanTimer(GANTIMER_STATE_RUNNIG, solveTime);
                     }
 
                     qiyiPreviousState = state;
@@ -3280,16 +3276,6 @@ public class TimerFragment extends BaseFragment
             qiyiCipherLen = 0;
             qiyiCipherPos = 0;
             qiyiCipherBuf = null;
-        }
-
-        private String formatQiyiTime(long solveTime) {
-            if (solveTime < 0) return "";
-
-            long min = solveTime / (60*1000);
-            long sec = (solveTime % (60*1000)) / 1000;
-            long milli  = solveTime % 1000;
-
-            return String.format(" %01d%02d%03d", min, sec, milli);
         }
 
         private String bytesToHex(byte[] bytes) {
@@ -3322,7 +3308,7 @@ public class TimerFragment extends BaseFragment
         // Here you may add some high level methods for your device:
     }
 
-    private void updateGanTimer(int state, String str) {
+    private void updateGanTimer(int state, long time) {
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
                 && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
@@ -3336,7 +3322,7 @@ public class TimerFragment extends BaseFragment
         // update debug string
         String[] strState = getResources().getStringArray(R.array.timer_gan_timer_state);
         if (state < strState.length)
-            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + str);
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + " " + time);
 
         // detect timer start
         boolean isStart = (state == GANTIMER_STATE_RUNNIG);
@@ -3377,7 +3363,7 @@ public class TimerFragment extends BaseFragment
                 // stop timer
                 animationDone = false;
                 isExternalTimer = false;
-                chronometer.setExternalTime(str);
+                chronometer.setExternalTime(time);
                 stopChronometer();
                 if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
                     // If a user has inspection on and went past his inspection time, he has

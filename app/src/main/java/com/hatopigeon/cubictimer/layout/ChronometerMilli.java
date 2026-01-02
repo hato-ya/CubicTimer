@@ -122,6 +122,11 @@ public class ChronometerMilli extends AppCompatTextView {
         } catch (Exception e) {}
     }
 
+    public void setExternalTime(long time) {
+        mIsExternal = true;
+        mExternalTime = time;
+    }
+
     public ChronometerMilli(Context context) {
         this(context, null, 0);
     }

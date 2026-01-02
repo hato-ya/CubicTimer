@@ -94,9 +94,12 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.skyfishjy.library.RippleBackground;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -155,6 +158,9 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.TTFragmentBroadcastReceiv
 import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 import static com.hatopigeon.cubictimer.utils.TTIntent.registerReceiver;
 import static com.hatopigeon.cubictimer.utils.TTIntent.unregisterReceiver;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 public class TimerFragment extends BaseFragment
         implements StatisticsCache.StatisticsObserver
@@ -287,7 +293,7 @@ public class TimerFragment extends BaseFragment
     private boolean isScanning = false;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
-    private static final int GAN_MANUFACTUREID = 0x4147;
+    private static final int GAN_MANUFACTURER_ID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -298,6 +304,18 @@ public class TimerFragment extends BaseFragment
     private static final int GANTIMER_STATE_RUNNIG = 3;
     private static final int GANTIMER_STATE_STOPPED = 4;
     private static final int GANTIMER_STATE_FINISHED = 7;
+
+    // definitions for QiYi Smart Timer
+    private static final int QIYI_MANUFACTURER_ID = 0x0504;
+    private static final String QIYI_TIMER_SERVICE_UUID = "0000fd50-0000-1000-8000-00805f9b34fb";
+    private static final String QIYI_WRITE_CHARACTERISTIC_UUID = "00000001-0000-1001-8001-00805f9b07d0";
+    private static final String QIYI_READ_CHARACTERISTIC_UUID = "00000002-0000-1001-8001-00805f9b07d0";
+
+    private static final int QIYITIMER_STATE_IDLE = 0;
+    private static final int QIYITIMER_STATE_INSPECTION = 1;
+    private static final int QIYITIMER_STATE_GET_SET = 2;
+    private static final int QIYITIMER_STATE_RUNNING = 3;
+    private static final int QIYITIMER_STATE_STOPPED = 4;
 
     @BindView(R.id.sessionDetailTextAverage)
     TextView detailTextAvg;
@@ -2769,7 +2787,13 @@ public class TimerFragment extends BaseFragment
                 .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
                 .build());
         filters.add(new ScanFilter.Builder()
-                .setManufacturerData(GAN_MANUFACTUREID, new byte[]{}, new byte[]{})
+                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                .build());
+        filters.add(new ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid.fromString(QIYI_TIMER_SERVICE_UUID))
+                .build());
+        filters.add(new ScanFilter.Builder()
+                .setManufacturerData(QIYI_MANUFACTURER_ID, new byte[]{}, new byte[]{})
                 .build());
         scanner.startScan(filters, settings, mLeScanCallback);
     }
@@ -2843,6 +2867,31 @@ public class TimerFragment extends BaseFragment
     class BleClientManager extends BleManager {
         private static final String TAG = "BleClientManager";
 
+        private static final int BT_MODE_UNKNOWN = 0;
+        private static final int BT_MODE_GAN_TIMER = 1;
+        private static final int BT_MODE_QIYI_TIMER = 2;
+
+        private int btMode = BT_MODE_UNKNOWN;
+
+        private int qiyiNextPktNum = 0;
+        private int qiyiMsgLen = 0;
+        private int qiyiCipherLen = 0;
+        private int qiyiCipherPos = 0;
+        private byte[] qiyiCipherBuf = null;
+        private Cipher qiyiDecryptCipher;
+        private Cipher qiyiEncryptCipher;
+        private int qiyiPreviousState = QIYITIMER_STATE_IDLE;
+
+        private static final byte[] QIYI_HELLO_HEADER_1 = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x21, 0x08, 0x00, 0x01, 0x05, 0x5A
+        };
+
+        private static final byte[] QIYI_HELLO_HEADER_2 = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x22, 0x05, 0x00, 0x01, 0x06, 0x5A
+        };
+
         public BleClientManager(@NonNull final Context context) {
             super(context);
         }
@@ -2864,17 +2913,33 @@ public class TimerFragment extends BaseFragment
         // ==== Required implementation ====
 
         // This is a reference to a characteristic that the manager will use internally.
-        private BluetoothGattCharacteristic stateCharacteristic;
+        // GAN Smart Timer
+        private BluetoothGattCharacteristic ganStateCharacteristic;
+
+        // QiYi Smart Timer
+        private BluetoothGattCharacteristic qiyiReadCharacteristic;
+        private BluetoothGattCharacteristic qiyiWriteCharacteristic;
 
         @Override
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
             // Here obtain instances of your characteristics.
             // Return false if a required service has not been discovered.
-            BluetoothGattService timerService = gatt.getService(UUID.fromString(GANTIMER_TIMER_SERVICE_UUID));
-            if (timerService != null) {
-                stateCharacteristic = timerService.getCharacteristic(UUID.fromString(GANTIMER_STATE_CHARACTERISTIC_UUID));
+            BluetoothGattService ganTimerService = gatt.getService(UUID.fromString(GANTIMER_TIMER_SERVICE_UUID));
+            BluetoothGattService qiyiTimerService = gatt.getService(UUID.fromString(QIYI_TIMER_SERVICE_UUID));
+
+            if (ganTimerService != null) {
+                btMode = BT_MODE_GAN_TIMER;
+                ganStateCharacteristic = ganTimerService.getCharacteristic(UUID.fromString(GANTIMER_STATE_CHARACTERISTIC_UUID));
+                return ganStateCharacteristic != null;
+            } else if (qiyiTimerService != null) {
+                btMode = BT_MODE_QIYI_TIMER;
+                qiyiReadCharacteristic = qiyiTimerService.getCharacteristic(UUID.fromString(QIYI_READ_CHARACTERISTIC_UUID));
+                qiyiWriteCharacteristic = qiyiTimerService.getCharacteristic(UUID.fromString(QIYI_WRITE_CHARACTERISTIC_UUID));
+                return qiyiReadCharacteristic != null && qiyiWriteCharacteristic != null;
             }
-            return stateCharacteristic != null;
+
+            btMode = BT_MODE_UNKNOWN;
+            return false;
         }
 
         @Override
@@ -2886,8 +2951,19 @@ public class TimerFragment extends BaseFragment
             requestMtu(517)
                     .enqueue();
 
+            if (btMode == BT_MODE_GAN_TIMER) {
+                initGanTimer();
+            } else if (btMode == BT_MODE_QIYI_TIMER) {
+                initQiyiTimer();
+            }
+
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_connect_message));
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECTED);
+        }
+
+        private void initGanTimer() {
             // GAN Smart/Halo Timer state characteristic notification
-            setNotificationCallback(stateCharacteristic)
+            setNotificationCallback(ganStateCharacteristic)
                     .with(
                             new DataReceivedCallback() {
                                 @Override
@@ -2899,18 +2975,16 @@ public class TimerFragment extends BaseFragment
                                     int min = 0;
                                     int sec = 0;
                                     int milli = 0;
-                                    String timerStr = "";
 
                                     if ((state == GANTIMER_STATE_STOPPED || state == GANTIMER_STATE_IDLE)
                                             && length == 0x08) {
                                         min = data.getIntValue(Data.FORMAT_UINT8, 4);
                                         sec = data.getIntValue(Data.FORMAT_UINT8, 5);
                                         milli = data.getIntValue(Data.FORMAT_UINT16_LE, 6);
-                                        timerStr = String.format(" %01d%02d%03d", min, sec, milli);
                                     }
                                     if (header == 0xFE && prefix == 0x01) {
                                         Log.d(TAG, "BLE data notify OK : " + state + ", " + min + ":" + sec + ":" + milli);
-                                        updateGanTimer(state, timerStr);
+                                        updateGanTimer(state, min*60*1000 + sec*1000 + milli);
                                     } else {
                                         Log.d(TAG, "BLE data notify NG : " + data.toString());
                                     }
@@ -2918,10 +2992,299 @@ public class TimerFragment extends BaseFragment
                                 }
                             }
                     );
-            enableNotifications(stateCharacteristic).enqueue();
+            enableNotifications(ganStateCharacteristic).enqueue();
+        }
 
-            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_connect_message));
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECTED);
+        private void initQiyiTimer() {
+            try {
+                SecretKeySpec key = new SecretKeySpec(
+                        new byte[] {
+                                0x77,0x77,0x77,0x77,0x77,0x77,0x77,0x77,
+                                0x77,0x77,0x77,0x77,0x77,0x77,0x77,0x77
+                        }, "AES");
+                qiyiDecryptCipher = Cipher.getInstance("AES/ECB/NoPadding");
+                qiyiDecryptCipher.init(Cipher.DECRYPT_MODE, key);
+                qiyiEncryptCipher = Cipher.getInstance("AES/ECB/NoPadding");
+                qiyiEncryptCipher.init(Cipher.ENCRYPT_MODE, key);
+            } catch (GeneralSecurityException e) {
+                Log.e(TAG, "Qiyi AES init error", e);
+            }
+
+            setNotificationCallback(qiyiReadCharacteristic)
+                    .with((device, data) -> {
+                        byte[] value = data.getValue();
+                        if (value != null) {
+                            onQiyiPacket(value);
+                        }
+                    });
+            enableNotifications(qiyiReadCharacteristic).enqueue();
+
+            String mac = getBluetoothDevice().getAddress();
+            Log.d(TAG, "Qiyi MAC Address = " + mac);
+            sendQiyiHello(mac, QIYI_HELLO_HEADER_1);
+            sendQiyiHello(mac, QIYI_HELLO_HEADER_2);
+        }
+
+        private void sendQiyiHello(String macAddress, byte[] header) {
+            String[] parts = macAddress.split(":");
+            if (parts.length != 6) {
+                Log.e(TAG, "Qiyi ivalid MAC = " + macAddress);
+                return;
+            }
+
+            byte[] data = new byte[header.length + 6];
+            System.arraycopy(header, 0, data, 0, header.length);
+
+            for (int i = 0; i < 6; i++) {
+                data[header.length + 5 - i] = (byte) Integer.parseInt(parts[i], 16);
+            }
+
+            qiyiSendMessage(1, 0, 0x0001, data);
+        }
+
+        private void qiyiSendMessage(long seqNum, long respNum, int cmd, byte[] payload) {
+            // packet0  = |pktNum(1)|msgLen(1)|protocolVer(1)|securityFlag(1)|message|
+            // packet1- = |pktNum(1)|message|
+            // message = |seqNum(4)|respNum(4)|cmd(2)|pldLen(2)|payload(pldLen)|crc(2)|
+            // payload = |dpID(1)|dpType(1)|dpLen(2)|dp(dpLen)|
+
+            int pldLen = (payload != null ? payload.length : 0);
+            ByteArrayOutputStream baosMsg = new ByteArrayOutputStream();
+
+            // sequence number
+            baosMsg.write((byte) ((seqNum >> 24) & 0xFF));
+            baosMsg.write((byte) ((seqNum >> 16) & 0xFF));
+            baosMsg.write((byte) ((seqNum >> 8) & 0xFF));
+            baosMsg.write((byte) ((seqNum >> 0) & 0xFF));
+
+            // response number
+            baosMsg.write((byte) ((respNum >> 24) & 0xFF));
+            baosMsg.write((byte) ((respNum >> 16) & 0xFF));
+            baosMsg.write((byte) ((respNum >> 8) & 0xFF));
+            baosMsg.write((byte) ((respNum >> 0) & 0xFF));
+
+            // cmd
+            baosMsg.write((byte) ((cmd >> 8) & 0xFF));
+            baosMsg.write((byte) ((cmd >> 0) & 0xFF));
+
+            // payload length
+            baosMsg.write((byte) ((pldLen >> 8) & 0xFF));
+            baosMsg.write((byte) ((pldLen >> 0) & 0xFF));
+
+            // payload
+            if (payload != null && pldLen > 0) {
+                baosMsg.write(payload, 0, pldLen);
+            }
+
+            byte[] msg = baosMsg.toByteArray();
+            int crc = crc16Modbus(msg);
+            baosMsg.write((byte) ((crc >> 8) & 0xFF));
+            baosMsg.write((byte) ((crc >> 0) & 0xFF));
+            msg = baosMsg.toByteArray();
+
+            Log.d(TAG, "Qiyi TX message (" + msg.length + "): " + bytesToHex(msg));
+
+            int megLen = msg.length;
+            int pktNum = 0;
+
+            for (int offset = 0; offset < megLen; offset += 16) {
+                int blockLen = Math.min(16, megLen - offset);
+                byte[] block = new byte[16];
+                for (int i = 0; i < 16; i++) {
+                    if (i < blockLen) {
+                        block[i] = msg[offset + i];
+                    } else {
+                        block[i] = 0x01;
+                    }
+                }
+
+                byte[] enc;
+                try {
+                    enc = qiyiEncryptCipher.doFinal(block);
+                } catch (GeneralSecurityException e) {
+                    Log.e(TAG, "Qiyi encrypt error", e);
+                    return;
+                }
+
+                ByteArrayOutputStream baosPkt = new ByteArrayOutputStream();
+                baosPkt.write((byte) (pktNum & 0xFF));
+                if (pktNum == 0) {
+                    baosPkt.write((byte) ((megLen + 2) & 0xFF));
+                    baosPkt.write(0x40);    // protocol version
+                    baosPkt.write(0x00);    // security flag
+                }
+                try {
+                    baosPkt.write(enc);
+                } catch (IOException e) {
+                    Log.e(TAG, "Qiyi pkt write error", e);
+                    return;
+                }
+
+                byte[] pkt = baosPkt.toByteArray();
+                Log.d(TAG, "Qiyi TX packet" + pktNum + " (" + pkt.length + "): " + bytesToHex(pkt));
+
+                writeCharacteristic(qiyiWriteCharacteristic, pkt, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT).enqueue();
+
+                pktNum++;
+            }
+        }
+
+        private void onQiyiPacket(byte[] packet) {
+            // packet0  = |pktNum(1)|msgLen(1)|protocolVer(1)|securityFlag(1)|message|
+            // packet1- = |pktNum(1)|message|
+
+            if (packet.length == 0) return;
+
+            Log.d(TAG, "Qiyi RX packet (" + packet.length + "): " + bytesToHex(packet));
+
+            int pktNum = packet[0] & 0xFF;
+
+            if (pktNum != qiyiNextPktNum) {
+                resetQiyiBuffer();
+                Log.d(TAG, "Qiyi RX packet : packet num error");
+                return;
+            }
+
+            int offset = 0;
+            if (pktNum == 0) {
+                qiyiMsgLen = (packet[1] & 0xFF) - 2;
+                if (qiyiMsgLen <= 0) {
+                    resetQiyiBuffer();
+                    Log.d(TAG, "Qiyi RX packet : message size error");
+                    return;
+                }
+                qiyiCipherLen = ((qiyiMsgLen + 15) / 16) * 16;
+                qiyiCipherPos = 0;
+                qiyiCipherBuf = new byte[qiyiCipherLen];
+                offset = 4;
+            } else {
+                offset = 1;
+            }
+
+            int copyLen = Math.min(packet.length - offset, qiyiCipherLen - qiyiCipherPos);
+            if (copyLen < 0) return;
+
+            System.arraycopy(packet, offset, qiyiCipherBuf, qiyiCipherPos, copyLen);
+            qiyiCipherPos += copyLen;
+
+            if (qiyiCipherPos < qiyiCipherLen) {
+                qiyiNextPktNum++;
+                return;
+            }
+
+            // receiving message completed
+            qiyiNextPktNum = 0;
+
+            byte[] plain;
+            try {
+                plain = qiyiDecryptCipher.doFinal(qiyiCipherBuf);
+            } catch (GeneralSecurityException e) {
+                resetQiyiBuffer();
+                Log.e(TAG, "Qiyi decrypt error", e);
+                return;
+            }
+
+            byte[] msg = Arrays.copyOfRange(plain, 0, qiyiMsgLen);
+
+            Log.d(TAG, "Qiyi RX message (" + msg.length + "): " + bytesToHex(msg));
+
+            handleQiyiMessage(msg);
+            resetQiyiBuffer();
+        }
+
+        private void handleQiyiMessage(byte[] msg) {
+            // message = |seqNum(4)|respNum(4)|cmd(2)|pldLen(2)|payload(pldLen)|crc(2)|
+            // payload = |dpID(1)|dpType(1)|dpLen(2)|dp(dpLen)|
+
+            // make sure message have header + crc
+            if (msg.length < 14) return;
+            int pldLen = ((msg[10] & 0xFF)<< 8) | (msg[11] & 0xFF);
+
+            // make sure message have header + payload + crc
+            if (msg.length < 12 + pldLen + 2) return;
+            int crc = ((msg[12+pldLen] & 0xFF)<< 8) | (msg[12+pldLen+1] & 0xFF);
+
+            byte[] msgBody = Arrays.copyOfRange(msg, 0, 12+pldLen);
+            int crcExp = crc16Modbus(msgBody);
+
+            Log.d(TAG, "Qiyi RX CRC = " + crc + ", CRC expected = " + crcExp);
+
+            if (crc != crcExp) {
+                Log.d(TAG, "Qiyi RX CRC not matched");
+            }
+
+            int cmd = ((msg[8] & 0xFF) << 8) | (msg[9] & 0xFF);
+            if (cmd != 0x1003) return;
+
+            byte[] pld = Arrays.copyOfRange(msg, 12, 12 + pldLen);
+
+            int dpId = pld[0] & 0xFF;
+            int dpType = pld[1] & 0xFF;
+            int dpLen = ((pld[2] & 0xFF) << 8) | (pld[3] & 0xFF);
+            byte[] dp = Arrays.copyOfRange(pld, 4, 4+dpLen);
+
+            if (dpId == 1 && dpType == 1) {
+                // finish
+                // dp = |??(4)|solveTime(4)|inspectionTime(4)|
+                if (pld.length >= 16) {
+                    long solveTime = ((dp[4] & 0xFFL) << 24) | ((dp[5] & 0xFF) << 16) | ((dp[6] & 0xFF) << 8) | (dp[7] & 0xFF);
+                    Log.d(TAG, "Qiyi RX timer : finished " + solveTime);
+
+                    updateGanTimer(GANTIMER_STATE_STOPPED, solveTime);
+                }
+            } else if (dpId == 4 && dpType == 4) {
+                // status update
+                // dp = |status(1)|solveTime(4)|
+                if (pld.length >= 9) {
+                    int state = dp[0] & 0xFF;
+                    long solveTime = ((dp[1] & 0xFFL) << 24) | ((dp[2] & 0xFF) << 16) | ((dp[3] & 0xFF) << 8) | (dp[4] & 0xFF);
+                    Log.d(TAG, "Qiyi RX timer : status " + state + " solveTime " + solveTime);
+
+                    if (qiyiPreviousState != QIYITIMER_STATE_IDLE && state == QIYITIMER_STATE_IDLE) {
+                        updateGanTimer(GANTIMER_STATE_IDLE, solveTime);
+//                    } else if (state == QIYITIMER_STATE_INSPECTION && solveTime == 0) {
+//                        updateGanTimer(GANTIMER_STATE_IDLE, solveTime);
+                    } else if (state == QIYITIMER_STATE_GET_SET) {
+                        updateGanTimer(GANTIMER_STATE_GET_SET, solveTime);
+                    } else if (state == QIYITIMER_STATE_RUNNING) {
+                        updateGanTimer(GANTIMER_STATE_RUNNIG, solveTime);
+                    }
+
+                    qiyiPreviousState = state;
+                }
+            }
+        }
+
+        private int crc16Modbus(byte[] buf) {
+            int crc = 0xFFFF;
+            for (byte b : buf) {
+                crc ^= (b & 0xFF);
+                for (int j = 0; j < 8; j++) {
+                    if ((crc & 0x0001) != 0) {
+                        crc = (crc >> 1) ^ 0xA001;
+                    } else {
+                        crc = (crc >> 1);
+                    }
+                }
+            }
+            return crc & 0xFFFF;
+        }
+
+        private void resetQiyiBuffer() {
+            qiyiNextPktNum = 0;
+            qiyiMsgLen = 0;
+            qiyiCipherLen = 0;
+            qiyiCipherPos = 0;
+            qiyiCipherBuf = null;
+        }
+
+        private String bytesToHex(byte[] bytes) {
+            if (bytes == null) return "";
+            StringBuilder sb = new StringBuilder();
+            for (byte b : bytes) {
+                sb.append(String.format("%02X ", b));
+            }
+            return sb.toString().trim();
         }
 
         @Override
@@ -2929,7 +3292,10 @@ public class TimerFragment extends BaseFragment
             // This method is called when the services get invalidated, i.e. when the device
             // disconnects.
             // References to characteristics should be nullified here.
-            stateCharacteristic = null;
+            ganStateCharacteristic = null;
+            qiyiReadCharacteristic = null;
+            qiyiWriteCharacteristic = null;
+            btMode = BT_MODE_UNKNOWN;
             // sometime this callback called after fragment detached, so checking bleStatusMessage
             if (bleStatusMessage != null)
                 bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
@@ -2942,7 +3308,7 @@ public class TimerFragment extends BaseFragment
         // Here you may add some high level methods for your device:
     }
 
-    private void updateGanTimer(int state, String str) {
+    private void updateGanTimer(int state, long time) {
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
                 && PuzzleUtils.isInspectionEnabled(currentPuzzle);
         final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
@@ -2956,7 +3322,7 @@ public class TimerFragment extends BaseFragment
         // update debug string
         String[] strState = getResources().getStringArray(R.array.timer_gan_timer_state);
         if (state < strState.length)
-            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + str);
+            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + " " + time);
 
         // detect timer start
         boolean isStart = (state == GANTIMER_STATE_RUNNIG);
@@ -2997,7 +3363,7 @@ public class TimerFragment extends BaseFragment
                 // stop timer
                 animationDone = false;
                 isExternalTimer = false;
-                chronometer.setExternalTime(str);
+                chronometer.setExternalTime(time);
                 stopChronometer();
                 if (currentPenalty == PuzzleUtils.PENALTY_PLUSTWO) {
                     // If a user has inspection on and went past his inspection time, he has

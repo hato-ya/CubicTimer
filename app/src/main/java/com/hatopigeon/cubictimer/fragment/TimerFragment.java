@@ -1898,6 +1898,10 @@ public class TimerFragment extends BaseFragment
     }
 
     private void setLapTimeText() {
+        if (chronometer == null || lapTimeText == null) {
+            return;
+        }
+
         String strLap = "";
         int lapNum = chronometer.getLapNum();
 

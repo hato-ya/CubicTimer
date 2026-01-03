@@ -87,7 +87,7 @@ dependencies {
     // Android SVG
     implementation 'com.caverock:androidsvg:1.2.1'
     // MPAndroidChart
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     // RippleBackground
     implementation 'com.skyfishjy.ripplebackground:library:1.0.1'
     // LicensesDialog

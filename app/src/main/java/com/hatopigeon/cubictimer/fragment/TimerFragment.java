@@ -3327,8 +3327,13 @@ public class TimerFragment extends BaseFragment
 
         // update debug string
         String[] strState = getResources().getStringArray(R.array.timer_gan_timer_state);
-        if (state < strState.length)
-            bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + " " + time);
+        if (state < strState.length) {
+            if (time != 0) {
+                bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state] + " " + time);
+            } else {
+                bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + strState[state]);
+            }
+        }
 
         // detect timer start
         boolean isStart = (state == GANTIMER_STATE_RUNNIG);

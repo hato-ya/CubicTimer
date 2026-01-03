@@ -15,7 +15,9 @@ Tap the found device name/address to connect to Smart Timer.
 
 ## Supported smart timer
 - Gan Smart Timer
-- Gan Halo Smart Timer
+- Gan Halo Timer Smart
+- QiYi Smart Timer
+- QiYi Timer Bluetooth Adapter
 
 # Stack timer support
 ## How to connect external stack timer
@@ -28,8 +30,8 @@ Output voltage level of G4 stack timer is lower than the specification of RS232C
 - Speed Stacks Pro Timer G4
 - Speed Stacks Pro Timer G3 (not confirmed, maybe)
 - YuXin Timer V2
-- Gan Halo Smart Timer
-- QiYi Smart Timer (only via RS232C-USB cable)
+- Gan Halo Timer Smart
+- QiYi Smart Timer
 
 ## Supported RS232C to USB converter device
 It depends on usb-serial-for-android.

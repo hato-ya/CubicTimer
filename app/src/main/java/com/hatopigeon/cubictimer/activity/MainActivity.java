@@ -1,14 +1,13 @@
 package com.hatopigeon.cubictimer.activity;
 
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -71,6 +70,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -727,8 +727,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private static class ExportSolves extends AsyncTask<Void, Integer, Boolean> {
-
-        private final Activity  mContext;
+        private final WeakReference<Activity> mActivityRef;
+        private final Context  mContext;
         private final int      mFileFormat;
         private final Uri      mUri;
         private final String   mPuzzleType;
@@ -739,8 +739,8 @@ public class MainActivity extends AppCompatActivity
         /**
          * Creates a new task for exporting solve times to a file.
          *
-         * @param context
-         *     The context required to access resources and to report progress.
+         * @param activity
+         *     The context required to access resources and to report progress and to lock orientation.
          * @param fileFormat
          *     The solve file format, must be {@link ExportImportDialog#EXIM_FORMAT_EXTERNAL}, or
          *     {@link ExportImportDialog#EXIM_FORMAT_BACKUP}.
@@ -755,9 +755,10 @@ public class MainActivity extends AppCompatActivity
          *     {@code fileFormat} is {@code EXIM_FORMAT_EXTERNAL}. For {@code EXIM_FORMAT_BACKUP},
          *     it may be {@code null}, as it will not be used.
          */
-        public ExportSolves(Activity context, int fileFormat, Uri uri,
+        public ExportSolves(Activity activity, int fileFormat, Uri uri,
                             String puzzleType, String puzzleCategory) {
-            mContext = context;
+            mActivityRef = new WeakReference<>(activity);
+            mContext = activity.getApplicationContext();
             mFileFormat = fileFormat;
             mUri = uri;
             mPuzzleType = puzzleType;
@@ -766,7 +767,15 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPreExecute() {
-            mProgressDialog = ThemeUtils.roundDialog(mContext, new  MaterialDialog.Builder(mContext)
+            Activity activity = mActivityRef.get();
+            if (activity == null) {
+                cancel(true);
+                return;
+            }
+
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+
+            mProgressDialog = ThemeUtils.roundDialog(activity, new  MaterialDialog.Builder(activity)
                 .content(R.string.export_progress_title)
                 .progress(false, 0, true)
                 .cancelable(false)
@@ -817,7 +826,9 @@ public class MainActivity extends AppCompatActivity
                                     cursor.getString(IDX_COMMENT)
                             });
                             exports++;
-                            publishProgress(exports);
+                            if (exports % 1000 == 0 || exports == cursor.getCount()) {
+                                publishProgress(exports);
+                            }
                         }
                     } finally {
                         cursor.close();
@@ -848,7 +859,9 @@ public class MainActivity extends AppCompatActivity
                                 });
                             }
                             exports++;
-                            publishProgress(exports);
+                            if (exports % 1000 == 0 || exports == cursor.getCount()) {
+                                publishProgress(exports);
+                            }
                         }
                     } finally {
                         cursor.close();
@@ -870,7 +883,14 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPostExecute(Boolean isExported) {
-            if (mProgressDialog.isShowing()) {
+            Activity activity = mActivityRef.get();
+            if (activity == null) {
+                return;
+            }
+
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+            if (mProgressDialog != null && mProgressDialog.isShowing()) {
                 mProgressDialog.setActionButton(DialogAction.POSITIVE, R.string.action_done);
 
                 if (isExported) {
@@ -885,14 +905,6 @@ public class MainActivity extends AppCompatActivity
                         shareIntent.putExtra(Intent.EXTRA_STREAM, mUri);
                         shareIntent.setType("application/octet-stream");
 
-                        // FileProvider can sometimes crash devices lower than Lollipop
-                        // due to permission issues, so we have to do some magic to the intent
-                        // This is explained in a Medium post by @quiro91
-                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
-                            shareIntent.setClipData(ClipData.newRawUri("", mUri));
-                            shareIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                        }
-
                         mContext.startActivity(Intent.createChooser(shareIntent, "Share"));
                     });
                 } else {
@@ -903,7 +915,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private static class ImportSolves extends AsyncTask<Void, Integer, Void> {
-
+        private final WeakReference<Activity> mActivityRef;
         private final Context  mContext;
         private final int      mFileFormat;
         private final Uri      mUri;
@@ -919,8 +931,8 @@ public class MainActivity extends AppCompatActivity
         /**
          * Creates a new task for importing solve times from a file.
          *
-         * @param context
-         *     The context required to access resources and to report progress.
+         * @param activity
+         *     The activity required to access resources and to report progress and to lock orientation
          * @param uri
          *     The file uri from which to import the solve times.
          * @param fileFormat
@@ -938,9 +950,10 @@ public class MainActivity extends AppCompatActivity
          *     True  : import to archive
          *     False : import to current
          */
-        public ImportSolves(Context context, int fileFormat, Uri uri,
+        public ImportSolves(Activity activity, int fileFormat, Uri uri,
                             String puzzleType, String puzzleCategory, boolean isToArchive) {
-            mContext = context;
+            mActivityRef = new WeakReference<>(activity);
+            mContext = activity.getApplicationContext();
             mFileFormat = fileFormat;
             mUri = uri;
             mPuzzleType = puzzleType;
@@ -950,7 +963,15 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPreExecute() {
-            mProgressDialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
+            Activity activity = mActivityRef.get();
+            if (activity == null) {
+                cancel(true);
+                return;
+            }
+
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+
+            mProgressDialog = ThemeUtils.roundDialog(activity, new MaterialDialog.Builder(activity)
                 .content(R.string.import_progress_title)
                 .progress(false, 0, true)
                 .cancelable(false)
@@ -1215,7 +1236,9 @@ public class MainActivity extends AppCompatActivity
                 successes = handler.addSolves(mFileFormat, solveList, new ProgressListener() {
                             @Override
                             public void onProgress(int numCompleted, int total) {
-                                publishProgress(numCompleted, total);
+                                if (numCompleted % 100 == 0 || numCompleted == total) {
+                                    publishProgress(numCompleted, total);
+                                }
                             }
                         });
                 duplicates = solveList.size() - successes;
@@ -1228,7 +1251,14 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if (mProgressDialog.isShowing()) {
+            Activity activity = mActivityRef.get();
+            if (activity == null) {
+                return;
+            }
+
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+            if (mProgressDialog != null && mProgressDialog.isShowing()) {
                 mProgressDialog.setActionButton(DialogAction.POSITIVE, R.string.action_done);
                 mProgressDialog.setContent(Html.fromHtml(
                         mContext.getString(R.string.import_progress_content)

@@ -89,7 +89,7 @@ public class AboutActivity extends AppCompatActivity {
                     startActivity(browserIntent);
                     break;
                 case R.id.translateButton:
-                    Intent translateBrowserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://crwd.in/cubic-timer"));
+                    Intent translateBrowserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://crowdin.com/project/cubic-timer"));
                     startActivity(translateBrowserIntent);
                     break;
             }

@@ -1,14 +1,14 @@
 package com.hatopigeon.cubictimer.spans;
 
 import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.DecimalFormat;
 
 /**
  * Created by philipp on 02/06/16.
  */
-public class RoundedAxisValueFormatter implements IAxisValueFormatter
+public class RoundedAxisValueFormatter extends ValueFormatter
 {
 
     /**
@@ -41,9 +41,9 @@ public class RoundedAxisValueFormatter implements IAxisValueFormatter
     }
 
     @Override
-    public String getFormattedValue(float value, AxisBase axis) {
+    public String getAxisLabel(float value, AxisBase axis) {
         // avoid memory allocations here (for performance)
-        return mFormat.format((int) value);
+        return mFormat.format(Math.round(value));
     }
 
     /**

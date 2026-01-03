@@ -3,6 +3,8 @@ package com.hatopigeon.cubictimer.stats;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
@@ -12,8 +14,6 @@ import com.github.mikephil.charting.components.LegendEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IValueFormatter;
-import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -391,6 +391,8 @@ public class ChartStatistics {
         dataSet.setDrawCircles(false);
         dataSet.setDrawValues(false);
 
+        dataSet.setAxisDependency(YAxis.AxisDependency.RIGHT);
+
         return dataSet;
     }
 
@@ -675,6 +677,20 @@ public class ChartStatistics {
     }
 
     /**
+     * Gets the simple arithmetic worst time of all non-DNF solves that were added to these chart
+     * statistics. The returned millisecond value is truncated to a whole milliseconds value, not
+     * rounded.
+     *
+     * @return
+     *     The worst time of all non-DNF solves that were added for the chart statistics. The result
+     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     times were DNFs.
+     */
+    public long getWorstTime() {
+        return mStatistics.getSessionWorstTime();
+    }
+
+    /**
      * Gets the width to use for all lines on the chart. The lines are shown slightly wider when
      * only the session times are displayed, as there will be less data points on the chart.
      *
@@ -720,10 +736,10 @@ public class ChartStatistics {
      * A formatter for time values displayed beside points in the chart. This converts the stored
      * values (in seconds) to the normal representation.
      */
-    private static class TimeChartValueFormatter implements IValueFormatter {
+    private static class TimeChartValueFormatter extends ValueFormatter {
         @Override
-        public String getFormattedValue(float value, Entry entry, int dataSetIndex,
-                                        ViewPortHandler viewPortHandler) {
+        public String getPointLabel(Entry entry) {
+            float value = entry.getY();
             // "value" is in fractional seconds. Convert to whole milliseconds and format it.
             return PuzzleUtils.convertTimeToString(Math.round(value * 1_000),
                     PuzzleUtils.FORMAT_STATS, PuzzleUtils.TYPE_333);

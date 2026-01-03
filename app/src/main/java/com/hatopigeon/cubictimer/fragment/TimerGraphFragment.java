@@ -14,6 +14,8 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.data.LineData;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.StatGridAdapter;
@@ -129,6 +131,8 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
     private int numColumnsImprovement;
     private int numColumnsAverage;
     private int numColumnsOther;
+
+    private boolean initialZoomApplied = false;
 
     /*
     @OnClick( {R.id.stats_label, R.id.stats_global, R.id.stats_session, R.id.stats_current} )
@@ -309,6 +313,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         axisLeft.enableGridDashedLine(10, 8f, 0);
         axisLeft.setValueFormatter(new TimeFormatter(currentPuzzle));
         axisLeft.setDrawLimitLinesBehindData(true);
+        axisLeft.setAxisMinimum(0f);
 
 
         // Find the gridView inside each included layout
@@ -563,8 +568,44 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         // best AoN times) and mean limit line and identify them all using a custom legend.
         chartStats.applyTo(lineChartView);
 
+        // Zoom up graph
+        //   X-axis : latest 10,000 solves
+        //   Y-axis : from 0.0 to mean*2
+        if (!initialZoomApplied) {
+            LineData data = lineChartView.getData();
+            if (data != null) {
+                float scaleX = 1.0f;
+                float scaleY = 1.0f;
+
+                // scaleX
+                float xMax = data.getXMax();
+                float xMin = data.getXMin();
+                float xRange = xMax - xMin;
+                float XRANGE_MAX = 10000.0f;
+
+                if (XRANGE_MAX < xRange) {
+                    scaleX = xRange / XRANGE_MAX;
+                }
+
+                // scaleY
+                if (!currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                    long worstTime = chartStats.getWorstTime();
+                    long meanTime = chartStats.getMeanTime();
+
+                    if (meanTime * 2 < worstTime) {
+                        scaleY = (float) worstTime / (meanTime * 2);
+                    }
+                }
+
+                lineChartView.zoom(scaleX, scaleY, 0, 0);
+                lineChartView.moveViewToX(xMax);
+
+                initialZoomApplied = true;
+            }
+        }
+
         // Animate and refresh the chart.
-        lineChartView.animateY(700, Easing.EasingOption.EaseInOutSine);
+        lineChartView.animateY(700, Easing.EaseInOutSine);
     }
 
     /**

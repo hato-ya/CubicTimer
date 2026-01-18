@@ -316,6 +316,10 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         axisLeft.setDrawLimitLinesBehindData(true);
         axisLeft.setAxisMinimum(0f);
 
+        if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD) || currentPuzzle.equals(PuzzleUtils.TYPE_333FMC)) {
+            axisLeft.setGranularity(1f);
+            axisLeft.setGranularityEnabled(true);
+        }
 
         // Find the gridView inside each included layout
         statsImprovementGridView = statsImprovementLayout.findViewById(R.id.stats_gridView);

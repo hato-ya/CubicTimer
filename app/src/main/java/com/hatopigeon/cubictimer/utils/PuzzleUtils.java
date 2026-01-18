@@ -597,7 +597,7 @@ public class PuzzleUtils {
                 break;
             case FORMAT_NO_MILLI_AXIS:
                 // Add one decimal place when the time is under 10 seconds
-                if (time < 10*1000) {
+                if (time < 10*1000 && !(puzzleType.equals(TYPE_333MBLD) || puzzleType.equals(TYPE_333FMC))) {
                     String millis1 = String.format("%01d", (time % 1000) / 100);
                     formattedString.append(".");
                     formattedString.append(millis1);

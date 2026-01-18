@@ -16,6 +16,7 @@ import android.widget.ViewFlipper;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.StatGridAdapter;
@@ -304,7 +305,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         xAxis.setValueFormatter(new RoundedAxisValueFormatter(xAxis.mDecimals));
 
         axisLeft.setDrawGridLines(true);
-        //axisLeft.setSpaceTop(30f);
+        axisLeft.setSpaceTop(0f);
         axisLeft.setTextColor(axisColor);
         axisLeft.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
         axisLeft.setAxisLineColor(axisColor);
@@ -570,37 +571,79 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
         // Zoom up graph
         //   X-axis : latest 10,000 solves
-        //   Y-axis : from 0.0 to mean*2
+        //   Y-axis : from best to mean*2
         if (!initialZoomApplied) {
             LineData data = lineChartView.getData();
             if (data != null) {
-                float scaleX = 1.0f;
-                float scaleY = 1.0f;
+                ILineDataSet dataSet = data.getDataSetByIndex(0);
+                int count = (dataSet != null) ? dataSet.getEntryCount() : 0;
 
-                // scaleX
-                float xMax = data.getXMax();
-                float xMin = data.getXMin();
-                float xRange = xMax - xMin;
-                float XRANGE_MAX = 10000.0f;
+                if (count > 2) {
+                    lineChartView.fitScreen();
 
-                if (XRANGE_MAX < xRange) {
-                    scaleX = xRange / XRANGE_MAX;
-                }
+                    float scaleX = 1.0f;
+                    float scaleY = 1.0f;
 
-                // scaleY
-                if (!currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
-                    long worstTime = chartStats.getWorstTime();
-                    long meanTime = chartStats.getMeanTime();
+                    // scaleX
+                    float xMax = data.getXMax();
+                    float xMin = data.getXMin();
+                    float xRange = xMax - xMin;
+                    float XRANGE_MAX = 10000.0f;
 
-                    if (meanTime * 2 < worstTime) {
-                        scaleY = (float) worstTime / (meanTime * 2);
+                    if (XRANGE_MAX < xRange) {
+                        scaleX = xRange / XRANGE_MAX;
+                    }
+
+                    // scaleY
+                    float yCenter = 0f;
+                    if (!currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                        float bestTime = chartStats.getBestTime() / 1000f;
+                        float meanTime = chartStats.getMeanTime() / 1000f;
+                        float worstTime = chartStats.getWorstTime() / 1000f;
+
+                        float yMax = worstTime;
+                        float yMin = bestTime;
+
+                        if (meanTime * 2 < worstTime) {
+                            yMax = meanTime * 2f;
+                        }
+
+                        Log.d(TAG, "yMaxOrg " + yMax + ", yMinOrg " + yMin);
+
+                        // Add margin to the yMin
+                        float yMargin = (yMax - yMin) * 0.2f;
+                        yMin = Math.max(yMin - yMargin, 0f);
+
+                        // Limit yRange to 1.0
+                        float yRange = yMax - yMin;
+                        if (yRange < 1f) {
+                            yMin = yMin - 1f;
+                            if (yMin < 0f) {
+                                yMax = yMax - yMin;
+                                yMin = 0f;
+                            }
+                        }
+
+                        // calculate scale and center
+                        scaleY = worstTime / (yMax - yMin);
+                        yCenter = (yMax + yMin) / 2f;
+
+                        Log.d(TAG, "yMax " + yMax + ", yMin " + yMin + ", scaleY " + scaleY + ", yCenter " + yCenter);
+                    }
+
+                    lineChartView.zoom(scaleX, scaleY, 0, 0);
+
+                    if (!currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
+                        lineChartView.moveViewTo(xMax, yCenter, YAxis.AxisDependency.RIGHT);
+                    } else {
+                        lineChartView.moveViewToX(xMax);
+                    }
+
+                    // Continue auto zooming until count < 10
+                    if (count >= 10) {
+                        initialZoomApplied = true;
                     }
                 }
-
-                lineChartView.zoom(scaleX, scaleY, 0, 0);
-                lineChartView.moveViewToX(xMax);
-
-                initialZoomApplied = true;
             }
         }
 

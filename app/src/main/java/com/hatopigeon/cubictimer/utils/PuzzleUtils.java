@@ -988,9 +988,9 @@ public class PuzzleUtils {
      * @return
      */
     public static boolean isInspectionEnabled (String puzzleType) {
-        return !(puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
-                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC)
-                || puzzleType.equals(TYPE_333MBLD));
+        return !(puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD) ||
+                puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC) ||
+                puzzleType.equals(TYPE_333MBLD));
     }
 
     /**
@@ -1000,10 +1000,9 @@ public class PuzzleUtils {
      * @return
      */
     public static boolean isForceMo3Enabled (String puzzleType) {
-        return puzzleType.equals(TYPE_666) || puzzleType.equals(TYPE_777)
-                || puzzleType.equals(TYPE_333BLD) || puzzleType.equals(TYPE_444BLD)
-                || puzzleType.equals(TYPE_555BLD) || puzzleType.equals(TYPE_333FMC)
-                || puzzleType.equals(TYPE_333MBLD);
+        return puzzleType.equals(TYPE_666) || puzzleType.equals(TYPE_777) ||
+                puzzleType.equals(TYPE_444BLD) || puzzleType.equals(TYPE_555BLD) ||
+                puzzleType.equals(TYPE_333FMC) || puzzleType.equals(TYPE_333MBLD);
     }
 
     /**

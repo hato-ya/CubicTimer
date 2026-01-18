@@ -691,6 +691,20 @@ public class ChartStatistics {
     }
 
     /**
+     * Gets the simple arithmetic best time of all non-DNF solves that were added to these chart
+     * statistics. The returned millisecond value is truncated to a whole milliseconds value, not
+     * rounded.
+     *
+     * @return
+     *     The best time of all non-DNF solves that were added for the chart statistics. The result
+     *     will be {@link AverageCalculator#UNKNOWN} if no times have been added, or if all added
+     *     times were DNFs.
+     */
+    public long getBestTime() {
+        return mStatistics.getSessionBestTime();
+    }
+
+    /**
      * Gets the width to use for all lines on the chart. The lines are shown slightly wider when
      * only the session times are displayed, as there will be less data points on the chart.
      *

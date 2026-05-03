@@ -482,7 +482,7 @@ public final class AlgUtils {
                                 "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R\n" +
                                 "(y’) L U F L' U' L U L F' L2 U L U L' U' L U' L'";
                     case "Ga":
-                        return "R2 U (R' U R' U') R U' R2 D U' R' U R D'\n" +
+                        return "(y) R2 U (R' U R' U') R U' R2 D U' R' U R D'\n" +
                                 "(y) R2' u R' U R' U' R u' R2 (y') R' U R\n" +
                                 "(y) R2 U R' U R' U' R U' R2 D U' R' U R D'\n" +
                                 "(y2) F2' D R' U R' U' R D' F2 L' U L";

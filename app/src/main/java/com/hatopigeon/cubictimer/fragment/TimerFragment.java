@@ -1216,7 +1216,15 @@ public class TimerFragment extends BaseFragment
     public void onPause() {
         if (DEBUG_ME) Log.d(TAG, "onPause()");
         super.onPause();
+
         disconnect();
+
+        if (dialogBleScan != null && dialogBleScan.isShowing()) {
+            dialogBleScan.dismiss();
+            dialogBleScan = null;
+        }
+        stopBleScanInternal();
+
         disconnectBle();
         if (bleClientManager != null) {
             bleClientManager.close();
@@ -2754,6 +2762,12 @@ public class TimerFragment extends BaseFragment
                 .itemsCallback((dialog, view, which, text) -> {
                     stopBleScanInternal();
                     Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+
+                    if (bleClientManager == null || bleDevices == null
+                            || which < 0 || which >= bleDevices.size()
+                            || bleDevices.get(which) == null) {
+                        return;
+                    }
                     bleClientManager.connect(bleDevices.get(which)).enqueue();
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))

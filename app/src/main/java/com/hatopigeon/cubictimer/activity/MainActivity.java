@@ -899,13 +899,17 @@ public class MainActivity extends AppCompatActivity
                     // Optional share action
                     mProgressDialog.setActionButton(DialogAction.NEUTRAL, R.string.list_options_item_share);
                     mProgressDialog.getBuilder().onNeutral((dialog, which) -> {
-                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        Activity currentActivity = mActivityRef.get();
+                        if (currentActivity == null || currentActivity.isFinishing() || currentActivity.isDestroyed()) {
+                            return;
+                        }
 
-                        shareIntent.setAction(Intent.ACTION_SEND);
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
                         shareIntent.putExtra(Intent.EXTRA_STREAM, mUri);
                         shareIntent.setType("application/octet-stream");
 
-                        mContext.startActivity(Intent.createChooser(shareIntent, "Share"));
+                        Intent chooserIntent = Intent.createChooser(shareIntent, "Share");
+                        currentActivity.startActivity(chooserIntent);
                     });
                 } else {
                     mProgressDialog.setContent(R.string.export_progress_error);

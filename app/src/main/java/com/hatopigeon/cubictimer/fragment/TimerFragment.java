@@ -1608,6 +1608,10 @@ public class TimerFragment extends BaseFragment
     }
 
     private void showToolbar() {
+        if (!isAdded() || getActivity() == null || startTimerLayout == null) {
+            return;
+        }
+
         unlockOrientation(getActivity());
         // Resize startTimerLayout to have the little margin
         // on the left that allows the user to open the side menu.
@@ -1949,10 +1953,23 @@ public class TimerFragment extends BaseFragment
     @Override
     public void onDestroyView() {
         if (DEBUG_ME) Log.d(TAG, "onDestroyView()");
-        super.onDestroyView();
-        mUnbinder.unbind();
+        cancelCountdowns();
         StatisticsCache.getInstance().unregisterObserver(this);
         mRecentStatistics = null;
+        mUnbinder.unbind();
+        super.onDestroyView();
+    }
+
+    private void cancelCountdowns() {
+        if (countdown != null) {
+            countdown.cancel();
+            countdown = null;
+        }
+
+        if (plusTwoCountdown != null) {
+            plusTwoCountdown.cancel();
+            plusTwoCountdown = null;
+        }
     }
 
     private static void lockOrientation(Activity activity) {

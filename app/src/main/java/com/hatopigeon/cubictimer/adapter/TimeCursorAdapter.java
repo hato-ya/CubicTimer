@@ -1,10 +1,9 @@
 package com.hatopigeon.cubictimer.adapter;
 
-import static android.text.format.DateUtils.FORMAT_NUMERIC_DATE;
-import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
-
 import android.content.Context;
 import android.database.Cursor;
+
+import androidx.core.os.ConfigurationCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.core.content.ContextCompat;
 import androidx.cardview.widget.CardView;
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +22,6 @@ import android.widget.TextView;
 
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
-import com.hatopigeon.cubictimer.fragment.TimerFragment;
 import com.hatopigeon.cubictimer.fragment.TimerListFragment;
 import com.hatopigeon.cubictimer.fragment.dialog.TimeDialog;
 import com.hatopigeon.cubictimer.items.Solve;
@@ -32,10 +29,11 @@ import com.hatopigeon.cubictimer.listener.DialogListener;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
-import org.joda.time.DateTime;
-
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -152,9 +150,10 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
         final String pComment = cursor.getString(7); // comment
 
         //Log.d("TimeCursorAdapter", "puzzle type : " + pPuzzle);
-
-        holder.dateText.setText(DateUtils.formatDateTime(mContext, pDate,
-                FORMAT_SHOW_DATE|FORMAT_NUMERIC_DATE));
+        Locale locale = ConfigurationCompat
+                .getLocales(holder.itemView.getContext().getResources().getConfiguration()).get(0);
+        DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
+        holder.dateText.setText(df.format(new Date(pDate)));
 
         if (isSelected(mId))
             holder.card.setBackground(selectedCardBackground);

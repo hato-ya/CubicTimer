@@ -1,10 +1,5 @@
 package com.hatopigeon.cubictimer.fragment.dialog;
 
-import static android.text.format.DateUtils.FORMAT_ABBREV_ALL;
-import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
-import static android.text.format.DateUtils.FORMAT_SHOW_TIME;
-import static android.text.format.DateUtils.FORMAT_SHOW_YEAR;
-
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SET_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.CATEGORY_UI_INTERACTIONS;
 
@@ -22,20 +17,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
+import androidx.core.os.ConfigurationCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.FragmentManager;
 
 import android.text.Html;
-import android.text.InputType;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,7 +44,9 @@ import com.hatopigeon.cubictimer.utils.ScrambleGenerator;
 import com.hatopigeon.cubictimer.utils.TTIntent;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
-import org.joda.time.DateTime;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -260,9 +254,13 @@ public class TimeDialog extends DialogFragment {
             solve = matchedSolve;
 
             timeText.setText(Html.fromHtml(PuzzleUtils.convertTimeToString(solve.getTime(), PuzzleUtils.FORMAT_SMALL_MILLI, solve.getPuzzle())));
-            dateText.setText(DateUtils.formatDateTime(mContext, solve.getDate(),
-                    FORMAT_SHOW_YEAR|FORMAT_SHOW_DATE|FORMAT_ABBREV_ALL) + "\n"
-                    + DateUtils.formatDateTime(mContext, solve.getDate(), FORMAT_SHOW_TIME));
+
+            Date date = new Date(solve.getDate());
+            Locale locale = ConfigurationCompat
+                    .getLocales(dateText.getContext().getResources().getConfiguration()).get(0);
+            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, locale);
+            DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT, locale);
+            dateText.setText(dateFormat.format(date) + "\n" + timeFormat.format(date));
 
             scrambleText.setText(solve.getScramble());
 

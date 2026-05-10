@@ -85,6 +85,7 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_open_stack_timer_settings">stackTimerBehavior</string>
 
     <string translatable="false" name="pk_timer_bg_enabled">backgroundEnabled</string>
+    <string translatable="false" name="pk_enable_thousandth">enableThousandth</string>
     <string translatable="false" name="pk_enable_manual_entry">pk_enable_manual_entry</string>
     <string translatable="false" name="pk_show_hi_res_timer">millisecondsEnabled</string>
     <string translatable="false" name="pk_hide_time_while_running">hideTimeEnabled</string>

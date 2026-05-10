@@ -173,6 +173,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">إعدادات متقدمة</string>
     <string name="pref_category_title_alerts">التنبيهات</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">التحكم</string>
     <string name="pref_category_title_features">المزايا</string>
     <string name="pref_category_title_inspection">الاستكشاف</string>
@@ -388,6 +389,8 @@
     <string name="pref_summary_discrete_graph">رسم المخطط البياني للحلول بشكل نقاط منفردة بدلاً من خط مستمر</string>
     <string name="graph_stats_title_session">الجلسة</string>
     <string name="graph_stats_title_global">الإجمالي</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">الوضع اليدوي</string>
     <string name="pref_summary_manual_mode">يضيف زر على شاشة المؤقت لإدخال الزمن بشكل يدوي بسهولة</string>
     <string name="list_sort_title">Sort by…</string>

@@ -169,6 +169,7 @@
     <string name="personal_best_failed">%1$s falhas</string>
     <string name="pref_category_title_advanced">Avançado</string>
     <string name="pref_category_title_alerts">Alertas</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Controle</string>
     <string name="pref_category_title_features">Funcionalidades</string>
     <string name="pref_category_title_inspection">Inspeção</string>
@@ -380,6 +381,8 @@
     <string name="pref_summary_discrete_graph">Desenha o gráfico como pontos individuais em vez de uma linha contínua</string>
     <string name="graph_stats_title_session">Sessão</string>
     <string name="graph_stats_title_global">Global</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Modo manual</string>
     <string name="pref_summary_manual_mode">Adiciona um botão na tela principal para facilitar a entrada manual de tempos</string>
     <string name="list_sort_title">Ordenar por…</string>

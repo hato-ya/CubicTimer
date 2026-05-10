@@ -93,6 +93,7 @@ public abstract class AverageCalculatorSuper {
     protected int mLowerTrimBound;
     protected int mUpperTrimBound;
     protected int mTrimSize;
+    protected boolean mEnableThousandth;
 
     /**
      * The index in {@link #mTimes} at which to add the next time. If this is equal to the length
@@ -212,7 +213,7 @@ public abstract class AverageCalculatorSuper {
      * @throws IllegalArgumentException
      *     If {@code n} is not greater than zero.
      */
-    AverageCalculatorSuper(int n, int trimPercent) {
+    AverageCalculatorSuper(int n, int trimPercent, boolean enableThousandth) {
         if (n <= 0) {
             throw new IllegalArgumentException("Number of solves must be > 0: " + n);
         }
@@ -229,6 +230,8 @@ public abstract class AverageCalculatorSuper {
         mUpperTrim = new AverageComponent();
         mMiddleTrim = new AverageComponent();
         mLowerTrim = new AverageComponent();
+
+        mEnableThousandth = enableThousandth;
 
         // As "reset()" needs to be supported to ensure a sane state can be guaranteed before
         // populating statistics from the database, it makes sense to use it to initialise the
@@ -472,8 +475,13 @@ public abstract class AverageCalculatorSuper {
                 // If the number of DNF is lower than the number of acceptable DNFs (= trim size)
                 // Calculate a rounded arithmetic mean. "mMiddleTrim.getSum" is the sum of all
                 // times except the upper and lower trims including DNFs.
-                mCurrentAverage = mMiddleTrim.getSum() / (mN - (mTrimSize * 2));
-                mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
+                if (!mEnableThousandth) {
+                    mCurrentAverage = mMiddleTrim.getSum() / (mN - (mTrimSize * 2));
+                    mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
+                } else {
+                    int divisor = mN - (mTrimSize * 2);
+                    mCurrentAverage = (mMiddleTrim.getSum() + divisor / 2) / divisor;
+                }
             }
         } else { // mN < MIN_N_TO_ALLOW_ONE_DNF
             // NOTE: "mN" could be as low as 1, but will not be zero (see the constructor).
@@ -484,8 +492,13 @@ public abstract class AverageCalculatorSuper {
                 // There is no DNF, or there are DNFs, but that will not cause automatic
                 // disqualification. There is at least one non-DNF time present. Calculate the
                 // rounded arithmetic mean.
-                mCurrentAverage = mCurrentSum / (mN - mNumCurrentDNFs);
-                mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
+                if (!mEnableThousandth) {
+                    mCurrentAverage = mCurrentSum / (mN - mNumCurrentDNFs);
+                    mCurrentAverage = (mCurrentAverage + 5) / 10 * 10;  // rounding last digit
+                } else {
+                    int divisor = mN - mNumCurrentDNFs;
+                    mCurrentAverage = (mCurrentSum + divisor / 2) / divisor;
+                }
             }
         }
     }

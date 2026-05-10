@@ -169,6 +169,7 @@
     <string name="personal_best_failed">%1$s fallos</string>
     <string name="pref_category_title_advanced">Avanzado</string>
     <string name="pref_category_title_alerts">Avisos</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Controles</string>
     <string name="pref_category_title_features">Características</string>
     <string name="pref_category_title_inspection">Inspección</string>
@@ -380,6 +381,8 @@
     <string name="pref_summary_discrete_graph">La gráfica son puntos individuales en lugar de una línea continua</string>
     <string name="graph_stats_title_session">Sesión</string>
     <string name="graph_stats_title_global">Global</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Modo manual</string>
     <string name="pref_summary_manual_mode">Añade un botón en la pantalla del cronómetro para introducir tiempo manuales más fácilmente</string>
     <string name="list_sort_title">Ordenar por…</string>

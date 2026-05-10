@@ -169,6 +169,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">Avanzate</string>
     <string name="pref_category_title_alerts">Avvisi</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Controlli</string>
     <string name="pref_category_title_features">Funzionalità</string>
     <string name="pref_category_title_inspection">Ispezione</string>
@@ -381,6 +382,8 @@ Quante solves vuoi rimuovere dall\'archivio? Verranno rimosse le solves piu\' re
     <string name="pref_summary_discrete_graph">Disegna il grafico delle risoluzioni come singoli punti invece che con una linea continua</string>
     <string name="graph_stats_title_session">Sessione</string>
     <string name="graph_stats_title_global">Globale</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Inserimento manuale</string>
     <string name="pref_summary_manual_mode">Aggiunge un pulsante al timer, per facilitare l\'inserimento manuale</string>
     <string name="list_sort_title">Sort by…</string>

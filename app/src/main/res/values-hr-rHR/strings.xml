@@ -172,6 +172,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">Napredno</string>
     <string name="pref_category_title_alerts">Obavijesti</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Kontrole</string>
     <string name="pref_category_title_features">Značajke</string>
     <string name="pref_category_title_inspection">Inspekcija</string>
@@ -384,6 +385,8 @@
     <string name="pref_summary_discrete_graph">Skiciraj graf kao individualne točke umjesto neprekidne linije</string>
     <string name="graph_stats_title_session">Sezona</string>
     <string name="graph_stats_title_global">Sveukupno</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Ručno podešavanje</string>
     <string name="pref_summary_manual_mode">Dodaje gumb na ekran štoperice za lakse ručno dodavanje vremena</string>
     <string name="list_sort_title">Sort by…</string>

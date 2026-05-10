@@ -109,6 +109,8 @@ public class ChronometerMilli extends AppCompatTextView {
      */
     private int mNormalColor;
 
+    private boolean mEnableThousandth;
+
     // Stack Timer Support
     private boolean mIsExternal;
     private long mExternalTime;
@@ -150,6 +152,8 @@ public class ChronometerMilli extends AppCompatTextView {
         mShowHiRes = Prefs.getBoolean(R.string.pk_show_hi_res_timer, true);
         hideTimeEnabled = Prefs.getBoolean(R.string.pk_hide_time_while_running, false);
         hideTimeText = getContext().getString(R.string.hideTimeText);
+
+        mEnableThousandth = Prefs.getBoolean(R.string.pk_enable_thousandth, false);
 
         mLapAt = new ArrayList<>();
 
@@ -484,10 +488,15 @@ public class ChronometerMilli extends AppCompatTextView {
 
             isHiRes = (!mIsStarted || mShowHiRes) && hours == 0;
 
-            if (elapsedMS > 0)
+            if (elapsedMS > 0) {
                 timeText = convertTimeToString(elapsedMS, isHiRes ? FORMAT_SMALL_MILLI_TIMER : FORMAT_NO_MILLI_TIMER, PuzzleUtils.TYPE_333);
-            else
-                timeText = "0<small>.00</small>";
+            } else {
+                if (!mEnableThousandth) {
+                    timeText = "0<small>.00</small>";
+                } else {
+                    timeText = "0<small>.000</small>";
+                }
+            }
             // If a "+2" penalty has been applied and the chronometer is not started or holding,
             // append a small "+" to the time text to declare that a penalty has been added.
             if (!mIsStarted && !mIsHoldingForStart && mPenalty == PENALTY_PLUSTWO) {

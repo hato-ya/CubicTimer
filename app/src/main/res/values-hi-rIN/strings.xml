@@ -172,6 +172,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">एडवांस्ड</string>
     <string name="pref_category_title_alerts">चेतावनियां</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">नियंत्रण</string>
     <string name="pref_category_title_features">विशेषताएं</string>
     <string name="pref_category_title_inspection">निरीक्षण</string>
@@ -383,6 +384,8 @@
     <string name="pref_summary_discrete_graph">एक सतत रेखा के बजाय ऐकिक बिंदु के द्वारा ग्राफ बनाये</string>
     <string name="graph_stats_title_session">सत्र</string>
     <string name="graph_stats_title_global">ग्लोबल</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">मैनुअल मोड</string>
     <string name="pref_summary_manual_mode">हाथों से आसान समय दाखिला के लिए टाइमर स्क्रीन पर एक बटन जोड़ता है</string>
     <string name="list_sort_title">Sort by…</string>

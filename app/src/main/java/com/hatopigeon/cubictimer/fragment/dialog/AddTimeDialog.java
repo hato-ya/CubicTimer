@@ -31,11 +31,13 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.items.Solve;
 import com.hatopigeon.cubictimer.listener.DialogListener;
+import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.TTIntent;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.watcher.SolveTimeNumberTextWatcher;
 import com.hatopigeon.cubictimer.watcher.SolveTimeNumberTextWatcherSecond;
+import com.hatopigeon.cubictimer.watcher.SolveTimeNumberTextWatcherThousandth;
 
 import org.joda.time.DateTime;
 
@@ -350,7 +352,13 @@ public class AddTimeDialog extends DialogFragment {
             penaltyEditText.setVisibility(View.VISIBLE);
         } else {
             // format input time
-            timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
+            boolean enableThousandth = Prefs.getBoolean(R.string.pk_enable_thousandth, false);
+            if (!enableThousandth) {
+                timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcher());
+            } else {
+                timeEditText.addTextChangedListener(new SolveTimeNumberTextWatcherThousandth());
+                timeEditText.setFilters(new InputFilter[] {new InputFilter.LengthFilter(12)});
+            }
 
             if (mMode == MODE_EDIT) {
                 long time = currentTime - (mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? 2000 : 0);

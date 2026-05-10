@@ -169,6 +169,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">Дополнительно</string>
     <string name="pref_category_title_alerts">Оповещения</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Управление</string>
     <string name="pref_category_title_features">Функции</string>
     <string name="pref_category_title_inspection">Инспекция</string>
@@ -382,6 +383,8 @@
     <string name="pref_summary_discrete_graph">Нарисовать график сборок как отдельные точки, вместо непрерывной линии</string>
     <string name="graph_stats_title_session">Сессия</string>
     <string name="graph_stats_title_global">Общее</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Ручной режим</string>
     <string name="pref_summary_manual_mode">Добавляет кнопку на экране таймера для облегчения ввода вручную</string>
     <string name="list_sort_title">Сортировка по…</string>

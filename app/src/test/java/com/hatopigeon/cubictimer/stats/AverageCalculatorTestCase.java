@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
 public class AverageCalculatorTestCase {
     @Test
     public void testCreateOne() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(1, 10);
+        final AverageCalculator ac = new AverageCalculator(1, 10, false);
 
         assertEquals(1, ac.getN());
         assertEquals(0, ac.getNumSolves());
@@ -43,7 +43,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testCreateThree() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(3, 0);
+        final AverageCalculator ac = new AverageCalculator(3, 0, false);
 
         assertEquals(3, ac.getN());
         assertEquals(0, ac.getNumSolves());
@@ -61,7 +61,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testCreateFive() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 20);
+        final AverageCalculator ac = new AverageCalculator(5, 20, false);
 
         assertEquals(5, ac.getN());
         assertEquals(0, ac.getNumSolves());
@@ -80,7 +80,7 @@ public class AverageCalculatorTestCase {
     @Test
     public void testCreateFailure() throws Exception {
         try {
-            new AverageCalculator(0, 0);
+            new AverageCalculator(0, 0, false);
             fail("Expected an exception when 'n' is zero.");
         } catch (IllegalArgumentException ignore) {
             // This is expected.
@@ -89,7 +89,7 @@ public class AverageCalculatorTestCase {
         }
 
         try {
-            new AverageCalculator(-1, 0);
+            new AverageCalculator(-1, 0, false);
             fail("Expected an exception when 'n' is negative.");
         } catch (IllegalArgumentException ignore) {
             // This is expected.
@@ -100,7 +100,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testAddTime() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 20);
+        final AverageCalculator ac = new AverageCalculator(5, 20, false);
 
         // Initial state is already checked in other test methods.
         // Just test that the counters, sums, best, worst, etc. are updated.
@@ -149,7 +149,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testAddTimes() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 20);
+        final AverageCalculator ac = new AverageCalculator(5, 20, false);
 
         // Initial state is already checked in other test methods.
         // Just test that the counters, sums, best, worst, etc. are updated.
@@ -177,7 +177,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testAddTimeFailure() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, true);
+        final AverageCalculator ac = new AverageCalculator(5, true, false);
 
         // Initial state is already checked in other test methods.
         try {
@@ -216,7 +216,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfOneDisqualifyDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(1, 0);
+        final AverageCalculator ac = new AverageCalculator(1, 0, false);
 
         // Initial state is already checked in other test methods.
         ac.addTime(500);
@@ -278,7 +278,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfOneAllowDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(1, 0);
+        final AverageCalculator ac = new AverageCalculator(1, 0, false);
 
         // Initial state is already checked in other test methods.
         ac.addTime(500);
@@ -340,7 +340,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfThreeDisqualifyDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(3, 0);
+        final AverageCalculator ac = new AverageCalculator(3, 0, false);
 
         // Initial state is already checked in other test methods.
         ac.addTimes(500, 250, 150);
@@ -438,7 +438,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfFiveDisqualifyDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 20);
+        final AverageCalculator ac = new AverageCalculator(5, 20, false);
 
         // Initial state is already checked in other test methods.
         ac.addTimes(500, 250, 150, 400, 200);
@@ -522,7 +522,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfNDetailsForThreeDisqualifyDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(3, 0);
+        final AverageCalculator ac = new AverageCalculator(3, 0, false);
         AverageOfN aoN;
 
         // Add less than the minimum required number of times. Average cannot be calculated.
@@ -598,7 +598,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testAverageOfNDetailsForFiveDisqualifyDNFs() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 20);
+        final AverageCalculator ac = new AverageCalculator(5, 20, false);
         AverageOfN aoN;
 
         // Add less than the minimum required number of times. Average cannot be calculated.
@@ -684,7 +684,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testAssortedAverageOfHundredCalculations() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(100, 10);
+        final AverageCalculator ac = new AverageCalculator(100, 10, false);
         AverageOfN aoN;
 
         // Add less than the minimum required number of times. Average cannot be calculated.
@@ -725,7 +725,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testLargeAverage() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(50, 5);
+        final AverageCalculator ac = new AverageCalculator(50, 5, false);
         AverageOfN aoN;
 
         ac.addTimes(89950,95540,95990,72580,74560,92800,92420,83900,98010,89740,95070,82480,99060,81910,88290,72620,115280,96510,79570,79860,65980,79430,96970,89840,85730,74930,77310,91310,91990,97730,74350,66290,64820,78960,73680,86090,95390,75620,86390,79930,89150,88090,86570,73630,99780,91050,88750,89740,84670,92950,86830,78630,81930,86170,79480,87630,79190,90680,77230,80220,77070,79360,83350,100290,103240,80990,84190,75990,86490,77310,87960,72250,84340,82670,92400,97220,85430,87780,85710,94650,94970,80740,89290,75110,95410,111380,96660,74710,73920,90590,95820,103260,92030,87790,95400,99080,80910,90120,74520,89840,96060,74730,66320,88930,73740,84870,95960,105230,80370,80960,77450,103350,86730,106070,85510,72120,106750,84940,120410,97030,83840,94900,108510,87870,71520,82570,88600,101390,86790,84490,93170,93940,102440,99150,81370,85580,87860,94980,98780,81850,82610,78670,84810,89350,119210,76550,89270,98520,72340,99700,83060,70070,120210,78450,74580,84860,88730,84120,100840,98040,88520,106250,95910,90040,92360,83390,88580,81240,70700,103160,94160,107270,82590,79360,101450,92420,114950,83970,95780,102550,98690,73930,74890,85190,83980,72290,102640,77430,104500,130680,93820,89570,102470,93500,90470,113360,93550,99450,155980,121440,138660,113600,86400,96320,101420,106970,116600,109140,120990,144260,84500,92430,115610,104720,116010,170760,106910,118350,115150,123530,94250,116800,83410,90030,119140,86440,171490,176300,99300,113650,123400,123400,110880,124790,127890,125120,109420,119890,157070,108740,144950,130470,127060,103270,102450,124820,92750,99990,104990,123780,128360,95250,112700,99530,98620,116720,150670,107740,101990,144910,118340,134440,112190,103280,121440,114720,134100,106880,113970,113160,104740,73880,95690,85970,100150,102480,96730,67030,84900,86000,71500,88150,99320,92850,79970,103730,104490,77180,106040,115300,142720,88490,77750,89450,77590,170660,80350,88340,88030,102580,97660,88600,73960,84560,84880,84840,74140,98020,81770,95600);
@@ -745,7 +745,7 @@ public class AverageCalculatorTestCase {
 
     @Test
     public void testAoFiveOverflow() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(5, 5);
+        final AverageCalculator ac = new AverageCalculator(5, 5, false);
         AverageOfN aoN;
 
         ac.addTimes(new Random(1).longs(3_000_000, 299_995, 300_000).toArray());
@@ -762,7 +762,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void TestTreeSwap() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(12, 20);
+        final AverageCalculator ac = new AverageCalculator(12, 20, false);
         AverageOfN aoN;
 
         ac.addTimes(10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000);
@@ -785,7 +785,7 @@ public class AverageCalculatorTestCase {
         assertEquals(76666, aoN.getAverage());
 
 
-        final AverageCalculator ac2 = new AverageCalculator(12, 20);
+        final AverageCalculator ac2 = new AverageCalculator(12, 20, false);
 
         ac2.addTimes(120000, 110000, 100000, 90000, 80000, 70000, 60000, 50000, 40000, 30000, 20000, 10000);
         aoN = ac2.getAverageOfN();
@@ -806,7 +806,7 @@ public class AverageCalculatorTestCase {
         aoN = ac2.getAverageOfN();
         assertEquals(51666, aoN.getAverage());
 
-        final AverageCalculator ac3 = new AverageCalculator(12, 20);
+        final AverageCalculator ac3 = new AverageCalculator(12, 20, false);
 
         ac3.addTimes(90000, 80000, 70000, 60000, 50000, 40000, 30000, 20000, 10000, 120000, 110000, 100000);
         aoN = ac3.getAverageOfN();
@@ -837,7 +837,7 @@ public class AverageCalculatorTestCase {
      */
     @Test
     public void testVeryLargeAverage() throws Exception {
-        final AverageCalculator ac = new AverageCalculator(1000, 5);
+        final AverageCalculator ac = new AverageCalculator(1000, 5, false);
 
         ac.addTimes(mLargeTestTimes);
     }

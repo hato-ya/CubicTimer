@@ -172,6 +172,7 @@
     <string name="personal_best_failed">%1$s 실패</string>
     <string name="pref_category_title_advanced">고급 설정</string>
     <string name="pref_category_title_alerts">알림</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">제어</string>
     <string name="pref_category_title_features">기능</string>
     <string name="pref_category_title_inspection">미리보기</string>
@@ -382,6 +383,8 @@
     <string name="pref_summary_discrete_graph">선 대신 점으로 솔빙 그래프 그리기</string>
     <string name="graph_stats_title_session">세션</string>
     <string name="graph_stats_title_global">전체</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">수동 모드</string>
     <string name="pref_summary_manual_mode">직접 시간 입력하기 더 쉽도록 타이머 화면에 버튼 표시</string>
     <string name="list_sort_title">정렬 기준...</string>

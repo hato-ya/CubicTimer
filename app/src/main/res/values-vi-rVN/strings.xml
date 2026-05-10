@@ -172,6 +172,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">Nâng cao</string>
     <string name="pref_category_title_alerts">Nhắc nhở</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Điều khiển</string>
     <string name="pref_category_title_features">Các tính năng</string>
     <string name="pref_category_title_inspection">Kiểm tra</string>
@@ -382,6 +383,8 @@
     <string name="pref_summary_discrete_graph">Vẽ biểu đồ giải dưới dạng các điểm riêng lẻ thay vì một đường liên tục</string>
     <string name="graph_stats_title_session">Phiên làm việc</string>
     <string name="graph_stats_title_global">Chung</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Chế độ thủ công</string>
     <string name="pref_summary_manual_mode">Thêm một nút trên màn hình hẹn giờ để nhập thời gian thủ công dễ dàng hơn</string>
     <string name="list_sort_title">Sắp xếp theo…</string>

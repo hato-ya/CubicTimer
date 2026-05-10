@@ -117,6 +117,14 @@ public class Statistics {
         puzzleType = currentPuzzle;
     }
 
+    private static int getTrimSize() {
+        return Prefs.getInt(R.string.pk_stat_trim_size, Prefs.getDefaultIntValue(R.integer.defaultTrimSize));
+    }
+
+    private static boolean getEnableThousandth() {
+        return Prefs.getBoolean(R.string.pk_enable_thousandth, false);
+    }
+
     /**
      * Creates a new set of statistical averages for the detailed table of all-time and session
      * statistics reported on the statistics/graph tab. Averages of 3, 5, 12, 50, 100 and 1,000 are
@@ -129,14 +137,14 @@ public class Statistics {
     public static Statistics newAllTimeStatistics(String currentPuzzle) {
         final Statistics stats = new Statistics(currentPuzzle);
 
-        mTrimSize = Prefs.getInt(R.string.pk_stat_trim_size, Prefs.getDefaultIntValue(R.integer.defaultTrimSize));
+        mTrimSize = getTrimSize();
 
-        stats.addAverageOf(3, 0, false);
-        stats.addAverageOf(5, 5, false);
-        stats.addAverageOf(12, 5, false);
-        stats.addAverageOf(50, mTrimSize, false);
-        stats.addAverageOf(100, mTrimSize, false);
-        stats.addAverageOf(1_000, mTrimSize, false);
+        stats.addAverageOf(3, 0, false, getEnableThousandth());
+        stats.addAverageOf(5, 5, false, getEnableThousandth());
+        stats.addAverageOf(12, 5, false, getEnableThousandth());
+        stats.addAverageOf(50, mTrimSize, false, getEnableThousandth());
+        stats.addAverageOf(100, mTrimSize, false, getEnableThousandth());
+        stats.addAverageOf(1_000, mTrimSize, false, getEnableThousandth());
 
         return stats;
     }
@@ -155,8 +163,8 @@ public class Statistics {
 
         // Averages for the current session only IS NOT A MISTAKE! The "ChartStatistics" class
         // passes all data in for the "current session", but makes a distinction using its own API.
-        stats.addAverageOf(50, mTrimSize,true);
-        stats.addAverageOf(100, mTrimSize,true);
+        stats.addAverageOf(50, mTrimSize,true, getEnableThousandth());
+        stats.addAverageOf(100, mTrimSize,true, getEnableThousandth());
 
         return stats;
     }
@@ -172,10 +180,10 @@ public class Statistics {
         final Statistics stats = new Statistics(currentPuzzle);
 
         if (PuzzleUtils.isForceMo3Enabled(currentPuzzle))
-            stats.addAverageOf(3, 0, true);
+            stats.addAverageOf(3, 0, true, getEnableThousandth());
         else
-            stats.addAverageOf(5, 5, true);
-        stats.addAverageOf(12, 5, true);
+            stats.addAverageOf(5, 5, true, getEnableThousandth());
+        stats.addAverageOf(12, 5, true, getEnableThousandth());
 
         return stats;
     }
@@ -250,9 +258,9 @@ public class Statistics {
         return ns;
     }
 
-    private AverageCalculatorSuper createAverageCalculator(int n, int trimPercent) {
+    private AverageCalculatorSuper createAverageCalculator(int n, int trimPercent, boolean enableThousandth) {
         if (!puzzleType.equals(PuzzleUtils.TYPE_333MBLD))
-            return new AverageCalculator(n, trimPercent);
+            return new AverageCalculator(n, trimPercent, enableThousandth);
         else
             return new AverageCalculatorMbld(n, trimPercent);
     }
@@ -267,12 +275,14 @@ public class Statistics {
      * @param isForCurrentSessionOnly
      *     {@code true} to collect times only for the current session, or {@code false} to collect
      *     times across all past and current sessions.
+     * @param enableThousandth
+     *      enable thousandth of second
      *
      * @throws IllegalArgumentException
      *     If {@code n} is not greater than zero.
      */
-    private void addAverageOf(int n, int trimPercent, boolean isForCurrentSessionOnly) {
-        final AverageCalculatorSuper ac = createAverageCalculator(n, trimPercent);
+    private void addAverageOf(int n, int trimPercent, boolean isForCurrentSessionOnly, boolean enableThousandth) {
+        final AverageCalculatorSuper ac = createAverageCalculator(n, trimPercent, enableThousandth);
 
         mSessionACs.put(n, ac);
         if (mOneSessionAC == null) {
@@ -280,8 +290,8 @@ public class Statistics {
         }
 
         if (!isForCurrentSessionOnly) {
-            final AverageCalculatorSuper acAllTIme = createAverageCalculator(n, trimPercent);
-            final AverageCalculatorSuper acToday = createAverageCalculator(n, trimPercent);
+            final AverageCalculatorSuper acAllTIme = createAverageCalculator(n, trimPercent, enableThousandth);
+            final AverageCalculatorSuper acToday = createAverageCalculator(n, trimPercent, enableThousandth);
 
             mAllTimeACs.put(n, acAllTIme);
             if (mOneAllTimeAC == null) {
@@ -362,10 +372,6 @@ public class Statistics {
         if (puzzleType.equals(PuzzleUtils.TYPE_333MBLD)) {
             if (new PuzzleUtils.MbldRecord(time).isDNF())
                 time = DNF;
-        } else {
-            // Cutting off last digit to fix rounding errors
-            if (time != DNF)
-                time = time - (time % 10);
         }
 
         // "time" is validated on the first call to "AverageCalculatorSuper.addTime".

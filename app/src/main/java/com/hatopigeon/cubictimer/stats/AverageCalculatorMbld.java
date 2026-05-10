@@ -17,7 +17,7 @@ import java.util.List;
  */
 public final class AverageCalculatorMbld extends AverageCalculatorSuper {
     AverageCalculatorMbld(int n, int trimPercent) {
-        super(n, trimPercent);
+        super(n, trimPercent, false);
     }
 
     /**

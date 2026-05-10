@@ -212,6 +212,10 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        // Set thousandth
+        boolean enableThousandth = Prefs.getBoolean(R.string.pk_enable_thousandth, false);
+        PuzzleUtils.setEnableThousandth(enableThousandth);
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -845,14 +849,14 @@ public class MainActivity extends AppCompatActivity
                         while (cursor.moveToNext()) {
                             if (Solve.getPenalty(cursor.getInt(IDX_PENALTY)) == PuzzleUtils.PENALTY_DNF) {
                                 csvWriter.writeNext(new String[] {
-                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType),
+                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType, true),
                                         cursor.getString(IDX_SCRAMBLE),
                                         new DateTime(cursor.getLong(IDX_DATE)).toString(),
                                         "DNF"
                                 });
                             } else {
                                 csvWriter.writeNext(new String[] {
-                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType),
+                                        PuzzleUtils.convertTimeToString(cursor.getLong(IDX_TIME), PuzzleUtils.FORMAT_SINGLE, mPuzzleType, true),
                                         cursor.getString(IDX_SCRAMBLE),
                                         new DateTime(cursor.getLong(IDX_DATE)).toString(),
                                         ""
@@ -1137,7 +1141,7 @@ public class MainActivity extends AppCompatActivity
                                                 int phaseNum = jsonTimes.length() - j - 1;
                                                 if (phaseNum != 1) strPhase += "\n";
                                                 strPhase += "P" + phaseNum + ": "
-                                                        + convertTimeToString(phase, FORMAT_SINGLE, PuzzleUtils.TYPE_333);
+                                                        + convertTimeToString(phase, FORMAT_SINGLE, PuzzleUtils.TYPE_333, true);
                                                 ;
                                             }
                                         }

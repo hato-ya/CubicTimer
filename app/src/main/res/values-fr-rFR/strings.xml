@@ -171,6 +171,7 @@
     <string name="personal_best_failed">%1$s échecs</string>
     <string name="pref_category_title_advanced">Options avancées</string>
     <string name="pref_category_title_alerts">Alertes</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Commandes</string>
     <string name="pref_category_title_features">Fonctionnalités</string>
     <string name="pref_category_title_inspection">Inspection</string>
@@ -382,6 +383,8 @@
     <string name="pref_summary_discrete_graph">Dessine le graphique des résolutions sous forme de points isolés à la place d\'une ligne continue</string>
     <string name="graph_stats_title_session">Session</string>
     <string name="graph_stats_title_global">Global</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Mode manuel</string>
     <string name="pref_summary_manual_mode">Ajoute un bouton sur l’écran du chronomètre pour entrer des temps plus facilement</string>
     <string name="list_sort_title">Trier par…</string>

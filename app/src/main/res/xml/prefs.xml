@@ -71,6 +71,16 @@
             android:key="@string/pk_open_timer_behavior_settings"
             android:title="@string/pref_screen_title_timer_behavior">
 
+            <PreferenceCategory android:title="@string/pref_category_title_general">
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="false"
+                    android:key="@string/pk_enable_thousandth"
+                    android:title="@string/pref_title_enable_thousandth"
+                    android:summary="@string/pref_summary_enable_thousandth" />
+
+            </PreferenceCategory>
+
             <PreferenceCategory android:title="@string/pref_category_title_control">
 
                 <SwitchPreferenceCompat

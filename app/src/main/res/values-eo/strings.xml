@@ -172,6 +172,7 @@
     <string name="personal_best_failed">%1$s failures</string>
     <string name="pref_category_title_advanced">Progresita</string>
     <string name="pref_category_title_alerts">Avertaĵoj</string>
+    <string name="pref_category_title_general">General</string>
     <string name="pref_category_title_control">Kontroli</string>
     <string name="pref_category_title_features">Features</string>
     <string name="pref_category_title_inspection">Inspekto</string>
@@ -383,6 +384,8 @@
     <string name="pref_summary_discrete_graph">Draw solve graph as individual points instead of a continuous line</string>
     <string name="graph_stats_title_session">Session</string>
     <string name="graph_stats_title_global">Global</string>
+    <string name="pref_title_enable_thousandth">Use 3 decimal places</string>
+    <string name="pref_summary_enable_thousandth">Calculate and display times to the thousandth of a second</string>
     <string name="pref_title_manual_mode">Manual mode</string>
     <string name="pref_summary_manual_mode">Adds a button on the timer screen for easier manual time entry</string>
     <string name="list_sort_title">Sort by…</string>

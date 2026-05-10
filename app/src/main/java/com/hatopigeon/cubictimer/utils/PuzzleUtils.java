@@ -26,6 +26,8 @@ import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
  * Created by Ari on 17/01/2016.
  */
 public class PuzzleUtils {
+    private static boolean sEnableThousandth = false;
+
     public static final String TYPE_222     = "222";
     public static final String TYPE_333     = "333";
     public static final String TYPE_444     = "444";
@@ -436,6 +438,10 @@ public class PuzzleUtils {
         }
     }
 
+    public static void setEnableThousandth(boolean enableThousandth) {
+        sEnableThousandth = enableThousandth;
+    }
+
     /**
      * Converts a duration value in milliseconds to a String
      * For other than FMC
@@ -486,10 +492,12 @@ public class PuzzleUtils {
      *      the format. see FORMAT constants in {@link PuzzleUtils}
      * @param puzzleType
      *      current puzzle type
+     * @param forceThousandth
+     *      force format thousandth of second
      * @return
      *      a String containing the converted time
      */
-    public static String convertTimeToString(long time, int format, String puzzleType) {
+    public static String convertTimeToString(long time, int format, String puzzleType, boolean forceThousandth) {
         if (time == TIME_DNF)
             return "DNF";
         if (time == TIME_UNKNOWN || (time == 0 && !puzzleType.equals(TYPE_333MBLD)))
@@ -572,8 +580,10 @@ public class PuzzleUtils {
             formattedString.append(period.toString(periodFormatter));
         }
 
-        // Restrict millis to 2 digits
-        String millis = String.format("%02d", (time % 1000) / 10);
+        // Restrict millis depend on setting
+        String millis = (sEnableThousandth || forceThousandth)
+                ? String.format("%03d", time % 1000)
+                : String.format("%02d", (time % 1000) / 10);
 
         // Append millis
         switch (format) {
@@ -608,6 +618,10 @@ public class PuzzleUtils {
         }
 
         return formattedString.toString();
+    }
+
+    public static String convertTimeToString(long time, int format, String puzzleType) {
+        return convertTimeToString(time, format, puzzleType, false);
     }
 
     /**

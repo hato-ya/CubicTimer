@@ -22,8 +22,8 @@ import java.util.List;
  * @author damo
  */
 public final class AverageCalculator extends AverageCalculatorSuper {
-    AverageCalculator(int n, int trimPercent) {
-        super(n, trimPercent);
+    AverageCalculator(int n, int trimPercent, boolean enableThousandth) {
+        super(n, trimPercent, enableThousandth);
     }
 
     /**
@@ -50,6 +50,9 @@ public final class AverageCalculator extends AverageCalculatorSuper {
 
             // throw new IllegalArgumentException("Time must be > 0 or be 'DNF': " + time);
         } else {
+            if (!mEnableThousandth && time != DNF) {
+                time = time - (time % 10);
+            }
 
             mNumSolves++;
 

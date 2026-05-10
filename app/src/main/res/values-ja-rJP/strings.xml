@@ -25,7 +25,7 @@
     <string name="input_number_of_puzzles">パズルの個数</string>
     <string name="added_comment">コメントが追加されました</string>
     <string name="advanced_pref_summary">この設定変更は問題を引き起こす恐れがあります。</string>
-    <string name="backCancelEnabledSummary">ソルブ中に戻るボタンを押したとき、ソルブを中止する。</string>
+    <string name="backCancelEnabledSummary">ソルブ中に戻るボタンを押したとき、ソルブを中止する</string>
     <string name="backCancelEnabledTitle">ソルブをキャンセルする</string>
     <string name="backgroundEnabledSummary">タイマーの背景をテーマカラーにする</string>
     <string name="backgroundEnabledTitle">背景の色</string>
@@ -161,8 +161,8 @@
     <string name="optimal_x_cross">X-クロス %1$s:</string>
     <string name="option_show_scramble_hints">ヒントを表示する面の選択</string>
     <string name="option_show_scramble_hints_summary">ヒントを表示したい面を選択してください</string>
-    <string name="pagerEnabledSummary">この設定をオフにするとスワイプでタブの切り替えができなくなります</string>
-    <string name="pagerEnabledTitle">スワイプでのタブの切り替えを許可する</string>
+    <string name="pagerEnabledSummary">この設定をオフにするとスワイプでタブの切り替えができなくなる</string>
+    <string name="pagerEnabledTitle">スワイプでのタブの切り替え</string>
     <string name="panel_swipe_down_to_hide">下にスワイプしてヒントを隠す</string>
     <string name="permission_denied_explanation">エクスポート/インポート機能を実行するには、Cubic Timerに、外部ストレージにアクセスする権限を付与する必要があります。</string>
     <string name="personal_best_message">おめでとうございます‼ \n自己ベストから %1$sの更新です</string>
@@ -172,6 +172,7 @@
     <string name="personal_best_failed">失敗 %1$s個</string>
     <string name="pref_category_title_advanced">詳細</string>
     <string name="pref_category_title_alerts">アラート</string>
+    <string name="pref_category_title_general">基本設定</string>
     <string name="pref_category_title_control">操作</string>
     <string name="pref_category_title_features">表示</string>
     <string name="pref_category_title_inspection">インスペクション</string>
@@ -245,7 +246,7 @@
     <string name="showHintsXCrossSummary">Xクロスのヒントの生成には時間がかかります。\n それでも良い場合のみ設定をオンにしてください。また、生成速度は端末の性能に依存します。</string>
     <string name="showHintsXCrossTitle">Xクロスのヒントを表示する</string>
     <string name="source">開発ソース</string>
-    <string name="startCueSummary">タイマーをスタートできる場合にタイマーの色を変える。</string>
+    <string name="startCueSummary">タイマーをスタートできる場合にタイマーの色を変える</string>
     <string name="startCueTitle">スタートの動作</string>
     <string name="task_remove">削除</string>
     <string name="testers">ベータ版のテスター</string>
@@ -319,9 +320,9 @@
     <string name="pref_inspection_alert_sound">音声</string>
     <string name="pref_inspection_alert_both">バイブレーションと音声</string>
     <string name="pref_inspection_alert_title">インスペクションタイムのアラート</string>
-    <string name="pref_inspection_alert_summary">インスペクションタイム中%1$d と %2$d 秒にアラートします</string>
+    <string name="pref_inspection_alert_summary">インスペクションタイム中%1$d と %2$d 秒にアラートする</string>
     <string name="pref_time_limit_alert_title">制限時間のアラート</string>
-    <string name="pref_time_limit_alert_summary">FMCまたはMBLDの制限時間が過ぎたらアラートします</string>
+    <string name="pref_time_limit_alert_summary">FMCまたはMBLDの制限時間が過ぎたらアラートする</string>
     <string name="dialog_scramble_details">スクランブルの詳細</string>
     <string name="dialog_select_puzzle">パズルの選択</string>
     <string name="dialog_hint_title">ヒント</string>
@@ -382,6 +383,8 @@
     <string name="pref_summary_discrete_graph">それぞれのソルブを線で繋がない</string>
     <string name="graph_stats_title_session">セッション</string>
     <string name="graph_stats_title_global">全体</string>
+    <string name="pref_title_enable_thousandth">小数点第三位まで使用する</string>
+    <string name="pref_summary_enable_thousandth">小数点第三位まで計算・表示する</string>
     <string name="pref_title_manual_mode">タイムを手入力する</string>
     <string name="pref_summary_manual_mode">スタート画面に手入力ボタンを追加する</string>
     <string name="list_sort_title">並び替え</string>

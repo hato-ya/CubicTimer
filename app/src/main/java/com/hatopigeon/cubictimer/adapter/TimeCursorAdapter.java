@@ -30,7 +30,9 @@ import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -150,10 +152,30 @@ public class TimeCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHo
         final String pComment = cursor.getString(7); // comment
 
         //Log.d("TimeCursorAdapter", "puzzle type : " + pPuzzle);
+
+        // date
+        // Omit the year if the date is in the current year
         Locale locale = ConfigurationCompat
                 .getLocales(holder.itemView.getContext().getResources().getConfiguration()).get(0);
-        DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-        holder.dateText.setText(df.format(new Date(pDate)));
+
+        Date date = new Date(pDate);
+
+        Calendar now = Calendar.getInstance(locale);
+        Calendar target = Calendar.getInstance(locale);
+        target.setTime(date);
+
+        boolean sameYear = now.get(Calendar.YEAR) == target.get(Calendar.YEAR);
+
+        String skeleton = sameYear ? "Md" : "yMd";
+        String pattern =
+                android.text.format.DateFormat.getBestDateTimePattern(
+                        locale,
+                        skeleton
+                );
+
+        java.text.DateFormat df = new SimpleDateFormat(pattern, locale);
+
+        holder.dateText.setText(df.format(date));
 
         if (isSelected(mId))
             holder.card.setBackground(selectedCardBackground);

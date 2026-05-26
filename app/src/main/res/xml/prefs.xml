@@ -356,6 +356,20 @@
                     android:title="@string/bleStatusEnabledTitle" />
             </PreferenceCategory>
 
+            <PreferenceCategory android:title="@string/pref_category_title_smart_cube">
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeEnabled"
+                    android:key="@string/pk_smart_cube_enabled"
+                    android:summary="@string/smart_cube_enabled_summary"
+                    android:title="@string/smart_cube_enabled_title" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_cubeStatusEnabled"
+                    android:key="@string/pk_show_cube_status"
+                    android:summary="@string/cubeStatusEnabledSummary"
+                    android:title="@string/cubeStatusEnabledTitle" />
+            </PreferenceCategory>
+
             <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_inspectionByResetEnabled"

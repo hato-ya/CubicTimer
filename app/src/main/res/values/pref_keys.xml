@@ -69,6 +69,9 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_show_ble_status">showBleStatus</string>
     <string translatable="false" name="pk_inspection_by_reset_enabled">inspectionByResetEnabled</string>
 
+    <string translatable="false" name="pk_smart_cube_enabled">smartCubeEnabled</string>
+    <string translatable="false" name="pk_show_cube_status">showCubeStatus</string>
+
     <string translatable="false" name="pk_stat_trim_size">pk_stat_trim_size</string>
     <string translatable="false" name="pk_stat_acceptable_dnf_size">pk_stat_acceptable_dnf_size</string>
     <string translatable="false" name="pk_stat_disqualify_dnf">pk_stat_disqualify_dnf</string>

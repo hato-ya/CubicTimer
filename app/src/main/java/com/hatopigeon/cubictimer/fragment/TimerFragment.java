@@ -66,6 +66,9 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
+import com.hatopigeon.cubictimer.cube.CubeMove;
+import com.hatopigeon.cubictimer.cube.CubeSolver;
 import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.fragment.dialog.AddTimeDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetDetailDialog;
@@ -135,6 +138,11 @@ import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_MOVE;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_SOLVED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -384,6 +392,9 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.ble_status_message)
     TextView bleStatusMessage;
 
+    @BindView(R.id.cube_state_message)
+    TextView cubeStateMessage;
+
     @BindView(R.id.multi_phase_status_message)
     TextView multiPhaseStatusMessage;
 
@@ -407,6 +418,8 @@ public class TimerFragment extends BaseFragment
     private boolean stackTimerEnabled;
     private boolean serialStatusEnabled;
     private boolean smartTimerEnabled;
+    private boolean smartCubeEnabled;
+    private boolean cubeStatusEnabled;
     private boolean bleStatusEnabled;
     private boolean inspectionByResetEnabled;
 
@@ -427,6 +440,15 @@ public class TimerFragment extends BaseFragment
 
     // multi phase
     private boolean mShowHiRes;
+
+    // Smart cube integration
+    private GanCubeManager ganCubeManager;
+    private CubeSolver cubeSolver;
+    private boolean isCubeConnected;
+    private boolean cubeStartedSolve;
+    private boolean isCubeScanMode;
+    private Handler cubePollHandler;
+    private Runnable cubePollRunnable;
 
 
     // True if the user has started (and stopped) the timer at least once. Used to trigger
@@ -497,7 +519,17 @@ public class TimerFragment extends BaseFragment
 
                 case ACTION_BLUETOOTH_CONNECT:
                     Log.d(TAG, "BLE : clicked");
+                    isCubeScanMode = false;
                     startBleScan();
+                    break;
+
+                case ACTION_CUBE_CONNECT:
+                    Log.d(TAG, "Cube : clicked");
+                    if (isCubeConnected) {
+                        toggleCubeSolve();
+                    } else {
+                        startCubeScan();
+                    }
                     break;
 
                 case ACTION_SET_SCRAMBLE:
@@ -782,6 +814,7 @@ public class TimerFragment extends BaseFragment
         serialStatusEnabled = Prefs.getBoolean(R.string.pk_show_serial_status, true);
         smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
         bleStatusEnabled = Prefs.getBoolean(R.string.pk_show_ble_status, true);
+        cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -890,6 +923,15 @@ public class TimerFragment extends BaseFragment
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disabled_message));
         } else {
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
+        }
+
+        if (!cubeStatusEnabled || !smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+            if (cubeStateMessage != null) cubeStateMessage.setVisibility(View.GONE);
+        } else {
+            if (cubeStateMessage != null) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+                cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + getString(R.string.smart_cube_status_disconnect_message));
+            }
         }
 
         // Preferences //
@@ -1087,6 +1129,9 @@ public class TimerFragment extends BaseFragment
                             return false;
                     }
                 } else if (!isRunning) { // Not running and not counting down.
+                    if (isCubeConnected && cubeStartedSolve) {
+                        return false; // Wait for cube move before starting timer
+                    }
                     switch (motionEvent.getAction()) {
                         case MotionEvent.ACTION_DOWN:
 
@@ -1115,6 +1160,16 @@ public class TimerFragment extends BaseFragment
                                 // Checks if the user was holding the screen when the inspection
                                 // timed out and saved a DNF
                                 holdingDNF = false;
+                            } else if (isCubeConnected && !cubeStartedSolve) {
+                                // Cube connected but not armed: arm it on tap, don't start timer
+                                // No cubeSolver.reset() here — all moves since connection are tracked from SOLVED,
+                                // so scramble (post-connect) + solve cancel out correctly. Only a full solve
+                                // returns CubeSolver to SOLVED; false positives from short reversal sequences
+                                // are eliminated.
+                                cubeStartedSolve = true;
+                                hideToolbar();
+                                chronometer.holdForStart();
+                                updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
                             } else if (inspectionEnabled) {
                                 hideToolbar();
                                 startInspectionCountdown(inspectionTime);
@@ -1210,6 +1265,12 @@ public class TimerFragment extends BaseFragment
         }
         mainLooper.post(this::connect);
         bleClientManager = new BleClientManager(mContext);
+
+        cubeSolver = new CubeSolver();
+        smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
+                && !isTimeDisabled(currentPuzzle);
+        isCubeConnected = false;
+        cubeStartedSolve = false;
     }
 
     @Override
@@ -1226,9 +1287,18 @@ public class TimerFragment extends BaseFragment
         stopBleScanInternal();
 
         disconnectBle();
+        disconnectCubeBle();
         if (bleClientManager != null) {
             bleClientManager.close();
             bleClientManager = null;
+        }
+        if (ganCubeManager != null) {
+            ganCubeManager.close();
+            ganCubeManager = null;
+        }
+        if (cubeSolver != null) {
+            cubeSolver.reset();
+            cubeSolver = null;
         }
     }
 
@@ -1335,10 +1405,27 @@ public class TimerFragment extends BaseFragment
     }
 
     private void addNewSolve() {
+        String reconstruction = null;
+        int moveCount = 0;
+        double tps = 0.0;
+
+        if (cubeSolver != null) {
+            moveCount = cubeSolver.getNumMoves();
+            cubeSolver.setElapsedTime(chronometer.getElapsedTime());
+            tps = cubeSolver.getTps();
+            reconstruction = cubeSolver.getReconstruction();
+            cubeSolver.reset();
+        }
+        if (cubeStartedSolve) {
+            cubeStartedSolve = false;
+        }
+
         currentSolve = new Solve(
-                chronometer.getElapsedTime(), // Includes any "+2" penalty. Is zero for "DNF".
+                chronometer.getElapsedTime(),
                 currentPuzzle, currentPuzzleCategory,
-                System.currentTimeMillis(), currentScramble, currentPenalty, getLapComment(), false);
+                System.currentTimeMillis(), currentScramble, currentPenalty,
+                0, getLapComment(), false,
+                moveCount, tps, reconstruction);
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -1871,6 +1958,8 @@ public class TimerFragment extends BaseFragment
             currentScramble = realScramble;
             generateNewScramble();
         }
+
+        if (isCubeConnected) startCubePolling();
     }
 
     /**
@@ -1889,6 +1978,7 @@ public class TimerFragment extends BaseFragment
         hasStoppedTimerOnce = true;
         setLapTimeText();
         showToolbar();
+        stopCubePolling();
     }
 
     /**
@@ -2677,19 +2767,31 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
-        if (isSerialConnected) {
+        if (isSerialConnected && !isCubeScanMode) {
             Log.d(TAG, "BLE Scan : " + "serial connected");
             return;
         }
 
-        if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
-            Log.d(TAG, "BLE Scan : " + "disabled");
-            return;
-        }
+        if (!isCubeScanMode) {
+            if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
+                Log.d(TAG, "BLE Scan : " + "disabled");
+                return;
+            }
 
-        if (bleClientManager != null && bleClientManager.isConnected()) {
-            disconnectBle();
-            return;
+            if (bleClientManager != null && bleClientManager.isConnected()) {
+                disconnectBle();
+                return;
+            }
+        } else {
+            if (!smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+                Log.d(TAG, "Cube Scan : disabled");
+                return;
+            }
+
+            if (ganCubeManager != null && ganCubeManager.isConnected()) {
+                disconnectCubeBle();
+                return;
+            }
         }
 
         if (isScanning) {
@@ -2756,26 +2858,36 @@ public class TimerFragment extends BaseFragment
         startBleScanInternal(500);
 
         dialogBleScan = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
-                .title(getString(R.string.ble_scan_title))
+                .title(isCubeScanMode ? getString(R.string.smart_cube_scan_title) : getString(R.string.ble_scan_title))
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
                 .itemsCallback((dialog, view, which, text) -> {
                     stopBleScanInternal();
                     Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+                    boolean wasCubeMode = isCubeScanMode;
+                    isCubeScanMode = false;
 
-                    if (bleClientManager == null || bleDevices == null
+                    if (bleDevices == null
                             || which < 0 || which >= bleDevices.size()
                             || bleDevices.get(which) == null) {
                         return;
                     }
-                    bleClientManager.connect(bleDevices.get(which)).enqueue();
+                    if (wasCubeMode) {
+                        connectCubeBle(bleDevices.get(which));
+                    } else if (bleClientManager != null) {
+                        bleClientManager.connect(bleDevices.get(which)).enqueue();
+                    }
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))
                 .onAny((dialog, which) -> {
                     stopBleScanInternal();
+                    isCubeScanMode = false;
                 })
                 .show());
-        dialogBleScan.setOnCancelListener(dialog -> stopBleScanInternal());
+        dialogBleScan.setOnCancelListener(dialog -> {
+            stopBleScanInternal();
+            isCubeScanMode = false;
+        });
     }
 
     private void startBleScanInternal(long reportDelayMillis) {
@@ -2796,24 +2908,13 @@ public class TimerFragment extends BaseFragment
                 .setUseHardwareBatchingIfSupported(false)   // The use of hardware batch sometimes results in larger delays
                 .build();
         List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(QIYI_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(QIYI_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
         scanner.startScan(filters, settings, mLeScanCallback);
     }
 
     private void stopBleScanInternal() {
         BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         scanner.stopScan(mLeScanCallback);
+        scanner.stopScan(mCubeScanCallback);
         isScanning = false;
     }
 
@@ -2831,10 +2932,19 @@ public class TimerFragment extends BaseFragment
 
             ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
             for (ScanResult result : results) {
-                devices.add(result.getDevice());
-                //Log.d(TAG, "BLE Scan : Name = " + result.getDevice().getName());
-                //Log.d(TAG, "BLE Scan : Name = " + result.getScanRecord().getDeviceName());
-                //Log.d(TAG, "BLE Scan : Addr = " + result.getDevice().getAddress());
+                BluetoothDevice device = result.getDevice();
+                Log.d(TAG, "BLE Scan device: name=" + device.getName()
+                        + ", address=" + device.getAddress()
+                        + ", rssi=" + result.getRssi());
+                if (isCubeScanMode) {
+                    String name = result.getDevice().getName();
+                    if (name != null && name.toUpperCase(Locale.US).startsWith("GAN")
+                            && !name.contains("Timer")) {
+                        devices.add(result.getDevice());
+                    }
+                } else {
+                    devices.add(result.getDevice());
+                }
             }
             Collections.sort(devices, new Comparator<BluetoothDevice>() {
                 @SuppressLint("MissingPermission")
@@ -2876,6 +2986,225 @@ public class TimerFragment extends BaseFragment
             bleClientManager.disconnect().enqueue();
         }
     }
+
+    private void startCubeScan() {
+        isCubeScanMode = true;
+        startBleScan();
+    }
+
+    private void startCubeScanInternal(long reportDelayMillis) {
+        if (isScanning) {
+            Log.d(TAG, "Cube Scan : canceled due to scanning");
+            return;
+        }
+        isScanning = true;
+
+        bleScanPeriod = reportDelayMillis;
+
+        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+        ScanSettings settings = new ScanSettings.Builder()
+                .setLegacy(false)
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(reportDelayMillis)
+                .setUseHardwareBatchingIfSupported(false)
+                .build();
+        List<ScanFilter> filters = new ArrayList<>();
+        filters.add(new ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
+                .build());
+        filters.add(new ScanFilter.Builder()
+                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                .build());
+        scanner.startScan(filters, settings, mCubeScanCallback);
+    }
+
+    private void connectCubeBle(BluetoothDevice device) {
+        if (ganCubeManager == null) {
+            ganCubeManager = new GanCubeManager(mContext, new GanCubeManager.GanCubeCallback() {
+                @Override
+                public void onCubeConnected() {
+                    Log.d(TAG, "Cube connected");
+                    isCubeConnected = true;
+                    if (cubeSolver != null) cubeSolver.reset();
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
+                    updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                }
+
+                @Override
+                public void onCubeDisconnected() {
+                    Log.d(TAG, "Cube disconnected");
+                    isCubeConnected = false;
+                    cubeStartedSolve = false;
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
+                    updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
+                }
+
+                @Override
+                public void onCubeMoves(List<CubeMove> moves) {
+                    if (cubeSolver == null || moves.isEmpty()) return;
+
+                    for (CubeMove move : moves) {
+                        cubeSolver.addMove(move);
+                    }
+
+                    if (cubeStartedSolve && !isRunning) {
+                        isExternalTimer = true;
+                        startChronometer();
+                        updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Solving");
+                    }
+
+                    if (!isRunning) return;
+
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_MOVE);
+                    updateCubeMoveDisplay();
+
+                    if (cubeSolver.isSolved()) {
+                        Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves());
+                        broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
+                        if (isRunning) {
+                            animationDone = false;
+                            isExternalTimer = false;
+                            stopChronometer();
+                            addNewSolve();
+                            cubeStartedSolve = false;
+                        }
+                        updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                    }
+                }
+
+                @Override
+                public void onCubeBatteryLevel(int level) {
+                    Log.d(TAG, "Cube battery: " + level + "%");
+                }
+
+                @Override
+                public void onCubeSolved() {
+                    Log.d(TAG, "Cube solved via facelets!");
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
+                    if (isRunning) {
+                        animationDone = false;
+                        isExternalTimer = false;
+                        stopChronometer();
+                        addNewSolve();
+                        cubeStartedSolve = false;
+                    }
+                    updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                }
+            }, device.getAddress());
+        }
+
+        if (cubeSolver != null) cubeSolver.reset();
+        updateCubeStatus(getString(R.string.smart_cube_status_connecting_message));
+        ganCubeManager.connect(device).enqueue();
+    }
+
+    private void disconnectCubeBle() {
+        if (ganCubeManager != null && ganCubeManager.isConnected()) {
+            Log.d(TAG, "Cube disconnect");
+            ganCubeManager.disconnect().enqueue();
+        }
+        isCubeConnected = false;
+        cubeStartedSolve = false;
+        if (cubeSolver != null) cubeSolver.reset();
+    }
+
+    private void toggleCubeSolve() {
+        if (cubeStartedSolve) {
+            cubeStartedSolve = false;
+            if (isRunning) {
+                cancelChronometer();
+            }
+            updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+        } else {
+            if (cubeSolver != null) cubeSolver.reset();
+            cubeStartedSolve = true;
+            hideToolbar();
+            updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+        }
+    }
+
+    private void updateCubeStatus(String status) {
+        if (cubeStateMessage != null) {
+            cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
+        }
+    }
+
+    private void updateCubeMoveDisplay() {
+        if (cubeSolver != null && cubeStateMessage != null) {
+            long elapsed = chronometer != null ? chronometer.getElapsedTime() : 0;
+            cubeSolver.setElapsedTime(elapsed);
+            String status = getString(R.string.smart_cube_status_connect_message)
+                    + " | " + String.format(Locale.US, getString(R.string.smart_cube_move_count), cubeSolver.getNumMoves())
+                    + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), cubeSolver.getTps());
+            cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
+        }
+    }
+
+    private void startCubePolling() {
+        if (cubePollHandler == null) cubePollHandler = new Handler();
+        if (cubePollRunnable != null) cubePollHandler.removeCallbacks(cubePollRunnable);
+        cubePollRunnable = () -> {
+            if (ganCubeManager != null && isRunning && isCubeConnected) {
+                ganCubeManager.requestFacelets();
+                cubePollHandler.postDelayed(cubePollRunnable, 250);
+            }
+        };
+        cubePollHandler.postDelayed(cubePollRunnable, 250);
+    }
+
+    private void stopCubePolling() {
+        if (cubePollHandler != null && cubePollRunnable != null) {
+            cubePollHandler.removeCallbacks(cubePollRunnable);
+            cubePollRunnable = null;
+        }
+    }
+
+    private final ScanCallback mCubeScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+        }
+
+        @SuppressLint("MissingPermission")
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+            Log.d(TAG, "Cube Scan : onBatchScanResults");
+
+            ArrayList<BluetoothDevice> devices = new ArrayList<>();
+            for (ScanResult result : results) {
+                String name = result.getDevice().getName();
+                if (name != null && name.toUpperCase(Locale.US).startsWith("GAN") && !name.contains("Timer")) {
+                    devices.add(result.getDevice());
+                }
+            }
+            Collections.sort(devices, (d1, d2) -> d1.getAddress().compareTo(d2.getAddress()));
+
+            bleDevices = devices;
+
+            ArrayList<CharSequence> items = new ArrayList<>();
+            for (BluetoothDevice device : bleDevices) {
+                if (device.getName() != null)
+                    items.add(device.getName() + " (" + device.getAddress() + ")");
+                else
+                    items.add(device.getAddress());
+            }
+            String[] array = items.toArray(new String[items.size()]);
+            dialogBleScan.setItems(array);
+
+            if (bleScanPeriod == 500 && !results.isEmpty()) {
+                stopBleScanInternal();
+                startCubeScanInternal(5000);
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            super.onScanFailed(errorCode);
+            Log.d(TAG, "Cube Scan : onScanFailed");
+            stopBleScanInternal();
+        }
+    };
 
     class BleClientManager extends BleManager {
         private static final String TAG = "BleClientManager";

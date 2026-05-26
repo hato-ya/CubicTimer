@@ -263,6 +263,7 @@
     <string name="pref_category_title_timer">Timer</string>
     <string name="pref_category_title_stack_timer">Stack timer</string>
     <string name="pref_category_title_smart_timer">Smart timer</string>
+    <string name="pref_category_title_smart_cube">Smart cube</string>
     <string name="pref_category_title_stack_timer_behavior">Behavior</string>
     <string name="pref_screen_title_inspection_behavior">Inspection behavior</string>
     <string name="pref_screen_title_timer_behavior">Timer behavior</string>
@@ -433,6 +434,19 @@
     <string name="timer_ble_status_disabled_message">disabled</string>
     <string name="timer_ble_status_connect_message">connected</string>
     <string name="timer_ble_status_disconnect_message">disconnected</string>
+    <string name="smart_cube_status_message">"Smart Cube: "</string>
+    <string name="smart_cube_status_connecting_message">Connecting…</string>
+    <string name="smart_cube_status_connect_message">Connected</string>
+    <string name="smart_cube_status_disconnect_message">Disconnected</string>
+    <string name="smart_cube_no_support_message">Bluetooth LE not supported</string>
+    <string name="smart_cube_move_count">Moves: %d</string>
+    <string name="smart_cube_tps">TPS: %.2f</string>
+    <string name="smart_cube_enabled_summary">Use a Bluetooth smart cube for automatic timing</string>
+    <string name="smart_cube_enabled_title">Use smart cube</string>
+    <string name="smart_cube_scan_title">Smart Cube devices</string>
+    <string name="cubeStatusEnabledTitle">Show cube status</string>
+    <string name="cubeStatusEnabledSummary">Show smart cube connection status on timer screen</string>
+
     <string name="timer_gan_timer_state_get_set">GET_SET</string>
     <string name="timer_gan_timer_state_hands_off">HANDS_OFF</string>
     <string name="timer_gan_timer_state_running">RUNNING</string>

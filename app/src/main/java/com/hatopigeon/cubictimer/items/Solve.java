@@ -23,22 +23,29 @@ public class Solve implements Parcelable {
     String comment;
     boolean history;
 
+    int    moveCount;
+    double tps;
+    String reconstruction;
+
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
     public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
                  String comment, boolean history) {
-        this.time = time;
-        this.puzzle = puzzle;
-        this.subtype = subtype;
-        this.date = date;
-        this.scramble = scramble;
-        this.penalty = penalty;
-        this.comment = comment;
-        this.history = history;
+        this(time, puzzle, subtype, date, scramble, penalty, 0, comment, history, 0, 0, null);
     }
 
     public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
                  int mbldPenaltyNum, String comment, boolean history) {
+        this(time, puzzle, subtype, date, scramble, penalty, mbldPenaltyNum, comment, history, 0, 0, null);
+    }
+
+    public Solve(long id, long time, String puzzle, String subtype, long date, String scramble,
+                 int penalty, String comment, boolean history) {
+        this(id, time, puzzle, subtype, date, scramble, penalty, comment, history, 0, 0, null);
+    }
+
+    public Solve(long time, String puzzle, String subtype, long date, String scramble, int penalty,
+                 int mbldPenaltyNum, String comment, boolean history, int moveCount, double tps, String reconstruction) {
         this.time = time;
         this.puzzle = puzzle;
         this.subtype = subtype;
@@ -48,10 +55,13 @@ public class Solve implements Parcelable {
         setMbldPenaltyNum(mbldPenaltyNum);
         this.comment = comment;
         this.history = history;
+        this.moveCount = moveCount;
+        this.tps = tps;
+        this.reconstruction = reconstruction;
     }
 
     public Solve(long id, long time, String puzzle, String subtype, long date, String scramble,
-                 int penalty, String comment, boolean history) {
+                 int penalty, String comment, boolean history, int moveCount, double tps, String reconstruction) {
         this.id = id;
         this.time = time;
         this.puzzle = puzzle;
@@ -61,6 +71,9 @@ public class Solve implements Parcelable {
         this.penalty = penalty;
         this.comment = comment;
         this.history = history;
+        this.moveCount = moveCount;
+        this.tps = tps;
+        this.reconstruction = reconstruction;
     }
 
     /**
@@ -78,6 +91,9 @@ public class Solve implements Parcelable {
         penalty = in.readInt();
         comment = in.readString();
         history = in.readByte() != 0;
+        moveCount = in.readInt();
+        tps = in.readDouble();
+        reconstruction = in.readString();
     }
 
     public void setId(long id) {
@@ -160,6 +176,30 @@ public class Solve implements Parcelable {
         penalty = penaltyNum * PLACE_MBLD_PENALTY_NUM + this.penalty % PLACE_MBLD_PENALTY_NUM;
     }
 
+    public int getMoveCount() {
+        return moveCount;
+    }
+
+    public void setMoveCount(int moveCount) {
+        this.moveCount = moveCount;
+    }
+
+    public double getTps() {
+        return tps;
+    }
+
+    public void setTps(double tps) {
+        this.tps = tps;
+    }
+
+    public String getReconstruction() {
+        return reconstruction;
+    }
+
+    public void setReconstruction(String reconstruction) {
+        this.reconstruction = reconstruction;
+    }
+
     public int getRawPenalty() {
         return penalty;
     }
@@ -188,6 +228,9 @@ public class Solve implements Parcelable {
         dest.writeInt(penalty);
         dest.writeString(comment);
         dest.writeByte((byte) (history ? 1 : 0));
+        dest.writeInt(moveCount);
+        dest.writeDouble(tps);
+        dest.writeString(reconstruction);
     }
 
     /**

@@ -8,21 +8,21 @@ import java.util.List;
 public class GanCubeDecoder {
 
     private static final int[] FACE_MAP = {
-        CubeMove.U, -1, CubeMove.U,  // 0x00=U CW, 0x01=?, 0x02=U CCW
-        CubeMove.R, -1, CubeMove.R,  // 0x03=R CW, 0x04=?, 0x05=R CCW
-        CubeMove.F, -1, CubeMove.F,  // 0x06=F CW, 0x07=?, 0x08=F CCW
-        CubeMove.D, -1, CubeMove.D,  // 0x09=D CW, 0x0a=?, 0x0b=D CCW
-        CubeMove.L, -1, CubeMove.L,  // 0x0c=L CW, 0x0d=?, 0x0e=L CCW
-        CubeMove.B, -1, CubeMove.B,  // 0x0f=B CW, 0x10=?, 0x11=B CCW
+        CubeMove.U, CubeMove.U, CubeMove.U,  // 0x00=U CW, 0x01=U DOUBLE, 0x02=U CCW
+        CubeMove.R, CubeMove.R, CubeMove.R,  // 0x03=R CW, 0x04=R DOUBLE, 0x05=R CCW
+        CubeMove.F, CubeMove.F, CubeMove.F,  // 0x06=F CW, 0x07=F DOUBLE, 0x08=F CCW
+        CubeMove.D, CubeMove.D, CubeMove.D,  // 0x09=D CW, 0x0a=D DOUBLE, 0x0b=D CCW
+        CubeMove.L, CubeMove.L, CubeMove.L,  // 0x0c=L CW, 0x0d=L DOUBLE, 0x0e=L CCW
+        CubeMove.B, CubeMove.B, CubeMove.B,  // 0x0f=B CW, 0x10=B DOUBLE, 0x11=B CCW
     };
 
     private static final int[] DIR_MAP = {
-        CubeMove.CW, 0, CubeMove.CCW,
-        CubeMove.CW, 0, CubeMove.CCW,
-        CubeMove.CW, 0, CubeMove.CCW,
-        CubeMove.CW, 0, CubeMove.CCW,
-        CubeMove.CW, 0, CubeMove.CCW,
-        CubeMove.CW, 0, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
+        CubeMove.CW, CubeMove.DOUBLE, CubeMove.CCW,
     };
 
     private int previousMoveCount = -1;

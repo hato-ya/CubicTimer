@@ -47,6 +47,9 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.cardview.widget.CardView;
 
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import com.hatopigeon.cubictimer.spans.RoundedRectBackgroundSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -449,6 +452,12 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeScanMode;
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
+
+    // Scramble move tracking for smart cube visual feedback
+    private String[] scrambleMoveTokens;
+    private int completedScrambleMoves = 0;
+    private boolean isScrambleCollapsed = false;
+    private ArrayList<int[]> moveBuffer = new ArrayList<>(); // {face, dirMod4} after collapse
 
 
     // True if the user has started (and stopped) the timer at least once. Used to trigger
@@ -2266,6 +2275,14 @@ public class TimerFragment extends BaseFragment
             Prefs.edit().putString(R.string.pk_last_used_scramble, realScramble).apply();
         }
 
+        // Parse scramble into individual move tokens for smart cube progress tracking
+        scrambleMoveTokens = (scramble != null && !scramble.trim().isEmpty())
+                ? scramble.trim().split("\\s+")
+                : new String[0];
+        completedScrambleMoves = 0;
+        isScrambleCollapsed = false;
+        moveBuffer.clear();
+
         retryButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_replay_24dp));
 
         scrambleText.setText(scramble);
@@ -2299,10 +2316,12 @@ public class TimerFragment extends BaseFragment
                             scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
                             scrambleBox.setClickable(true);
                             scrambleBox.setOnClickListener(scrambleDetailClickListener);
+                            isScrambleCollapsed = true;
                         } else {
                             scrambleBox.setOnClickListener(null);
                             scrambleBox.setClickable(false);
                             scrambleBox.setFocusable(false);
+                            isScrambleCollapsed = false;
                         }
                         scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
                     }
@@ -2316,6 +2335,9 @@ public class TimerFragment extends BaseFragment
         scrambleProgress.setVisibility(View.GONE);
         scrambleButtonEdit.setVisibility(View.VISIBLE);
         scrambleButtonReset.setVisibility(View.VISIBLE);
+
+        // Initialize scramble colors (all red) for smart cube progress tracking
+        updateScrambleColors();
 
         if (scrambleImgEnabled)
             generateScrambleImage();
@@ -3035,6 +3057,7 @@ public class TimerFragment extends BaseFragment
                     Log.d(TAG, "Cube disconnected");
                     isCubeConnected = false;
                     cubeStartedSolve = false;
+                    moveBuffer.clear();
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
                     updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
                 }
@@ -3045,7 +3068,33 @@ public class TimerFragment extends BaseFragment
 
                     for (CubeMove move : moves) {
                         cubeSolver.addMove(move);
+                        if (isRunning) continue;
+
+                        int dirMod4;
+                        if (move.direction == CubeMove.DOUBLE) {
+                            dirMod4 = 2;
+                        } else if (move.direction == CubeMove.CCW) {
+                            dirMod4 = 3;
+                        } else {
+                            dirMod4 = 1;
+                        }
+
+                        moveBuffer.add(new int[]{move.face, dirMod4});
+                        collapseLastMoves();
                     }
+
+                    // Match buffer prefix against scramble tokens
+                    completedScrambleMoves = 0;
+                    while (completedScrambleMoves < scrambleMoveTokens.length
+                            && completedScrambleMoves < moveBuffer.size()) {
+                        int[] tok = parseScrambleToken(scrambleMoveTokens[completedScrambleMoves]);
+                        if (tok == null) break;
+                        int[] buf = moveBuffer.get(completedScrambleMoves);
+                        if (tok[0] != buf[0] || tok[1] != buf[1]) break;
+                        completedScrambleMoves++;
+                    }
+
+                    updateScrambleColors();
 
                     if (cubeStartedSolve && !isRunning) {
                         isExternalTimer = true;
@@ -3138,6 +3187,129 @@ public class TimerFragment extends BaseFragment
                     + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), cubeSolver.getTps());
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
         }
+        updateScrambleColors();
+    }
+
+    /**
+     * Collapses consecutive same-face moves at the end of moveBuffer using modulo-4 rules.
+     * This only affects adjacent same-face moves, preserving move order for other faces.
+     */
+    private void collapseLastMoves() {
+        while (moveBuffer.size() >= 2) {
+            int lastIdx = moveBuffer.size() - 1;
+            int prevIdx = moveBuffer.size() - 2;
+            int[] last = moveBuffer.get(lastIdx);
+            int[] prev = moveBuffer.get(prevIdx);
+            if (last[0] != prev[0]) break;
+
+            int face = last[0];
+            int count = 1;
+            for (int i = moveBuffer.size() - 2; i >= 0; i--) {
+                if (moveBuffer.get(i)[0] == face) count++;
+                else break;
+            }
+
+            int sum = 0;
+            int start = moveBuffer.size() - count;
+            for (int i = start; i < moveBuffer.size(); i++) {
+                sum = (sum + moveBuffer.get(i)[1]) % 4;
+            }
+
+            for (int i = 0; i < count; i++) {
+                moveBuffer.remove(moveBuffer.size() - 1);
+            }
+
+            if (sum != 0) {
+                moveBuffer.add(new int[]{face, sum});
+            }
+        }
+    }
+
+    /**
+     * Parses a scramble notation token into an int array of [face, direction].
+     * Face mapping: U=0, R=1, F=2, D=3, L=4, B=5
+     * Direction: 1=CW, 2=DOUBLE, 3=CCW (modulo-4 format)
+     */
+    private static int[] parseScrambleToken(String token) {
+        if (token == null || token.isEmpty()) return null;
+        String faceStr = token.substring(0, 1);
+        int face;
+        switch (faceStr) {
+            case "U": face = 0; break;
+            case "R": face = 1; break;
+            case "F": face = 2; break;
+            case "D": face = 3; break;
+            case "L": face = 4; break;
+            case "B": face = 5; break;
+            default: return null;
+        }
+        int direction;
+        if (token.length() == 1) {
+            direction = 1;
+        } else {
+            char suffix = token.charAt(1);
+            if (suffix == '\'') {
+                direction = 3;
+            } else if (suffix == '2') {
+                direction = 2;
+            } else {
+                direction = 1;
+            }
+        }
+        return new int[]{face, direction};
+    }
+
+    /**
+     * Updates the scramble text with per-move colors:
+     * - When smart cube connected: completed moves highlighted in black with white text
+     * - When no smart cube: all text is black (default)
+     * Only applies when the scramble is fully visible (not collapsed) and the timer is not running.
+     */
+    private void updateScrambleColors() {
+        if (scrambleMoveTokens == null || scrambleMoveTokens.length == 0
+                || realScramble == null || scrambleText == null) return;
+
+        if (isScrambleCollapsed) return;
+        if (isRunning) return;
+
+        if (!isCubeConnected) {
+            scrambleText.setText(realScramble);
+            return;
+        }
+
+        SpannableString spannable = new SpannableString(realScramble);
+        int searchPos = 0;
+        int i = 0;
+
+        while (i < scrambleMoveTokens.length) {
+            String token = scrambleMoveTokens[i];
+            int start = realScramble.indexOf(token, searchPos);
+            if (start < 0) break;
+            int end = start + token.length();
+            searchPos = end;
+
+            if (i < completedScrambleMoves) {
+                int groupStart = start;
+                int groupEnd = end;
+                i++;
+                while (i < completedScrambleMoves) {
+                    token = scrambleMoveTokens[i];
+                    start = realScramble.indexOf(token, searchPos);
+                    if (start < 0) break;
+                    end = start + token.length();
+                    searchPos = end;
+                    groupEnd = end;
+                    i++;
+                }
+                spannable.setSpan(
+                        new RoundedRectBackgroundSpan(Color.BLACK, Color.WHITE),
+                        groupStart, groupEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                i++;
+            }
+        }
+
+        scrambleText.setText(spannable);
     }
 
     private void startCubePolling() {

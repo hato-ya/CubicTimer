@@ -55,7 +55,8 @@ public class GanCubeManager extends BleManager {
     private BluetoothGattCharacteristic cubeCommandCharacteristic;
     private BluetoothGattCharacteristic cubeStateCharacteristic;
 
-    private final GanCubeCallback callback;
+    private GanCubeCallback callback;
+    private final String macAddress;
     private SecretKeySpec keySpec;
     private IvParameterSpec ivSpec;
     private int lastBatteryLevel;
@@ -69,7 +70,16 @@ public class GanCubeManager extends BleManager {
     public GanCubeManager(@NonNull Context context, GanCubeCallback callback, String macAddress) {
         super(context);
         this.callback = callback;
+        this.macAddress = macAddress;
         setupEncryption(macAddress);
+    }
+
+    public void setCallback(GanCubeCallback callback) {
+        this.callback = callback;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
     }
 
     private void setupEncryption(String macAddress) {

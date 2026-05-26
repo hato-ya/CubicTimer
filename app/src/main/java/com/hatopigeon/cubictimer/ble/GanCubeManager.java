@@ -247,9 +247,11 @@ public class GanCubeManager extends BleManager {
     }
 
     private void handleMoveEvent(byte[] data, long timestamp) {
-        if (lastSerial == -1) return;
-
         int serial = getBitWord(data, 4, 8);
+        if (lastSerial == -1) {
+            lastSerial = serial - 1;
+        }
+
         int diff = Math.min((serial - lastSerial) & 0xFF, 7);
         lastSerial = serial;
 

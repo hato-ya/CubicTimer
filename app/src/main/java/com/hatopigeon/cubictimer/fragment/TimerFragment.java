@@ -3051,6 +3051,7 @@ public class TimerFragment extends BaseFragment
                     if (cubeSolver != null) cubeSolver.reset();
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
                     updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                    updateScrambleColors();
                 }
 
                 @Override

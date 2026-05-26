@@ -3108,6 +3108,16 @@ public class TimerFragment extends BaseFragment
 
                     updateScrambleColors();
 
+                    // Auto-arm when all scramble moves have been executed
+                    if (isCubeReady && !cubeStartedSolve && scrambleMoveTokens.length > 0
+                            && completedScrambleMoves == scrambleMoveTokens.length) {
+                        cubeStartedSolve = true;
+                        hideToolbar();
+                        chronometer.holdForStart();
+                        updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+                        return; // Wait for next move before starting timer
+                    }
+
                     if (cubeStartedSolve && !isRunning) {
                         isExternalTimer = true;
                         startChronometer();

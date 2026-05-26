@@ -436,6 +436,7 @@
     <string name="timer_ble_status_disconnect_message">disconnected</string>
     <string name="smart_cube_status_message">"Smart Cube: "</string>
     <string name="smart_cube_status_connecting_message">Connecting…</string>
+    <string name="smart_cube_status_check_message">Checking cube state…</string>
     <string name="smart_cube_status_connect_message">Connected</string>
     <string name="smart_cube_status_disconnect_message">Disconnected</string>
     <string name="smart_cube_no_support_message">Bluetooth LE not supported</string>

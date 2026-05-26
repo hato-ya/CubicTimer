@@ -451,8 +451,11 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeConnected;
     private boolean cubeStartedSolve;
     private boolean isCubeScanMode;
+    private boolean isCubeReady;
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
+    private Handler cubeReadyHandler;
+    private Runnable cubeReadyRunnable;
 
     // Scramble move tracking for smart cube visual feedback
     private String[] scrambleMoveTokens;
@@ -3048,10 +3051,13 @@ public class TimerFragment extends BaseFragment
                 public void onCubeConnected() {
                     Log.d(TAG, "Cube connected");
                     isCubeConnected = true;
+                    isCubeReady = false;
                     if (cubeSolver != null) cubeSolver.reset();
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
-                    updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                    updateCubeStatus(getString(R.string.smart_cube_status_check_message));
                     updateScrambleColors();
+                    if (ganCubeManager != null) ganCubeManager.requestFacelets();
+                    startCubeReadyPolling();
                 }
 
                 @Override
@@ -3059,7 +3065,9 @@ public class TimerFragment extends BaseFragment
                     Log.d(TAG, "Cube disconnected");
                     isCubeConnected = false;
                     cubeStartedSolve = false;
+                    isCubeReady = false;
                     moveBuffer.clear();
+                    stopCubeReadyPolling();
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
                     updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
                 }
@@ -3070,7 +3078,7 @@ public class TimerFragment extends BaseFragment
 
                     for (CubeMove move : moves) {
                         cubeSolver.addMove(move);
-                        if (isRunning) continue;
+                        if (isRunning || !isCubeReady) continue;
 
                         int dirMod4;
                         if (move.direction == CubeMove.DOUBLE) {
@@ -3086,14 +3094,16 @@ public class TimerFragment extends BaseFragment
                     }
 
                     // Match buffer prefix against scramble tokens
-                    completedScrambleMoves = 0;
-                    while (completedScrambleMoves < scrambleMoveTokens.length
-                            && completedScrambleMoves < moveBuffer.size()) {
-                        int[] tok = parseScrambleToken(scrambleMoveTokens[completedScrambleMoves]);
-                        if (tok == null) break;
-                        int[] buf = moveBuffer.get(completedScrambleMoves);
-                        if (tok[0] != buf[0] || tok[1] != buf[1]) break;
-                        completedScrambleMoves++;
+                    if (isCubeReady) {
+                        completedScrambleMoves = 0;
+                        while (completedScrambleMoves < scrambleMoveTokens.length
+                                && completedScrambleMoves < moveBuffer.size()) {
+                            int[] tok = parseScrambleToken(scrambleMoveTokens[completedScrambleMoves]);
+                            if (tok == null) break;
+                            int[] buf = moveBuffer.get(completedScrambleMoves);
+                            if (tok[0] != buf[0] || tok[1] != buf[1]) break;
+                            completedScrambleMoves++;
+                        }
                     }
 
                     updateScrambleColors();
@@ -3138,6 +3148,13 @@ public class TimerFragment extends BaseFragment
                         stopChronometer();
                         addNewSolve();
                         cubeStartedSolve = false;
+                    } else if (!cubeStartedSolve) {
+                        // Initial solved confirmation: cube is now ready for scramble tracking
+                        isCubeReady = true;
+                        moveBuffer.clear();
+                        completedScrambleMoves = 0;
+                        stopCubeReadyPolling();
+                        updateScrambleColors();
                     }
                     updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
                 }
@@ -3156,6 +3173,8 @@ public class TimerFragment extends BaseFragment
         }
         isCubeConnected = false;
         cubeStartedSolve = false;
+        isCubeReady = false;
+        stopCubeReadyPolling();
         if (cubeSolver != null) cubeSolver.reset();
     }
 
@@ -3167,6 +3186,10 @@ public class TimerFragment extends BaseFragment
             }
             updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
         } else {
+            if (!isCubeReady) {
+                updateCubeStatus(getString(R.string.smart_cube_status_check_message));
+                return;
+            }
             if (cubeSolver != null) cubeSolver.reset();
             cubeStartedSolve = true;
             hideToolbar();
@@ -3274,7 +3297,7 @@ public class TimerFragment extends BaseFragment
         if (isScrambleCollapsed) return;
         if (isRunning) return;
 
-        if (!isCubeConnected) {
+        if (!isCubeConnected || !isCubeReady) {
             scrambleText.setScrambleProgress(null, 0);
             scrambleText.setText(realScramble);
             return;
@@ -3302,6 +3325,25 @@ public class TimerFragment extends BaseFragment
         }
 
         scrambleText.setText(spannable);
+    }
+
+    private void startCubeReadyPolling() {
+        if (cubeReadyHandler == null) cubeReadyHandler = new Handler();
+        if (cubeReadyRunnable != null) cubeReadyHandler.removeCallbacks(cubeReadyRunnable);
+        cubeReadyRunnable = () -> {
+            if (ganCubeManager != null && !isCubeReady && isCubeConnected) {
+                ganCubeManager.requestFacelets();
+                cubeReadyHandler.postDelayed(cubeReadyRunnable, 500);
+            }
+        };
+        cubeReadyHandler.postDelayed(cubeReadyRunnable, 500);
+    }
+
+    private void stopCubeReadyPolling() {
+        if (cubeReadyHandler != null && cubeReadyRunnable != null) {
+            cubeReadyHandler.removeCallbacks(cubeReadyRunnable);
+            cubeReadyRunnable = null;
+        }
     }
 
     private void startCubePolling() {

@@ -70,6 +70,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.ble.CubeBleHelper;
 import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.cube.CubeMove;
 import com.hatopigeon.cubictimer.cube.CubeSolver;
@@ -1413,6 +1414,7 @@ public class TimerFragment extends BaseFragment
             updateCubeStatus(getString(R.string.smart_cube_status_check_message));
             mgr.requestFacelets();
             startCubeReadyPolling();
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
         } else {
             isCubeConnected = false;
             cubeStartedSolve = false;
@@ -3140,7 +3142,7 @@ public class TimerFragment extends BaseFragment
 
     private void startCubeScan() {
         isCubeScanMode = true;
-        startBleScan();
+        CubeBleHelper.startScan(getActivity(), cubeCallback);
     }
 
     private void startCubeScanInternal(long reportDelayMillis) {

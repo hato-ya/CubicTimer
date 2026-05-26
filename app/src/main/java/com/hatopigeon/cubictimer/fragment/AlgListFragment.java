@@ -12,13 +12,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.hatopigeon.cubicify.R;
+import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.AlgCursorAdapter;
+import com.hatopigeon.cubictimer.ble.CubeBleHelper;
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.database.AlgTaskLoader;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -38,6 +42,8 @@ import butterknife.Unbinder;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_ALGS_MODIFIED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_CATEGORY;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_THEME;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SELECTION_MODE_OFF;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SELECTION_MODE_ON;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_TIMER_STARTED;
@@ -76,6 +82,12 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
     @BindView(R.id.nav_button_settings)
     View buttonSettings;
 
+    @BindView(R.id.nav_button_bluetooth)
+    View navButtonBluetooth;
+
+    @BindView(R.id.nav_button_cube)
+    ImageView navButtonCube;
+
     @BindView(R.id.list)
     RecyclerView recyclerView;
 
@@ -101,6 +113,14 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         @Override
         public void onReceiveWhileAdded(Context context, Intent intent) {
             switch (intent.getAction()) {
+                case ACTION_CUBE_CONNECTED:
+                    if (navButtonCube != null)
+                        navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+                    break;
+                case ACTION_CUBE_DISCONNECTED:
+                    if (navButtonCube != null)
+                        navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_24px);
+                    break;
                 case ACTION_CHANGED_THEME:
                     try {
                         // If the theme has been changed, then the activity will need to be recreated. The
@@ -148,10 +168,17 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         spinnerIcon.setVisibility(View.GONE);
         button1.setVisibility(View.GONE);
         button2.setVisibility(View.GONE);
+        navButtonBluetooth.setVisibility(View.GONE);
         buttonSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getMainActivity().openDrawer();
+            }
+        });
+        navButtonCube.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CubeBleHelper.startScan(getActivity(), null);
             }
         });
 
@@ -169,6 +196,12 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Set initial cube bluetooth icon state
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.isConnected()) {
+            navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+        }
 
         InsetsUtils.applySafeInsetsPadding(rootLayout, false);
 

@@ -49,7 +49,8 @@ import androidx.cardview.widget.CardView;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
-import com.hatopigeon.cubictimer.spans.RoundedRectBackgroundSpan;
+import android.text.style.ForegroundColorSpan;
+import com.hatopigeon.cubictimer.view.ScrambleTextView;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -343,7 +344,7 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.scramble_box)
     CardView scrambleBox;
     @BindView(R.id.scramble_text)
-    AppCompatTextView scrambleText;
+    ScrambleTextView scrambleText;
     @BindView(R.id.scramble_img)
     ImageView scrambleImg;
     @BindView(R.id.expanded_image)
@@ -3273,9 +3274,12 @@ public class TimerFragment extends BaseFragment
         if (isRunning) return;
 
         if (!isCubeConnected) {
+            scrambleText.setScrambleProgress(null, 0);
             scrambleText.setText(realScramble);
             return;
         }
+
+        scrambleText.setScrambleProgress(scrambleMoveTokens, completedScrambleMoves);
 
         SpannableString spannable = new SpannableString(realScramble);
         int searchPos = 0;
@@ -3289,24 +3293,11 @@ public class TimerFragment extends BaseFragment
             searchPos = end;
 
             if (i < completedScrambleMoves) {
-                int groupStart = start;
-                int groupEnd = end;
-                i++;
-                while (i < completedScrambleMoves) {
-                    token = scrambleMoveTokens[i];
-                    start = realScramble.indexOf(token, searchPos);
-                    if (start < 0) break;
-                    end = start + token.length();
-                    searchPos = end;
-                    groupEnd = end;
-                    i++;
-                }
                 spannable.setSpan(
-                        new RoundedRectBackgroundSpan(Color.BLACK, Color.WHITE),
-                        groupStart, groupEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else {
-                i++;
+                        new ForegroundColorSpan(Color.WHITE),
+                        start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+            i++;
         }
 
         scrambleText.setText(spannable);

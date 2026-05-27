@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.os.Process;
 import android.preference.PreferenceManager;
 
@@ -298,6 +299,7 @@ public class TimerFragment extends BaseFragment
     private boolean isScanning = false;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
+    private static final int GAN_MANUFACTURER_ID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -3056,6 +3058,20 @@ public class TimerFragment extends BaseFragment
                 .setUseHardwareBatchingIfSupported(false)   // The use of hardware batch sometimes results in larger delays
                 .build();
         List<ScanFilter> filters = new ArrayList<>();
+        if (!isCubeScanMode) {
+            filters.add(new ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid.fromString(QIYI_TIMER_SERVICE_UUID))
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setManufacturerData(QIYI_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                    .build());
+        }
         scanner.startScan(filters, settings, mLeScanCallback);
     }
 

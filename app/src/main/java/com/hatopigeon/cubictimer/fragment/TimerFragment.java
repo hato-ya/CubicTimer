@@ -957,6 +957,8 @@ public class TimerFragment extends BaseFragment
         smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
         bleStatusEnabled = Prefs.getBoolean(R.string.pk_show_ble_status, true);
         cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
+        smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
+                && !isTimeDisabled(currentPuzzle);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);

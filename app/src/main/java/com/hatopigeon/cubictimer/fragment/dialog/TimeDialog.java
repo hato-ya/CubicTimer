@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,6 +70,9 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.commentText)       TextView  commentText;
     @BindView(R.id.overflowButton)    ImageView overflowButton;
     @BindView(R.id.scramble_image)    ImageView scrambleImage;
+    @BindView(R.id.statsLayout)       LinearLayout statsLayout;
+    @BindView(R.id.moveCountText)     TextView     moveCountText;
+    @BindView(R.id.tpsText)           TextView     tpsText;
 
     private long            mId;
     private Solve           solve;
@@ -278,6 +282,12 @@ public class TimeDialog extends DialogFragment {
                     commentText.setText(solve.getComment());
                     commentText.setVisibility(View.VISIBLE);
                 }
+            }
+
+            if (solve.getMoveCount() > 0) {
+                statsLayout.setVisibility(View.VISIBLE);
+                moveCountText.setText(getString(R.string.smart_cube_move_count, solve.getMoveCount()));
+                tpsText.setText(getString(R.string.smart_cube_tps, solve.getTps()));
             }
 
             if (solve.getScramble() != null) {

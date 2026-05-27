@@ -523,12 +523,24 @@ public class TimerFragment extends BaseFragment
                     && completedScrambleMoves == scrambleMoveTokens.length) {
                 cubeStartedSolve = true;
                 hideToolbar();
-                chronometer.holdForStart();
+
+                final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
+                        && PuzzleUtils.isInspectionEnabled(currentPuzzle);
+                if (inspectionEnabled) {
+                    final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
+                    startInspectionCountdown(inspectionTime);
+                } else {
+                    chronometer.holdForStart();
+                }
+
                 updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
                 return;
             }
 
             if (cubeStartedSolve && !isRunning) {
+                if (countingDown) {
+                    stopInspectionCountdown();
+                }
                 isExternalTimer = true;
                 startChronometer();
                 updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Solving");

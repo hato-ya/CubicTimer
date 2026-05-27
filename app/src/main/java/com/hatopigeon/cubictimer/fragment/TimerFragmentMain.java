@@ -579,7 +579,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
         }
 
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true);
-        if (!smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+        if (!smartCubeEnabled || !PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
             navButtonCube.setVisibility(View.GONE);
         }
 
@@ -820,7 +820,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                 }
 
                 if (navButtonCube != null && smartCubeEnabled
-                        && !isTimeDisabled(currentPuzzle)) {
+                        && PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
                     navButtonCube.setVisibility(View.VISIBLE);
                     navButtonCube.animate()
                             .withStartAction(() -> navButtonCube.setEnabled(true))
@@ -936,7 +936,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                         .start();
             }
 
-            if (!smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+            if (!smartCubeEnabled || !PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
                 navButtonCube.animate()
                         .withStartAction(() -> navButtonCube.setEnabled(false))
                         .alpha(0)

@@ -26,6 +26,7 @@ import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.database.AlgTaskLoader;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
+import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.TTIntent.TTFragmentBroadcastReceiver;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
@@ -171,7 +172,8 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         navButtonBluetooth.setVisibility(View.GONE);
 
         final boolean smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true);
-        if (!smartCubeEnabled) {
+        String currentPuzzle = Prefs.getString(R.string.pk_last_used_puzzle, PuzzleUtils.TYPE_333);
+        if (!smartCubeEnabled || !PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
             navButtonCube.setVisibility(View.GONE);
         }
 

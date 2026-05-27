@@ -1029,6 +1029,10 @@ public class PuzzleUtils {
         return puzzleType.equals(TYPE_333FMC) || puzzleType.equals(TYPE_333MBLD);
     }
 
+    public static boolean isSmartCubeAvailable(String puzzleType) {
+        return puzzleType.equals(TYPE_333) || puzzleType.equals(TYPE_333OH) || puzzleType.equals(TYPE_333BLD);
+    }
+
     /**
      * Convert the scramble type of csTimer to puzzleType of Cubic Timer
      * For WCA puzzles converted to each puzzleType except for 333MBLD

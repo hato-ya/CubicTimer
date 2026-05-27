@@ -485,7 +485,7 @@ public class TimerFragment extends BaseFragment
 
         @Override
         public void onCubeMoves(List<CubeMove> moves) {
-            if (cubeSolver == null || moves.isEmpty()) return;
+            if (cubeSolver == null || moves.isEmpty() || !smartCubeEnabled) return;
 
             for (CubeMove move : moves) {
                 cubeSolver.addMove(move);
@@ -959,7 +959,7 @@ public class TimerFragment extends BaseFragment
         bleStatusEnabled = Prefs.getBoolean(R.string.pk_show_ble_status, true);
         cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
-                && !isTimeDisabled(currentPuzzle);
+                && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
@@ -1406,22 +1406,32 @@ public class TimerFragment extends BaseFragment
 
         cubeSolver = new CubeSolver();
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
-                && !isTimeDisabled(currentPuzzle);
+                && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
 
-        GanCubeManager mgr = CubicTimer.getCubeBleManager();
-        if (mgr != null && mgr.isConnected()) {
-            mgr.setCallback(cubeCallback);
-            isCubeConnected = true;
-            isCubeReady = false;
-            updateScrambleColors();
-            updateCubeStatus(getString(R.string.smart_cube_status_check_message));
-            mgr.requestFacelets();
-            startCubeReadyPolling();
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
-        } else {
+        if (!smartCubeEnabled) {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            if (mgr != null && mgr.isConnected()) {
+                mgr.disconnect();
+                CubicTimer.clearCubeBleManager();
+            }
             isCubeConnected = false;
             cubeStartedSolve = false;
+        } else {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            if (mgr != null && mgr.isConnected()) {
+                mgr.setCallback(cubeCallback);
+                isCubeConnected = true;
+                isCubeReady = false;
+                updateScrambleColors();
+                updateCubeStatus(getString(R.string.smart_cube_status_check_message));
+                mgr.requestFacelets();
+                startCubeReadyPolling();
+                broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
+            } else {
+                isCubeConnected = false;
+                cubeStartedSolve = false;
+            }
         }
     }
 
@@ -3206,6 +3216,7 @@ public class TimerFragment extends BaseFragment
     }
 
     private void toggleCubeSolve() {
+        if (!smartCubeEnabled) return;
         if (cubeStartedSolve) {
             cubeStartedSolve = false;
             if (isRunning) {

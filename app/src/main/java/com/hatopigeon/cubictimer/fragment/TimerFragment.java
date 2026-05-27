@@ -3213,10 +3213,15 @@ public class TimerFragment extends BaseFragment
     private void updateCubeMoveDisplay() {
         if (cubeSolver != null && cubeStateMessage != null) {
             long elapsed = chronometer != null ? chronometer.getElapsedTime() : 0;
-            cubeSolver.setElapsedTime(elapsed);
+            int displayMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+            if (displayMoveCount < 0) displayMoveCount = 0;
+            double displayTps = 0.0;
+            if (elapsed > 0) {
+                displayTps = displayMoveCount / (elapsed / 1000.0);
+            }
             String status = getString(R.string.smart_cube_status_connect_message)
-                    + " | " + String.format(Locale.US, getString(R.string.smart_cube_move_count), cubeSolver.getNumMoves())
-                    + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), cubeSolver.getTps());
+                    + " | " + String.format(Locale.US, getString(R.string.smart_cube_move_count), displayMoveCount)
+                    + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), displayTps);
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
         }
         updateScrambleColors();

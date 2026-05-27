@@ -1556,7 +1556,6 @@ public class TimerFragment extends BaseFragment
     }
 
     private void addNewSolve() {
-        String reconstruction = null;
         int moveCount = 0;
         double tps = 0.0;
 
@@ -1564,7 +1563,6 @@ public class TimerFragment extends BaseFragment
             moveCount = cubeSolver.getNumMoves();
             cubeSolver.setElapsedTime(chronometer.getElapsedTime());
             tps = cubeSolver.getTps();
-            reconstruction = cubeSolver.getReconstruction();
             cubeSolver.reset();
         }
         if (cubeStartedSolve) {
@@ -1575,8 +1573,9 @@ public class TimerFragment extends BaseFragment
                 chronometer.getElapsedTime(),
                 currentPuzzle, currentPuzzleCategory,
                 System.currentTimeMillis(), currentScramble, currentPenalty,
-                0, getLapComment(), false,
-                moveCount, tps, reconstruction);
+                0, getLapComment(), false);
+        currentSolve.setMoveCount(moveCount);
+        currentSolve.setTps(tps);
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);

@@ -215,6 +215,9 @@ public class GanCubeManager extends BleManager {
         int eventType = getBitWord(plain, 0, 4);
 
         switch (eventType) {
+            // case 1: // gyro event — keep for debugging
+            //     Log.d(TAG, "Gyro event: " + bytesToHex(plain) + " len=" + plain.length);
+            //     break;
             case 2:
                 handleMoveEvent(plain, timestamp);
                 break;
@@ -231,7 +234,7 @@ public class GanCubeManager extends BleManager {
                 disconnect().enqueue();
                 break;
             default:
-                Log.d(TAG, "Unknown event type: " + eventType);
+                Log.v(TAG, "Unknown event type: " + eventType);
         }
     }
 

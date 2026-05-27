@@ -449,6 +449,7 @@ public class TimerFragment extends BaseFragment
     private boolean cubeStartedSolve;
     private boolean isCubeScanMode;
     private boolean isCubeReady;
+    private int movesBeforeTimerStart;
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
     private Handler cubeReadyHandler;
@@ -1546,10 +1547,11 @@ public class TimerFragment extends BaseFragment
         double tps = 0.0;
 
         if (cubeSolver != null) {
-            moveCount = cubeSolver.getNumMoves();
+            moveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
             cubeSolver.setElapsedTime(chronometer.getElapsedTime());
             tps = cubeSolver.getTps();
             cubeSolver.reset();
+            movesBeforeTimerStart = 0;
         }
         if (cubeStartedSolve) {
             cubeStartedSolve = false;
@@ -2089,6 +2091,7 @@ public class TimerFragment extends BaseFragment
         // during a solve, since generateNewScramble checks if isRunning is false before setting
         // the spinner to visible.
         isRunning = true;
+        if (cubeSolver != null) movesBeforeTimerStart = cubeSolver.getNumMoves();
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;

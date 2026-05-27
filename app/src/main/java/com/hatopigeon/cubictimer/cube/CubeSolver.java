@@ -1,7 +1,6 @@
 package com.hatopigeon.cubictimer.cube;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class CubeSolver {
     private final CubeState state = new CubeState();
@@ -20,14 +19,7 @@ public class CubeSolver {
         solved = false;
     }
 
-    public boolean applyMoves(List<CubeMove> batch) {
-        for (CubeMove m : batch) {
-            applyMove(m);
-        }
-        return solved;
-    }
-
-    public void applyMove(CubeMove move) {
+    public void addMove(CubeMove move) {
         state.applyMove(move);
         moves.add(move);
         moveCount++;
@@ -35,16 +27,8 @@ public class CubeSolver {
         solved = state.isSolved();
     }
 
-    public void addMove(CubeMove move) {
-        applyMove(move);
-    }
-
     public boolean isSolved() {
         return solved;
-    }
-
-    public int getMoveCount() {
-        return moveCount;
     }
 
     public int getNumMoves() {

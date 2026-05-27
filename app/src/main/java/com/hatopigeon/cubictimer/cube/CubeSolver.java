@@ -11,8 +11,6 @@ public class CubeSolver {
     private long elapsedTime = 0;
     private boolean solved = false;
 
-    private static final String[] FACE_NAMES = {"U", "R", "F", "D", "L", "B"};
-
     public void reset() {
         state.reset();
         moves.clear();
@@ -70,23 +68,5 @@ public class CubeSolver {
         return getTPS(elapsedTime);
     }
 
-    public String getReconstruction() {
-        if (moves.isEmpty()) return null;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < moves.size(); i++) {
-            CubeMove m = moves.get(i);
-            if (i > 0) sb.append(" ");
-            sb.append(FACE_NAMES[m.face]);
-            if (m.direction == CubeMove.DOUBLE) {
-                sb.append("2");
-            } else if (m.direction == CubeMove.CCW) {
-                sb.append("'");
-            }
-        }
-        return sb.toString();
-    }
 
-    public CubeState getState() {
-        return state;
-    }
 }

@@ -24,10 +24,6 @@ public class CubeState {
         System.arraycopy(SOLVED, 0, facelets, 0, 54);
     }
 
-    public int[] getFacelets() {
-        return facelets.clone();
-    }
-
     public void setFacelets(int[] newFacelets) {
         System.arraycopy(newFacelets, 0, facelets, 0, 54);
     }

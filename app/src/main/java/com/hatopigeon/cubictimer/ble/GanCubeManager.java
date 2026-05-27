@@ -216,9 +216,6 @@ public class GanCubeManager extends BleManager {
         int eventType = getBitWord(plain, 0, 4);
 
         switch (eventType) {
-            case 1:
-                handleGyroEvent(plain, timestamp);
-                break;
             case 2:
                 handleMoveEvent(plain, timestamp);
                 break;
@@ -460,9 +457,6 @@ public class GanCubeManager extends BleManager {
             }
         }
         Log.d(TAG, "Hardware: " + name.toString().trim());
-    }
-
-    private void handleGyroEvent(byte[] data, long timestamp) {
     }
 
     public void sendCommand(byte[] command) {

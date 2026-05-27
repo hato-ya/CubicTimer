@@ -43,8 +43,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_HISTORY  = "history";
     public static final String KEY_MOVE_COUNT = "move_count";
     public static final String KEY_TPS        = "tps";
-    public static final String KEY_RECONSTRUCTION = "reconstruction";
-
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
@@ -60,7 +58,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_HISTORY  = 8;
     public static final int IDX_MOVE_COUNT = 9;
     public static final int IDX_TPS        = 10;
-    public static final int IDX_RECONSTRUCTION = 11;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -73,13 +70,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_OLL = "OLL";
     public static final String SUBSET_PLL = "PLL";
 
-    private static final String RED                = "R";
-    private static final String GRE                = "G";
-    private static final String BLU                = "B";
-    private static final String ORA                = "O";
-    private static final String WHI                = "W";
-    private static final String YEL                = "Y";
-    private static final String NUL                = "N";
     // Database Version
     private static final int    DATABASE_VERSION   = 11;
     // Database Name
@@ -96,8 +86,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_COMMENT + " TEXT,"
             + KEY_HISTORY + " BOOLEAN,"
             + KEY_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_TPS + " REAL DEFAULT 0.0,"
-            + KEY_RECONSTRUCTION + " TEXT"
+            + KEY_TPS + " REAL DEFAULT 0.0"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -155,9 +144,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         .apply();
                 // Fall through to add new columns for existing users.
             case 10:
-                db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_MOVE_COUNT + " INTEGER DEFAULT 0");
-                db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
-                db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_RECONSTRUCTION + " TEXT");
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_MOVE_COUNT + " INTEGER DEFAULT 0");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
+                } catch (Exception ignored) {}
         }
     }
 
@@ -338,7 +330,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_RECONSTRUCTION, solve.getReconstruction());
 
         // Inserting Row
         return db.insert(TABLE_TIMES, null, values);
@@ -422,7 +413,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_RECONSTRUCTION, solve.getReconstruction());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
@@ -444,13 +434,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         final Cursor cursor = getReadableDatabase().query(TABLE_TIMES,
                 new String[] {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
-                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
-                        KEY_RECONSTRUCTION },
+                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
             if (cursor.moveToFirst()) {
-                return new Solve(
+                Solve solve = new Solve(
                         cursor.getLong(0),
                         cursor.getLong(1),
                         cursor.getString(2),
@@ -459,10 +448,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getString(5),
                         cursor.getInt(6),
                         cursor.getString(7),
-                        getBoolean(cursor, 8),
-                        cursor.getInt(9),
-                        cursor.getDouble(10),
-                        cursor.getString(11));
+                        getBoolean(cursor, 8));
+                solve.setMoveCount(cursor.getInt(9));
+                solve.setTps(cursor.getDouble(10));
+                return solve;
             }
 
             // No solve matched the given ID.

@@ -220,8 +220,7 @@ public final class TTIntent {
     public static final String ACTION_CUBE_CONNECT = ACTION_PREFIX + "CUBE_CONNECT";
     public static final String ACTION_CUBE_CONNECTED = ACTION_PREFIX + "CUBE_CONNECTED";
     public static final String ACTION_CUBE_DISCONNECTED = ACTION_PREFIX + "CUBE_DISCONNECTED";
-    public static final String ACTION_CUBE_MOVE = ACTION_PREFIX + "CUBE_MOVE";
-    public static final String ACTION_CUBE_SOLVED = ACTION_PREFIX + "CUBE_SOLVED";
+
 
     /**
      * The name of an intent extra that can hold the name of the puzzle type.
@@ -298,9 +297,7 @@ public final class TTIntent {
                 ACTION_BLUETOOTH_DISCONNECTED,
                 ACTION_CUBE_CONNECT,
                 ACTION_CUBE_CONNECTED,
-                ACTION_CUBE_DISCONNECTED,
-                ACTION_CUBE_MOVE,
-                ACTION_CUBE_SOLVED
+                ACTION_CUBE_DISCONNECTED
         });
     }};
 

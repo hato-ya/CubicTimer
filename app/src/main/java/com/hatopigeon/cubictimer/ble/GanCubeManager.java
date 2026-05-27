@@ -63,7 +63,6 @@ public class GanCubeManager extends BleManager {
 
     private int lastSerial = -1;
     private long lastMoveTimestamp = 0;
-    private int cubeTimestampAccum = 0;
 
     private final CubeState cubeState = new CubeState();
 
@@ -216,9 +215,6 @@ public class GanCubeManager extends BleManager {
         int eventType = getBitWord(plain, 0, 4);
 
         switch (eventType) {
-            case 1:
-                handleGyroEvent(plain, timestamp);
-                break;
             case 2:
                 handleMoveEvent(plain, timestamp);
                 break;
@@ -274,7 +270,6 @@ public class GanCubeManager extends BleManager {
                 if (elapsed == 0) {
                     elapsed = (int) (timestamp - lastMoveTimestamp);
                 }
-                cubeTimestampAccum += elapsed;
 
                 int cubeFace = face;
                 int cubeDir = direction == 0 ? CubeMove.CW : CubeMove.CCW;
@@ -460,9 +455,6 @@ public class GanCubeManager extends BleManager {
             }
         }
         Log.d(TAG, "Hardware: " + name.toString().trim());
-    }
-
-    private void handleGyroEvent(byte[] data, long timestamp) {
     }
 
     public void sendCommand(byte[] command) {

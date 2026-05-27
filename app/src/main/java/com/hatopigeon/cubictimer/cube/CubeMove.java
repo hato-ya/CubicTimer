@@ -1,7 +1,5 @@
 package com.hatopigeon.cubictimer.cube;
 
-import android.os.SystemClock;
-
 public class CubeMove {
     public static final int U = 0, R = 1, F = 2, D = 3, L = 4, B = 5;
     public static final int CW = 1, CCW = -1, DOUBLE = 2;
@@ -9,10 +7,6 @@ public class CubeMove {
     public final int face;
     public final int direction;
     public final long timestamp;
-
-    public CubeMove(int face, int direction) {
-        this(face, direction, SystemClock.elapsedRealtime());
-    }
 
     public CubeMove(int face, int direction, long timestamp) {
         this.face = face;
@@ -31,7 +25,4 @@ public class CubeMove {
         return toNotation();
     }
 
-    public CubeMove inverse() {
-        return new CubeMove(face, direction == DOUBLE ? DOUBLE : -direction, timestamp);
-    }
 }

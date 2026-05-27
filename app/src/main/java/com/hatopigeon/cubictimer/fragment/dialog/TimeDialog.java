@@ -73,7 +73,6 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.statsLayout)       LinearLayout statsLayout;
     @BindView(R.id.moveCountText)     TextView     moveCountText;
     @BindView(R.id.tpsText)           TextView     tpsText;
-
     private long            mId;
     private Solve           solve;
     private DialogListener  dialogListener;

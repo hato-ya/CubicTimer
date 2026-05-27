@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ParcelUuid;
 import android.os.Process;
 import android.preference.PreferenceManager;
 
@@ -105,7 +104,6 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -146,8 +144,6 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_MOVE;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_SOLVED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -302,7 +298,6 @@ public class TimerFragment extends BaseFragment
     private boolean isScanning = false;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
-    private static final int GAN_MANUFACTURER_ID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -548,12 +543,10 @@ public class TimerFragment extends BaseFragment
 
             if (!isRunning) return;
 
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_MOVE);
             updateCubeMoveDisplay();
 
             if (cubeSolver.isSolved()) {
                 Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves());
-                broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
                 if (isRunning) {
                     animationDone = false;
                     isExternalTimer = false;
@@ -573,7 +566,6 @@ public class TimerFragment extends BaseFragment
         @Override
         public void onCubeSolved() {
             Log.d(TAG, "Cube solved via facelets!");
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
             if (isRunning) {
                 animationDone = false;
                 isExternalTimer = false;
@@ -1008,14 +1000,6 @@ public class TimerFragment extends BaseFragment
             multiPhaseStatusMessage.setVisibility(View.GONE);
         }
         mShowHiRes = Prefs.getBoolean(R.string.pk_show_hi_res_timer, true);
-
-        if (!scrambleEnabled) {
-            // CongratsText is by default aligned to below the scramble box. If it's missing, we have
-            // to add an extra margin to account for the title header
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) congratsText.getLayoutParams();
-            params.topMargin = ThemeUtils.dpToPix(mContext, 70); // WARNING: this has to be the same as attr/actionBarPadding
-            congratsText.requestLayout();
-        }
 
         if (!scrambleEnabled) {
             // CongratsText is by default aligned to below the scramble box. If it's missing, we have
@@ -3078,16 +3062,10 @@ public class TimerFragment extends BaseFragment
     private void stopBleScanInternal() {
         BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         scanner.stopScan(mLeScanCallback);
-        scanner.stopScan(mCubeScanCallback);
         isScanning = false;
     }
 
     private ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-        }
-
         @SuppressLint("MissingPermission")
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
@@ -3110,12 +3088,7 @@ public class TimerFragment extends BaseFragment
                     devices.add(result.getDevice());
                 }
             }
-            Collections.sort(devices, new Comparator<BluetoothDevice>() {
-                @SuppressLint("MissingPermission")
-                @Override
-                public int compare(BluetoothDevice personFirst, BluetoothDevice personSecond) {
-                    return personFirst.getAddress().compareTo(personSecond.getAddress());
-                }});
+            Collections.sort(devices, (d1, d2) -> d1.getAddress().compareTo(d2.getAddress()));
 
             bleDevices = devices;
 
@@ -3154,32 +3127,6 @@ public class TimerFragment extends BaseFragment
     private void startCubeScan() {
         isCubeScanMode = true;
         CubeBleHelper.startScan(getActivity(), cubeCallback);
-    }
-
-    private void startCubeScanInternal(long reportDelayMillis) {
-        if (isScanning) {
-            Log.d(TAG, "Cube Scan : canceled due to scanning");
-            return;
-        }
-        isScanning = true;
-
-        bleScanPeriod = reportDelayMillis;
-
-        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-        ScanSettings settings = new ScanSettings.Builder()
-                .setLegacy(false)
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .setReportDelay(reportDelayMillis)
-                .setUseHardwareBatchingIfSupported(false)
-                .build();
-        List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
-        scanner.startScan(filters, settings, mCubeScanCallback);
     }
 
     private void connectCubeBle(BluetoothDevice device) {
@@ -3405,53 +3352,6 @@ public class TimerFragment extends BaseFragment
             cubePollRunnable = null;
         }
     }
-
-    private final ScanCallback mCubeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-        }
-
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-            Log.d(TAG, "Cube Scan : onBatchScanResults");
-
-            ArrayList<BluetoothDevice> devices = new ArrayList<>();
-            for (ScanResult result : results) {
-                String name = result.getDevice().getName();
-                if (name != null && name.toUpperCase(Locale.US).startsWith("GAN") && !name.contains("Timer")) {
-                    devices.add(result.getDevice());
-                }
-            }
-            Collections.sort(devices, (d1, d2) -> d1.getAddress().compareTo(d2.getAddress()));
-
-            bleDevices = devices;
-
-            ArrayList<CharSequence> items = new ArrayList<>();
-            for (BluetoothDevice device : bleDevices) {
-                if (device.getName() != null)
-                    items.add(device.getName() + " (" + device.getAddress() + ")");
-                else
-                    items.add(device.getAddress());
-            }
-            String[] array = items.toArray(new String[items.size()]);
-            dialogBleScan.setItems(array);
-
-            if (bleScanPeriod == 500 && !results.isEmpty()) {
-                stopBleScanInternal();
-                startCubeScanInternal(5000);
-            }
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Log.d(TAG, "Cube Scan : onScanFailed");
-            stopBleScanInternal();
-        }
-    };
 
     class BleClientManager extends BleManager {
         private static final String TAG = "BleClientManager";

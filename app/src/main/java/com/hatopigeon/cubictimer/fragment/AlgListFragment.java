@@ -169,6 +169,12 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         button1.setVisibility(View.GONE);
         button2.setVisibility(View.GONE);
         navButtonBluetooth.setVisibility(View.GONE);
+
+        final boolean smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true);
+        if (!smartCubeEnabled) {
+            navButtonCube.setVisibility(View.GONE);
+        }
+
         buttonSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

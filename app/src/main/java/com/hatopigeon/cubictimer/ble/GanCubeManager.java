@@ -63,7 +63,6 @@ public class GanCubeManager extends BleManager {
 
     private int lastSerial = -1;
     private long lastMoveTimestamp = 0;
-    private int cubeTimestampAccum = 0;
 
     private final CubeState cubeState = new CubeState();
 
@@ -271,7 +270,6 @@ public class GanCubeManager extends BleManager {
                 if (elapsed == 0) {
                     elapsed = (int) (timestamp - lastMoveTimestamp);
                 }
-                cubeTimestampAccum += elapsed;
 
                 int cubeFace = face;
                 int cubeDir = direction == 0 ? CubeMove.CW : CubeMove.CCW;

@@ -144,8 +144,6 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_MOVE;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_SOLVED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -545,12 +543,10 @@ public class TimerFragment extends BaseFragment
 
             if (!isRunning) return;
 
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_MOVE);
             updateCubeMoveDisplay();
 
             if (cubeSolver.isSolved()) {
                 Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves());
-                broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
                 if (isRunning) {
                     animationDone = false;
                     isExternalTimer = false;
@@ -570,7 +566,6 @@ public class TimerFragment extends BaseFragment
         @Override
         public void onCubeSolved() {
             Log.d(TAG, "Cube solved via facelets!");
-            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_SOLVED);
             if (isRunning) {
                 animationDone = false;
                 isExternalTimer = false;
@@ -1005,14 +1000,6 @@ public class TimerFragment extends BaseFragment
             multiPhaseStatusMessage.setVisibility(View.GONE);
         }
         mShowHiRes = Prefs.getBoolean(R.string.pk_show_hi_res_timer, true);
-
-        if (!scrambleEnabled) {
-            // CongratsText is by default aligned to below the scramble box. If it's missing, we have
-            // to add an extra margin to account for the title header
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) congratsText.getLayoutParams();
-            params.topMargin = ThemeUtils.dpToPix(mContext, 70); // WARNING: this has to be the same as attr/actionBarPadding
-            congratsText.requestLayout();
-        }
 
         if (!scrambleEnabled) {
             // CongratsText is by default aligned to below the scramble box. If it's missing, we have

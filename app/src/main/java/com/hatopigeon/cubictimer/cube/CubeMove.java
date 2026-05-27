@@ -25,7 +25,4 @@ public class CubeMove {
         return toNotation();
     }
 
-    public CubeMove inverse() {
-        return new CubeMove(face, direction == DOUBLE ? DOUBLE : -direction, timestamp);
-    }
 }

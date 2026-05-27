@@ -49,12 +49,6 @@ public class CubeState {
     }
 
     public void applyMove(int face, int direction) {
-        if (direction == 2) {
-            applyMove(face, 1);
-            applyMove(face, 1);
-            return;
-        }
-
         int[] perm;
         if (direction == 1) {
             perm = PERM_CW[face];

@@ -6,7 +6,6 @@ public class CubeSolver {
     private final CubeState state = new CubeState();
     private final ArrayList<CubeMove> moves = new ArrayList<>();
     private int moveCount = 0;
-    private long firstMoveTime = 0;
     private long elapsedTime = 0;
     private boolean solved = false;
 
@@ -14,7 +13,6 @@ public class CubeSolver {
         state.reset();
         moves.clear();
         moveCount = 0;
-        firstMoveTime = 0;
         elapsedTime = 0;
         solved = false;
     }
@@ -23,7 +21,6 @@ public class CubeSolver {
         state.applyMove(move);
         moves.add(move);
         moveCount++;
-        if (firstMoveTime == 0) firstMoveTime = move.timestamp;
         solved = state.isSolved();
     }
 
@@ -33,10 +30,6 @@ public class CubeSolver {
 
     public int getNumMoves() {
         return moveCount;
-    }
-
-    public long getFirstMoveTime() {
-        return firstMoveTime;
     }
 
     public void setElapsedTime(long ms) {

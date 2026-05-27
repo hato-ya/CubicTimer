@@ -70,13 +70,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_OLL = "OLL";
     public static final String SUBSET_PLL = "PLL";
 
-    private static final String RED                = "R";
-    private static final String GRE                = "G";
-    private static final String BLU                = "B";
-    private static final String ORA                = "O";
-    private static final String WHI                = "W";
-    private static final String YEL                = "Y";
-    private static final String NUL                = "N";
     // Database Version
     private static final int    DATABASE_VERSION   = 11;
     // Database Name

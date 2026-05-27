@@ -14,6 +14,7 @@ public class ScrambleTextView extends AppCompatTextView {
 
     private String[] scrambleTokens;
     private int completedMoves;
+    private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public ScrambleTextView(Context context) {
         super(context);
@@ -45,7 +46,6 @@ public class ScrambleTextView extends AppCompatTextView {
     }
 
     private void drawCompletedBackgrounds(Canvas canvas, Layout layout) {
-        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bgPaint.setColor(Color.BLACK);
         bgPaint.setStyle(Paint.Style.FILL);
 

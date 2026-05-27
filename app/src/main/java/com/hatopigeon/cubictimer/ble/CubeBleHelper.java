@@ -152,8 +152,8 @@ public class CubeBleHelper {
                         if (sDevices == null || which < 0 || which >= sDevices.size()
                                 || sDevices.get(which) == null) return;
                         BluetoothDevice device = sDevices.get(which);
-                        cleanupScan();
                         connectToCube(activity, device);
+                        cleanupScan();
                     })
                     .negativeText(R.string.ble_scan_cancel)
                     .onAny((dialog, which) -> cleanupScan())

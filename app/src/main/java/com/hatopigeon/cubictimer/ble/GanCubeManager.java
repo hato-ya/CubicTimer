@@ -114,7 +114,7 @@ public class GanCubeManager extends BleManager {
 
     @Override
     public int getMinLogPriority() {
-        return Log.VERBOSE;
+        return Log.WARN;
     }
 
     @Override

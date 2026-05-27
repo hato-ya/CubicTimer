@@ -449,6 +449,9 @@
     <string name="cubeStatusEnabledSummary">Show smart cube connection status on timer screen</string>
     <string name="cubeMoveDetailsEnabledTitle">Show move details</string>
     <string name="cubeMoveDetailsEnabledSummary">Display move count and TPS during solve</string>
+    <string name="dialog_theme_scramble_highlight">Scramble highlight</string>
+    <string name="dialog_theme_highlight_bg">Completed move background</string>
+    <string name="dialog_theme_highlight_fg">Completed move text</string>
 
     <string name="timer_gan_timer_state_get_set">GET_SET</string>
     <string name="timer_gan_timer_state_hands_off">HANDS_OFF</string>

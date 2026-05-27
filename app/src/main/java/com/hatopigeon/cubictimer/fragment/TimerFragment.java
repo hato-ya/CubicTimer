@@ -145,6 +145,7 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_HIGHLIGHT_CHANGED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -679,6 +680,10 @@ public class TimerFragment extends BaseFragment
                     Solve solve = TTIntent.getSolve(intent);
                     scrambleGeneratorAsync.cancel(true);
                     setScramble(solve.getScramble());
+                    break;
+
+                case ACTION_SCRAMBLE_HIGHLIGHT_CHANGED:
+                    updateScrambleColors();
                     break;
             }
         }
@@ -3368,8 +3373,9 @@ public class TimerFragment extends BaseFragment
             searchPos = end;
 
             if (i < completedScrambleMoves) {
+                String fgHex = Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF");
                 spannable.setSpan(
-                        new ForegroundColorSpan(Color.WHITE),
+                        new ForegroundColorSpan(Color.parseColor("#" + fgHex)),
                         start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             i++;

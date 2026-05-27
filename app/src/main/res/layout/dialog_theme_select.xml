@@ -33,11 +33,84 @@
             android:paddingBottom="8dp" />
 
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/text_style_title"
+            android:id="@+id/highlight_title"
             style="@style/BottomPanelListTitleTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/list"
+            android:background="?colorCardBackgroundFaded"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/dialog_theme_scramble_highlight"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/highlight_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/highlight_title"
+            android:background="@color/black_divider" />
+
+        <LinearLayout
+            android:id="@+id/highlight_bg_row"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_below="@id/highlight_divider"
+            android:background="?selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <View
+                android:id="@+id/highlight_bg_preview"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/background_circle" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:text="@string/dialog_theme_highlight_bg"
+                android:textColor="?colorItemListText" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/highlight_fg_row"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_below="@id/highlight_bg_row"
+            android:background="?selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <View
+                android:id="@+id/highlight_fg_preview"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/background_circle" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:text="@string/dialog_theme_highlight_fg"
+                android:textColor="?colorItemListText" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/text_style_title"
+            style="@style/BottomPanelListTitleTextStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/highlight_fg_row"
             android:background="?colorCardBackgroundFaded"
             android:textStyle="bold"
             android:paddingTop="8dp"

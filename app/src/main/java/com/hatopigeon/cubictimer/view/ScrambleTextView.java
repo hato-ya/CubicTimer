@@ -10,6 +10,8 @@ import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatTextView;
 
+import com.hatopigeon.cubictimer.utils.Prefs;
+
 public class ScrambleTextView extends AppCompatTextView {
 
     private String[] scrambleTokens;
@@ -46,7 +48,8 @@ public class ScrambleTextView extends AppCompatTextView {
     }
 
     private void drawCompletedBackgrounds(Canvas canvas, Layout layout) {
-        bgPaint.setColor(Color.BLACK);
+        String bgHex = Prefs.getString(com.hatopigeon.cubicify.R.string.pk_scramble_highlight_bg, "000000");
+        bgPaint.setColor(Color.parseColor("#" + bgHex));
         bgPaint.setStyle(Paint.Style.FILL);
 
         float padH = 8f;

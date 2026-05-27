@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ParcelUuid;
 import android.os.Process;
 import android.preference.PreferenceManager;
 
@@ -302,7 +301,6 @@ public class TimerFragment extends BaseFragment
     private boolean isScanning = false;
 
     // definitions for GAN Smart Timer / GAN Halo Timer
-    private static final int GAN_MANUFACTURER_ID = 0x4147;
     private static final String GANTIMER_TIMER_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     private static final String GANTIMER_STATE_CHARACTERISTIC_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -3078,7 +3076,6 @@ public class TimerFragment extends BaseFragment
     private void stopBleScanInternal() {
         BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         scanner.stopScan(mLeScanCallback);
-        scanner.stopScan(mCubeScanCallback);
         isScanning = false;
     }
 
@@ -3154,32 +3151,6 @@ public class TimerFragment extends BaseFragment
     private void startCubeScan() {
         isCubeScanMode = true;
         CubeBleHelper.startScan(getActivity(), cubeCallback);
-    }
-
-    private void startCubeScanInternal(long reportDelayMillis) {
-        if (isScanning) {
-            Log.d(TAG, "Cube Scan : canceled due to scanning");
-            return;
-        }
-        isScanning = true;
-
-        bleScanPeriod = reportDelayMillis;
-
-        BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-        ScanSettings settings = new ScanSettings.Builder()
-                .setLegacy(false)
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .setReportDelay(reportDelayMillis)
-                .setUseHardwareBatchingIfSupported(false)
-                .build();
-        List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
-        scanner.startScan(filters, settings, mCubeScanCallback);
     }
 
     private void connectCubeBle(BluetoothDevice device) {
@@ -3405,53 +3376,6 @@ public class TimerFragment extends BaseFragment
             cubePollRunnable = null;
         }
     }
-
-    private final ScanCallback mCubeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-        }
-
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-            Log.d(TAG, "Cube Scan : onBatchScanResults");
-
-            ArrayList<BluetoothDevice> devices = new ArrayList<>();
-            for (ScanResult result : results) {
-                String name = result.getDevice().getName();
-                if (name != null && name.toUpperCase(Locale.US).startsWith("GAN") && !name.contains("Timer")) {
-                    devices.add(result.getDevice());
-                }
-            }
-            Collections.sort(devices, (d1, d2) -> d1.getAddress().compareTo(d2.getAddress()));
-
-            bleDevices = devices;
-
-            ArrayList<CharSequence> items = new ArrayList<>();
-            for (BluetoothDevice device : bleDevices) {
-                if (device.getName() != null)
-                    items.add(device.getName() + " (" + device.getAddress() + ")");
-                else
-                    items.add(device.getAddress());
-            }
-            String[] array = items.toArray(new String[items.size()]);
-            dialogBleScan.setItems(array);
-
-            if (bleScanPeriod == 500 && !results.isEmpty()) {
-                stopBleScanInternal();
-                startCubeScanInternal(5000);
-            }
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Log.d(TAG, "Cube Scan : onScanFailed");
-            stopBleScanInternal();
-        }
-    };
 
     class BleClientManager extends BleManager {
         private static final String TAG = "BleClientManager";

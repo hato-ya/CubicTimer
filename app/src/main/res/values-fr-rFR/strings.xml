@@ -393,4 +393,6 @@
     <string name="list_sort_ascending">Croissant</string>
     <string name="list_sort_descending">Décroissant</string>
     <string name="smart_cube_status_check_message">Vérification de l\'état du cube…</string>
+    <string name="cubeMoveDetailsEnabledTitle">Afficher les détails des mouvements</string>
+    <string name="cubeMoveDetailsEnabledSummary">Afficher le nombre de mouvements et les TPS pendant la résolution</string>
 </resources>

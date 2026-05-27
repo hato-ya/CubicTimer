@@ -447,6 +447,8 @@
     <string name="smart_cube_scan_title">Smart Cube devices</string>
     <string name="cubeStatusEnabledTitle">Show cube status</string>
     <string name="cubeStatusEnabledSummary">Show smart cube connection status on timer screen</string>
+    <string name="cubeMoveDetailsEnabledTitle">Show move details</string>
+    <string name="cubeMoveDetailsEnabledSummary">Display move count and TPS during solve</string>
 
     <string name="timer_gan_timer_state_get_set">GET_SET</string>
     <string name="timer_gan_timer_state_hands_off">HANDS_OFF</string>

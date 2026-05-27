@@ -71,6 +71,7 @@ THESE KEYS MUST NOT BE LOCALIZED!
 
     <string translatable="false" name="pk_smart_cube_enabled">smartCubeEnabled</string>
     <string translatable="false" name="pk_show_cube_status">showCubeStatus</string>
+    <string translatable="false" name="pk_show_cube_move_details">showCubeMoveDetails</string>
 
     <string translatable="false" name="pk_stat_trim_size">pk_stat_trim_size</string>
     <string translatable="false" name="pk_stat_acceptable_dnf_size">pk_stat_acceptable_dnf_size</string>

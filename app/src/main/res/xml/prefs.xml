@@ -368,6 +368,12 @@
                     android:key="@string/pk_show_cube_status"
                     android:summary="@string/cubeStatusEnabledSummary"
                     android:title="@string/cubeStatusEnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_cubeMoveDetailsEnabled"
+                    android:key="@string/pk_show_cube_move_details"
+                    android:summary="@string/cubeMoveDetailsEnabledSummary"
+                    android:title="@string/cubeMoveDetailsEnabledTitle" />
             </PreferenceCategory>
 
             <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">

@@ -422,6 +422,7 @@ public class TimerFragment extends BaseFragment
     private boolean smartTimerEnabled;
     private boolean smartCubeEnabled;
     private boolean cubeStatusEnabled;
+    private boolean cubeMoveDetailsEnabled;
     private boolean bleStatusEnabled;
     private boolean inspectionByResetEnabled;
 
@@ -959,6 +960,7 @@ public class TimerFragment extends BaseFragment
         cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && !isTimeDisabled(currentPuzzle);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -1405,6 +1407,7 @@ public class TimerFragment extends BaseFragment
         cubeSolver = new CubeSolver();
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && !isTimeDisabled(currentPuzzle);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
 
         GanCubeManager mgr = CubicTimer.getCubeBleManager();
         if (mgr != null && mgr.isConnected()) {
@@ -1941,6 +1944,15 @@ public class TimerFragment extends BaseFragment
                         .setDuration(mAnimationDuration);
                 }
         }
+        if (cubeStatusEnabled) {
+            if (cubeStateMessage != null) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+                cubeStateMessage.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
+        }
     }
 
     private void showImage() {
@@ -1976,7 +1988,8 @@ public class TimerFragment extends BaseFragment
                 scrambleButtonEdit == null || scrambleButtonReset == null || detailTextAvg == null ||
                 detailTextOther == null || recentResultText == null || undoButton == null ||
                 quickActionButtons == null || detailAverageRecordMesssage == null ||
-                serialStatusMessage == null || bleStatusMessage == null) {
+                serialStatusMessage == null || bleStatusMessage == null ||
+                cubeStateMessage == null) {
             return;
         }
 
@@ -2073,6 +2086,13 @@ public class TimerFragment extends BaseFragment
                     .alpha(0)
                     .setDuration(mAnimationDuration)
                     .withEndAction(() -> {if(bleStatusMessage!=null) bleStatusMessage.setVisibility(View.INVISIBLE);});
+        }
+        if (cubeStatusEnabled && (!cubeMoveDetailsEnabled || !isCubeConnected)) {
+            cubeStateMessage
+                    .animate()
+                    .alpha(0)
+                    .setDuration(mAnimationDuration)
+                    .withEndAction(() -> {if(cubeStateMessage!=null) cubeStateMessage.setVisibility(View.INVISIBLE);});
         }
     }
 
@@ -3207,11 +3227,19 @@ public class TimerFragment extends BaseFragment
     private void updateCubeStatus(String status) {
         if (cubeStateMessage != null) {
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
+            if (cubeMoveDetailsEnabled && isCubeConnected || !isRunning) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+            }
         }
     }
 
     private void updateCubeMoveDisplay() {
         if (cubeSolver != null && cubeStateMessage != null) {
+            if (!cubeMoveDetailsEnabled || !isCubeConnected) {
+                cubeStateMessage.setVisibility(View.GONE);
+                updateScrambleColors();
+                return;
+            }
             long elapsed = chronometer != null ? chronometer.getElapsedTime() : 0;
             int displayMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
             if (displayMoveCount < 0) displayMoveCount = 0;

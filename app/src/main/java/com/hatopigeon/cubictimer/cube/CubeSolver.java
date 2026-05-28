@@ -31,6 +31,10 @@ public class CubeSolver {
         return state.isCrossSolved();
     }
 
+    public boolean isCrossSolved(int face) {
+        return state.isCrossSolved(face);
+    }
+
     public int getCrossFace() {
         return state.getCrossFace();
     }

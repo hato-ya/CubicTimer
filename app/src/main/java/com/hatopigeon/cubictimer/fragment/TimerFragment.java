@@ -586,11 +586,27 @@ public class TimerFragment extends BaseFragment
         public void onFaceletsReceived(int[] csFacelets) {
             if (cubeSolver == null) return;
             cubeSolver.setStateFacelets(csFacelets);
-            if (crossTimeMs < 0 && isRunning && cubeSolver.isCrossSolved()) {
-                crossFace = cubeSolver.getCrossFace();
-                crossTimeMs = chronometer.getElapsedTime();
-                crossMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
-                Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms, face=" + crossFace);
+            if (crossTimeMs < 0 && isRunning) {
+                String crossFacePref = Prefs.getString(R.string.pk_smart_cube_cross_face, "auto");
+                int detectedFace = -1;
+                if ("auto".equals(crossFacePref)) {
+                    if (cubeSolver.isCrossSolved()) {
+                        detectedFace = cubeSolver.getCrossFace();
+                    }
+                } else {
+                    try {
+                        int fixedFace = Integer.parseInt(crossFacePref);
+                        if (cubeSolver.isCrossSolved(fixedFace)) {
+                            detectedFace = fixedFace;
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+                if (detectedFace >= 0) {
+                    crossFace = detectedFace;
+                    crossTimeMs = chronometer.getElapsedTime();
+                    crossMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+                    Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms, face=" + crossFace);
+                }
             }
             if (crossFace >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved(crossFace)) {
                 f2lTimeMs = chronometer.getElapsedTime() - crossTimeMs;

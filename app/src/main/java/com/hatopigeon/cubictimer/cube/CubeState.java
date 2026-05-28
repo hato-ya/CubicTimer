@@ -149,6 +149,21 @@ public class CubeState {
         return getCrossFace() >= 0;
     }
 
+    public boolean isCrossSolved(int face) {
+        int faceCenterIdx = face * 9 + 4;
+        for (int e = 0; e < 4; e++) {
+            int idx = face * 4 + e;
+            int edgeFc = CROSS_EDGE_PAIRS[idx][0];
+            int adjFc = CROSS_EDGE_PAIRS[idx][1];
+            int adjCnt = CROSS_EDGE_PAIRS[idx][2];
+            if (facelets[edgeFc] != facelets[faceCenterIdx]
+                    || facelets[adjFc] != facelets[adjCnt]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static final int[] FACE_MAP_CUBEMOVE_TO_CUBESTATE = {0, 3, 2, 5, 1, 4};
 
     public void applyMove(CubeMove move) {

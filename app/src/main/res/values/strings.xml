@@ -453,6 +453,15 @@
     <string name="smart_cube_enabled_summary">Use a Bluetooth smart cube for automatic timing</string>
     <string name="smart_cube_enabled_title">Use smart cube</string>
     <string name="smart_cube_scan_title">Smart Cube devices</string>
+    <string name="smart_cube_cross_face_title">Cross detection</string>
+    <string name="smart_cube_cross_face_summary">Choose which face to detect as cross</string>
+    <string name="smart_cube_cross_face_auto">Auto</string>
+    <string name="smart_cube_cross_face_top">White</string>
+    <string name="smart_cube_cross_face_left">Orange</string>
+    <string name="smart_cube_cross_face_front">Green</string>
+    <string name="smart_cube_cross_face_right">Red</string>
+    <string name="smart_cube_cross_face_back">Blue</string>
+    <string name="smart_cube_cross_face_down">Yellow</string>
     <string name="cubeStatusEnabledTitle">Show cube status</string>
     <string name="cubeStatusEnabledSummary">Show smart cube connection status on timer screen</string>
     <string name="cubeMoveDetailsEnabledTitle">Show move details</string>

@@ -452,10 +452,15 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeScanMode;
     private boolean isCubeReady;
     private int movesBeforeTimerStart;
+    private int crossFace = -1;
     private long crossTimeMs = -1;
     private int crossMoveCount;
     private long f2lTimeMs = -1;
     private int f2lMoveCount;
+    private long ollTimeMs = -1;
+    private int ollMoveCount;
+    private long pllTimeMs = -1;
+    private int pllMoveCount;
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
     private Handler cubeReadyHandler;
@@ -558,6 +563,10 @@ public class TimerFragment extends BaseFragment
                 Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves()
                         + " crossTimeMs=" + crossTimeMs);
                 if (isRunning) {
+                    if (ollTimeMs >= 0 && pllTimeMs < 0) {
+                        pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
+                        pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount - ollMoveCount;
+                    }
                     animationDone = false;
                     isExternalTimer = false;
                     stopChronometer();
@@ -578,14 +587,20 @@ public class TimerFragment extends BaseFragment
             if (cubeSolver == null) return;
             cubeSolver.setStateFacelets(csFacelets);
             if (crossTimeMs < 0 && isRunning && cubeSolver.isCrossSolved()) {
+                crossFace = cubeSolver.getCrossFace();
                 crossTimeMs = chronometer.getElapsedTime();
                 crossMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
-                Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms");
+                Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms, face=" + crossFace);
             }
-            if (crossTimeMs >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved()) {
+            if (crossFace >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved(crossFace)) {
                 f2lTimeMs = chronometer.getElapsedTime() - crossTimeMs;
                 f2lMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount;
                 Log.d(TAG, "F2L detected from facelets at +" + f2lTimeMs + "ms");
+            }
+            if (crossFace >= 0 && f2lTimeMs >= 0 && ollTimeMs < 0 && isRunning && cubeSolver.isOLLSolved(crossFace)) {
+                ollTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs;
+                ollMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount;
+                Log.d(TAG, "OLL detected from facelets at +" + ollTimeMs + "ms");
             }
         }
 
@@ -593,6 +608,10 @@ public class TimerFragment extends BaseFragment
         public void onCubeSolved() {
             Log.d(TAG, "Cube solved via facelets!");
             if (isRunning) {
+                if (ollTimeMs >= 0 && pllTimeMs < 0) {
+                    pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
+                    pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount - ollMoveCount;
+                }
                 animationDone = false;
                 isExternalTimer = false;
                 stopChronometer();
@@ -1609,6 +1628,10 @@ public class TimerFragment extends BaseFragment
         currentSolve.setCrossMoveCount(crossMoveCount);
         currentSolve.setF2lTime(f2lTimeMs);
         currentSolve.setF2lMoveCount(f2lMoveCount);
+        currentSolve.setOllTime(ollTimeMs);
+        currentSolve.setOllMoveCount(ollMoveCount);
+        currentSolve.setPllTime(pllTimeMs);
+        currentSolve.setPllMoveCount(pllMoveCount);
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -2154,10 +2177,15 @@ public class TimerFragment extends BaseFragment
         // the spinner to visible.
         isRunning = true;
         if (cubeSolver != null) movesBeforeTimerStart = cubeSolver.getNumMoves();
+        crossFace = -1;
         crossTimeMs = -1;
         crossMoveCount = 0;
         f2lTimeMs = -1;
         f2lMoveCount = 0;
+        ollTimeMs = -1;
+        ollMoveCount = 0;
+        pllTimeMs = -1;
+        pllMoveCount = 0;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;

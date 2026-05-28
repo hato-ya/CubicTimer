@@ -97,6 +97,10 @@ public class CubeState {
 
     public boolean isF2LSolved() {
         int crossFace = getCrossFace();
+        return crossFace >= 0 && isF2LSolved(crossFace);
+    }
+
+    public boolean isF2LSolved(int crossFace) {
         if (crossFace < 0) return false;
 
         for (int idx : F2L_CHECK[crossFace]) {
@@ -124,6 +128,21 @@ public class CubeState {
             if (faceCrossSolved) return face;
         }
         return -1;
+    }
+
+    public boolean isOLLSolved() {
+        int crossFace = getCrossFace();
+        return crossFace >= 0 && isOLLSolved(crossFace);
+    }
+
+    public boolean isOLLSolved(int crossFace) {
+        if (crossFace < 0) return false;
+        int opp = OPPOSITE[crossFace];
+        int oppCenter = opp * 9 + 4;
+        for (int i = opp * 9; i < opp * 9 + 9; i++) {
+            if (facelets[i] != facelets[oppCenter]) return false;
+        }
+        return true;
     }
 
     public boolean isCrossSolved() {

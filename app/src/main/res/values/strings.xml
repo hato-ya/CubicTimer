@@ -446,6 +446,10 @@
     <string name="smart_cube_cross_time_moves">Cross: %s (%d moves)</string>
     <string name="smart_cube_f2l_time">F2L: %s</string>
     <string name="smart_cube_f2l_time_moves">F2L: %s (%d moves)</string>
+    <string name="smart_cube_oll_time">OLL: %s</string>
+    <string name="smart_cube_oll_time_moves">OLL: %s (%d moves)</string>
+    <string name="smart_cube_pll_time">PLL: %s</string>
+    <string name="smart_cube_pll_time_moves">PLL: %s (%d moves)</string>
     <string name="smart_cube_enabled_summary">Use a Bluetooth smart cube for automatic timing</string>
     <string name="smart_cube_enabled_title">Use smart cube</string>
     <string name="smart_cube_scan_title">Smart Cube devices</string>

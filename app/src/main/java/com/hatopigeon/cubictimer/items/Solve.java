@@ -29,6 +29,10 @@ public class Solve implements Parcelable {
     int    crossMoveCount;
     long   f2lTime = -1;
     int    f2lMoveCount;
+    long   ollTime = -1;
+    int    ollMoveCount;
+    long   pllTime = -1;
+    int    pllMoveCount;
 
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
@@ -84,6 +88,10 @@ public class Solve implements Parcelable {
         crossMoveCount = in.readInt();
         f2lTime = in.readLong();
         f2lMoveCount = in.readInt();
+        ollTime = in.readLong();
+        ollMoveCount = in.readInt();
+        pllTime = in.readLong();
+        pllMoveCount = in.readInt();
     }
 
     public void setId(long id) {
@@ -214,6 +222,38 @@ public class Solve implements Parcelable {
         this.f2lMoveCount = f2lMoveCount;
     }
 
+    public long getOllTime() {
+        return ollTime;
+    }
+
+    public void setOllTime(long ollTime) {
+        this.ollTime = ollTime;
+    }
+
+    public int getOllMoveCount() {
+        return ollMoveCount;
+    }
+
+    public void setOllMoveCount(int ollMoveCount) {
+        this.ollMoveCount = ollMoveCount;
+    }
+
+    public long getPllTime() {
+        return pllTime;
+    }
+
+    public void setPllTime(long pllTime) {
+        this.pllTime = pllTime;
+    }
+
+    public int getPllMoveCount() {
+        return pllMoveCount;
+    }
+
+    public void setPllMoveCount(int pllMoveCount) {
+        this.pllMoveCount = pllMoveCount;
+    }
+
     public int getRawPenalty() {
         return penalty;
     }
@@ -248,6 +288,10 @@ public class Solve implements Parcelable {
         dest.writeInt(crossMoveCount);
         dest.writeLong(f2lTime);
         dest.writeInt(f2lMoveCount);
+        dest.writeLong(ollTime);
+        dest.writeInt(ollMoveCount);
+        dest.writeLong(pllTime);
+        dest.writeInt(pllMoveCount);
     }
 
     /**

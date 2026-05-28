@@ -39,6 +39,18 @@ public class CubeSolver {
         return state.isF2LSolved();
     }
 
+    public boolean isF2LSolved(int crossFace) {
+        return state.isF2LSolved(crossFace);
+    }
+
+    public boolean isOLLSolved() {
+        return state.isOLLSolved();
+    }
+
+    public boolean isOLLSolved(int crossFace) {
+        return state.isOLLSolved(crossFace);
+    }
+
     public void setStateFacelets(int[] facelets) {
         state.setFacelets(facelets);
         solved = state.isSolved();

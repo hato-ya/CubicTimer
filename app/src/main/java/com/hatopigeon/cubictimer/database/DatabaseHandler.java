@@ -47,6 +47,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_CROSS_MOVE_COUNT = "cross_move_count";
     public static final String KEY_F2L_TIME = "f2l_time";
     public static final String KEY_F2L_MOVE_COUNT = "f2l_move_count";
+    public static final String KEY_OLL_TIME = "oll_time";
+    public static final String KEY_OLL_MOVE_COUNT = "oll_move_count";
+    public static final String KEY_PLL_TIME = "pll_time";
+    public static final String KEY_PLL_MOVE_COUNT = "pll_move_count";
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
@@ -66,6 +70,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_CROSS_MOVE_COUNT = 12;
     public static final int IDX_F2L_TIME = 13;
     public static final int IDX_F2L_MOVE_COUNT = 14;
+    public static final int IDX_OLL_TIME = 15;
+    public static final int IDX_OLL_MOVE_COUNT = 16;
+    public static final int IDX_PLL_TIME = 17;
+    public static final int IDX_PLL_MOVE_COUNT = 18;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -79,7 +87,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_PLL = "PLL";
 
     // Database Version
-    private static final int    DATABASE_VERSION   = 14;
+    private static final int    DATABASE_VERSION   = 15;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -98,7 +106,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_CROSS_TIME + " INTEGER DEFAULT -1,"
             + KEY_CROSS_MOVE_COUNT + " INTEGER DEFAULT 0,"
             + KEY_F2L_TIME + " INTEGER DEFAULT -1,"
-            + KEY_F2L_MOVE_COUNT + " INTEGER DEFAULT 0"
+            + KEY_F2L_MOVE_COUNT + " INTEGER DEFAULT 0,"
+            + KEY_OLL_TIME + " INTEGER DEFAULT -1,"
+            + KEY_OLL_MOVE_COUNT + " INTEGER DEFAULT 0,"
+            + KEY_PLL_TIME + " INTEGER DEFAULT -1,"
+            + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -179,6 +191,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 } catch (Exception ignored) {}
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_F2L_MOVE_COUNT + " INTEGER DEFAULT 0");
+                } catch (Exception ignored) {}
+                // Fall through to add oll_time, oll_move_count, pll_time, pll_move_count.
+            case 14:
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_OLL_TIME + " INTEGER DEFAULT -1");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_OLL_MOVE_COUNT + " INTEGER DEFAULT 0");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_PLL_TIME + " INTEGER DEFAULT -1");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0");
                 } catch (Exception ignored) {}
         }
     }
@@ -364,6 +390,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
         values.put(KEY_F2L_TIME, solve.getF2lTime());
         values.put(KEY_F2L_MOVE_COUNT, solve.getF2lMoveCount());
+        values.put(KEY_OLL_TIME, solve.getOllTime());
+        values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
+        values.put(KEY_PLL_TIME, solve.getPllTime());
+        values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
 
         // Inserting Row
         return db.insert(TABLE_TIMES, null, values);
@@ -451,6 +481,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
         values.put(KEY_F2L_TIME, solve.getF2lTime());
         values.put(KEY_F2L_MOVE_COUNT, solve.getF2lMoveCount());
+        values.put(KEY_OLL_TIME, solve.getOllTime());
+        values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
+        values.put(KEY_PLL_TIME, solve.getPllTime());
+        values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
@@ -474,7 +508,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
                         KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
                         KEY_CROSS_TIME, KEY_CROSS_MOVE_COUNT,
-                        KEY_F2L_TIME, KEY_F2L_MOVE_COUNT },
+                        KEY_F2L_TIME, KEY_F2L_MOVE_COUNT,
+                        KEY_OLL_TIME, KEY_OLL_MOVE_COUNT,
+                        KEY_PLL_TIME, KEY_PLL_MOVE_COUNT },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
@@ -495,6 +531,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 solve.setCrossMoveCount(cursor.getInt(12));
                 solve.setF2lTime(cursor.getLong(13));
                 solve.setF2lMoveCount(cursor.getInt(14));
+                solve.setOllTime(cursor.getLong(15));
+                solve.setOllMoveCount(cursor.getInt(16));
+                solve.setPllTime(cursor.getLong(17));
+                solve.setPllMoveCount(cursor.getInt(18));
                 return solve;
             }
 

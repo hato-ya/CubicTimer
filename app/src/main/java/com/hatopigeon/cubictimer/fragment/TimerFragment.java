@@ -452,6 +452,7 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeConnected;
     private boolean cubeStartedSolve;
     private boolean isCubeScanMode;
+    private boolean pendingPermissionForCubeScan;
     private boolean isCubeReady;
     private int movesBeforeTimerStart;
     private int crossFace = -1;
@@ -723,14 +724,19 @@ public class TimerFragment extends BaseFragment
 
                 case ACTION_BLUETOOTH_CONNECT:
                     Log.d(TAG, "BLE : clicked");
-                    isCubeScanMode = false;
-                    startBleScan();
+                    if (pendingPermissionForCubeScan) {
+                        pendingPermissionForCubeScan = false;
+                        startBleScan();
+                    } else {
+                        isCubeScanMode = false;
+                        startBleScan();
+                    }
                     break;
 
                 case ACTION_CUBE_CONNECT:
                     Log.d(TAG, "Cube : clicked");
                     if (isCubeConnected) {
-                        toggleCubeSolve();
+                        disconnectCubeBle();
                     } else {
                         startCubeScan();
                     }
@@ -1528,7 +1534,12 @@ public class TimerFragment extends BaseFragment
         if (requestCode == TimerFragment.REQUEST_ENABLE_BT) {
             Log.d(TAG,"BLE : onActivityResult " + resultCode);
             if (resultCode == RESULT_OK) {
-                startBleScan();
+                if (pendingPermissionForCubeScan) {
+                    pendingPermissionForCubeScan = false;
+                    startBleScan();
+                } else {
+                    startBleScan();
+                }
             }
         }
     }
@@ -3069,6 +3080,7 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
+        pendingPermissionForCubeScan = isCubeScanMode;
         ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -3262,6 +3274,7 @@ public class TimerFragment extends BaseFragment
 
     private void startCubeScan() {
         isCubeScanMode = true;
+        pendingPermissionForCubeScan = true;
         CubeBleHelper.startScan(getActivity(), cubeCallback);
     }
 
@@ -3298,6 +3311,9 @@ public class TimerFragment extends BaseFragment
         stopCubeReadyPolling();
         if (cubeSolver != null) cubeSolver.reset();
         CubicTimer.clearCubeBleManager();
+        updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
+        cancelReadyButton.setVisibility(View.GONE);
+        broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
     }
 
     private void cancelReadyState() {

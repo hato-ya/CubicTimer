@@ -397,6 +397,8 @@ public class TimerFragment extends BaseFragment
 
     @BindView(R.id.cube_state_message)
     TextView cubeStateMessage;
+    @BindView(R.id.cancelReadyButton)
+    ImageView cancelReadyButton;
 
     @BindView(R.id.multi_phase_status_message)
     TextView multiPhaseStatusMessage;
@@ -491,6 +493,7 @@ public class TimerFragment extends BaseFragment
             stopCubeReadyPolling();
             broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
             updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
+            cancelReadyButton.setVisibility(View.GONE);
         }
 
         @Override
@@ -543,6 +546,7 @@ public class TimerFragment extends BaseFragment
                 }
 
                 updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+                updateCancelReadyButtonVisibility();
                 return;
             }
 
@@ -957,6 +961,7 @@ public class TimerFragment extends BaseFragment
         undoButton.setOnClickListener(buttonClickListener);
         scrambleButtonReset.setOnClickListener(buttonClickListener);
         scrambleButtonEdit.setOnClickListener(buttonClickListener);
+        cancelReadyButton.setOnClickListener(v -> cancelReadyState());
 
         // Preferences //
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
@@ -1369,6 +1374,7 @@ public class TimerFragment extends BaseFragment
                                 hideToolbar();
                                 chronometer.holdForStart();
                                 updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+                                updateCancelReadyButtonVisibility();
                             } else if (inspectionEnabled) {
                                 hideToolbar();
                                 startInspectionCountdown(inspectionTime);
@@ -2208,6 +2214,7 @@ public class TimerFragment extends BaseFragment
             generateNewScramble();
         }
 
+        cancelReadyButton.setVisibility(View.GONE);
         if (isCubeConnected) startCubePolling();
     }
 
@@ -3293,10 +3300,24 @@ public class TimerFragment extends BaseFragment
         CubicTimer.clearCubeBleManager();
     }
 
+    private void cancelReadyState() {
+        cubeStartedSolve = false;
+        stopInspectionCountdown();
+        chronometer.reset();
+        showToolbar();
+        updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+        cancelReadyButton.setVisibility(View.GONE);
+    }
+
+    private void updateCancelReadyButtonVisibility() {
+        cancelReadyButton.setVisibility(cubeStartedSolve && !isRunning ? View.VISIBLE : View.GONE);
+    }
+
     private void toggleCubeSolve() {
         if (!smartCubeEnabled) return;
         if (cubeStartedSolve) {
             cubeStartedSolve = false;
+            cancelReadyButton.setVisibility(View.GONE);
             if (isRunning) {
                 cancelChronometer();
             }
@@ -3310,6 +3331,7 @@ public class TimerFragment extends BaseFragment
             cubeStartedSolve = true;
             hideToolbar();
             updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+            updateCancelReadyButtonVisibility();
         }
     }
 

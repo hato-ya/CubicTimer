@@ -71,6 +71,20 @@
         android:textColorHighlight="?colorAccent"
         android:textIsSelectable="false" />
 
+    <ImageView
+        android:id="@+id/cancelReadyButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignTop="@id/chronometer"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="16dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:src="@drawable/ic_outline_close_24px"
+        android:tint="?colorTimerText"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/wrapTimeSize"
         android:layout_width="480dp"

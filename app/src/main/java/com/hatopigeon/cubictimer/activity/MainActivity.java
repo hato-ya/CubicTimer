@@ -89,6 +89,8 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_MOVE_COUNT;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TPS;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_CROSS_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_CROSS_MOVE_COUNT;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_F2L_TIME;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_F2L_MOVE_COUNT;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
 import static com.hatopigeon.cubictimer.fragment.TimerFragmentMain.TIMER_PAGE;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
@@ -822,7 +824,8 @@ public class MainActivity extends AppCompatActivity
                         publishProgress(0, cursor.getCount());
                         csvWriter.writeNext(new String[] {"Puzzle", "Category", "Time(millis)",
                                 "Date(millis)", "Scramble", "Penalty", "Comment",
-                                "CrossTime(millis)", "MoveCount", "TPS", "CrossMoveCount"});
+                                "CrossTime(millis)", "MoveCount", "TPS", "CrossMoveCount",
+                                "F2LTime(millis)", "F2LMoveCount"});
 
                         while (cursor.moveToNext()) {
                             csvWriter.writeNext(new String[] {
@@ -836,7 +839,9 @@ public class MainActivity extends AppCompatActivity
                                     String.valueOf(cursor.getLong(IDX_CROSS_TIME)),
                                     String.valueOf(cursor.getInt(IDX_MOVE_COUNT)),
                                     String.valueOf(cursor.getDouble(IDX_TPS)),
-                                    String.valueOf(cursor.getInt(IDX_CROSS_MOVE_COUNT))
+                                    String.valueOf(cursor.getInt(IDX_CROSS_MOVE_COUNT)),
+                                    String.valueOf(cursor.getLong(IDX_F2L_TIME)),
+                                    String.valueOf(cursor.getInt(IDX_F2L_MOVE_COUNT))
                             });
                             exports++;
                             if (exports % 1000 == 0 || exports == cursor.getCount()) {
@@ -1036,6 +1041,10 @@ public class MainActivity extends AppCompatActivity
                             }
                             if (line.length >= 11) {
                                 solve.setCrossMoveCount(Integer.parseInt(line[10]));
+                            }
+                            if (line.length >= 13) {
+                                solve.setF2lTime(Long.parseLong(line[11]));
+                                solve.setF2lMoveCount(Integer.parseInt(line[12]));
                             }
                             solveList.add(solve);
                         } catch (Exception e) {

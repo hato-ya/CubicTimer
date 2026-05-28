@@ -31,6 +31,14 @@ public class CubeSolver {
         return state.isCrossSolved();
     }
 
+    public int getCrossFace() {
+        return state.getCrossFace();
+    }
+
+    public boolean isF2LSolved() {
+        return state.isF2LSolved();
+    }
+
     public void setStateFacelets(int[] facelets) {
         state.setFacelets(facelets);
         solved = state.isSolved();

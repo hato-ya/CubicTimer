@@ -74,6 +74,7 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.moveCountText)     TextView     moveCountText;
     @BindView(R.id.tpsText)           TextView     tpsText;
     @BindView(R.id.crossTimeText)     TextView     crossTimeText;
+    @BindView(R.id.f2lTimeText)       TextView     f2lTimeText;
     private long            mId;
     private Solve           solve;
     private DialogListener  dialogListener;
@@ -298,6 +299,18 @@ public class TimeDialog extends DialogFragment {
                             crossFormatted, solve.getCrossMoveCount()));
                 } else {
                     crossTimeText.setText(getString(R.string.smart_cube_cross_time, crossFormatted));
+                }
+                statsLayout.setVisibility(View.VISIBLE);
+            }
+
+            if (solve.getF2lTime() >= 0) {
+                String f2lFormatted = PuzzleUtils.convertTimeToString(
+                        solve.getF2lTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
+                if (solve.getF2lMoveCount() > 0) {
+                    f2lTimeText.setText(getString(R.string.smart_cube_f2l_time_moves,
+                            f2lFormatted, solve.getF2lMoveCount()));
+                } else {
+                    f2lTimeText.setText(getString(R.string.smart_cube_f2l_time, f2lFormatted));
                 }
                 statsLayout.setVisibility(View.VISIBLE);
             }

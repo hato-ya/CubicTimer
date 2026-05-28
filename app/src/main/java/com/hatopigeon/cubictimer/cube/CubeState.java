@@ -26,6 +26,51 @@ public class CubeState {
             Arrays.fill(SOLVED, f * 9, (f + 1) * 9, f);
     }
 
+    // Opposite face mapping: U↔D, L↔R, F↔B
+    private static final int[] OPPOSITE = {5, 3, 4, 1, 2, 0};
+
+    // For each cross face (0-5), the 33 facelet indices that must match their face center
+    // when F2L is solved: 9 from the cross face + 6×4 from the 4 side faces.
+    // The opposite face and the 3 facelets of the last-layer ring on each side face are skipped.
+    private static final int[][] F2L_CHECK = {
+        // Cross U(0), opposite D(5): side faces L,F,R,B, skip row 2 on each
+        {0,1,2,3,4,5,6,7,8,
+         9,10,11,12,13,14,
+         18,19,20,21,22,23,
+         27,28,29,30,31,32,
+         36,37,38,39,40,41},
+        // Cross L(1), opposite R(3): side faces U,F,D,B, skip right col on each
+        {9,10,11,12,13,14,15,16,17,
+         0,1,3,4,6,7,
+         18,19,21,22,24,25,
+         45,46,48,49,51,52,
+         36,37,39,40,42,43},
+        // Cross F(2), opposite B(4): side faces U,L,D,R
+        {18,19,20,21,22,23,24,25,26,
+         3,4,5,6,7,8,
+         10,11,13,14,16,17,
+         45,46,47,48,49,50,
+         27,28,30,31,33,34},
+        // Cross R(3), opposite L(1): side faces U,F,D,B, skip left col on each
+        {27,28,29,30,31,32,33,34,35,
+         1,2,4,5,7,8,
+         19,20,22,23,25,26,
+         46,47,49,50,52,53,
+         37,38,40,41,43,44},
+        // Cross B(4), opposite F(2): side faces U,L,D,R
+        {36,37,38,39,40,41,42,43,44,
+         0,1,2,3,4,5,
+         9,10,12,13,15,16,
+         48,49,50,51,52,53,
+         28,29,31,32,34,35},
+        // Cross D(5), opposite U(0): side faces L,F,R,B, skip row 0 on each
+        {45,46,47,48,49,50,51,52,53,
+         12,13,14,15,16,17,
+         21,22,23,24,25,26,
+         30,31,32,33,34,35,
+         39,40,41,42,43,44},
+    };
+
     private static final int[][] PERM_CW = createPermutations();
 
     public CubeState() {
@@ -50,7 +95,18 @@ public class CubeState {
         return true;
     }
 
-    public boolean isCrossSolved() {
+    public boolean isF2LSolved() {
+        int crossFace = getCrossFace();
+        if (crossFace < 0) return false;
+
+        for (int idx : F2L_CHECK[crossFace]) {
+            int faceCenterIdx = (idx / 9) * 9 + 4;
+            if (facelets[idx] != facelets[faceCenterIdx]) return false;
+        }
+        return true;
+    }
+
+    public int getCrossFace() {
         for (int face = 0; face < 6; face++) {
             int faceCenterIdx = face * 9 + 4;
             boolean faceCrossSolved = true;
@@ -65,9 +121,13 @@ public class CubeState {
                     break;
                 }
             }
-            if (faceCrossSolved) return true;
+            if (faceCrossSolved) return face;
         }
-        return false;
+        return -1;
+    }
+
+    public boolean isCrossSolved() {
+        return getCrossFace() >= 0;
     }
 
     private static final int[] FACE_MAP_CUBEMOVE_TO_CUBESTATE = {0, 3, 2, 5, 1, 4};

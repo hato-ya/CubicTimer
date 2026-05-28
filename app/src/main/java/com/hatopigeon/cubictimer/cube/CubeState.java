@@ -6,6 +6,18 @@ public class CubeState {
     public static final int NUM_FACELETS = 54;
     public static final int U = 0, L = 1, F = 2, R = 3, B = 4, D = 5;
 
+    // For each of the 6 faces (U=0,L=1,F=2,R=3,B=4,D=5), the 4 cross edge pairs:
+    // {edgeOnFace, adjacentFacelet, adjacentCenterIndex}
+    // Verified against EDGE_FACELET_MAP in GanCubeManager.
+    private static final int[][] CROSS_EDGE_PAIRS = {
+        {1, 37, 40}, {3, 10, 13}, {5, 28, 31}, {7, 19, 22},
+        {10, 3, 4}, {12, 41, 40}, {14, 21, 22}, {16, 48, 49},
+        {19, 7, 4}, {21, 14, 13}, {23, 30, 31}, {25, 46, 49},
+        {28, 5, 4}, {30, 23, 22}, {32, 39, 40}, {34, 50, 49},
+        {37, 1, 4}, {39, 32, 31}, {41, 12, 13}, {43, 52, 49},
+        {46, 25, 22}, {48, 16, 13}, {50, 34, 31}, {52, 43, 40},
+    };
+
     private final int[] facelets = new int[NUM_FACELETS];
 
     private static final int[] SOLVED = new int[54];
@@ -28,10 +40,34 @@ public class CubeState {
         System.arraycopy(newFacelets, 0, facelets, 0, 54);
     }
 
+    public int[] getFacelets() {
+        return facelets.clone();
+    }
+
     public boolean isSolved() {
         for (int i = 0; i < 54; i++)
             if (facelets[i] != SOLVED[i]) return false;
         return true;
+    }
+
+    public boolean isCrossSolved() {
+        for (int face = 0; face < 6; face++) {
+            int faceCenterIdx = face * 9 + 4;
+            boolean faceCrossSolved = true;
+            for (int e = 0; e < 4; e++) {
+                int idx = face * 4 + e;
+                int edgeFc = CROSS_EDGE_PAIRS[idx][0];
+                int adjFc = CROSS_EDGE_PAIRS[idx][1];
+                int adjCnt = CROSS_EDGE_PAIRS[idx][2];
+                if (facelets[edgeFc] != facelets[faceCenterIdx]
+                        || facelets[adjFc] != facelets[adjCnt]) {
+                    faceCrossSolved = false;
+                    break;
+                }
+            }
+            if (faceCrossSolved) return true;
+        }
+        return false;
     }
 
     private static final int[] FACE_MAP_CUBEMOVE_TO_CUBESTATE = {0, 3, 2, 5, 1, 4};

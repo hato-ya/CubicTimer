@@ -8,7 +8,6 @@ public class CubeSolver {
     private int moveCount = 0;
     private long elapsedTime = 0;
     private boolean solved = false;
-
     public void reset() {
         state.reset();
         moves.clear();
@@ -28,6 +27,23 @@ public class CubeSolver {
         return solved;
     }
 
+    public boolean isCrossSolved() {
+        return state.isCrossSolved();
+    }
+
+    public void setStateFacelets(int[] facelets) {
+        state.setFacelets(facelets);
+        solved = state.isSolved();
+    }
+
+    public int[] getStateFacelets() {
+        return state.getFacelets();
+    }
+
+    public ArrayList<CubeMove> getMoves() {
+        return moves;
+    }
+
     public int getNumMoves() {
         return moveCount;
     }
@@ -44,6 +60,4 @@ public class CubeSolver {
     public double getTps() {
         return getTPS(elapsedTime);
     }
-
-
 }

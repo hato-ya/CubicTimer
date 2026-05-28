@@ -442,6 +442,8 @@
     <string name="smart_cube_no_support_message">Bluetooth LE not supported</string>
     <string name="smart_cube_move_count">Moves: %d</string>
     <string name="smart_cube_tps">TPS: %.2f</string>
+    <string name="smart_cube_cross_time">Cross: %s</string>
+    <string name="smart_cube_cross_time_moves">Cross: %s (%d moves)</string>
     <string name="smart_cube_enabled_summary">Use a Bluetooth smart cube for automatic timing</string>
     <string name="smart_cube_enabled_title">Use smart cube</string>
     <string name="smart_cube_scan_title">Smart Cube devices</string>

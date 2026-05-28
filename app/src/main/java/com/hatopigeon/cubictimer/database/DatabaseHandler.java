@@ -43,6 +43,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_HISTORY  = "history";
     public static final String KEY_MOVE_COUNT = "move_count";
     public static final String KEY_TPS        = "tps";
+    public static final String KEY_CROSS_TIME = "cross_time";
+    public static final String KEY_CROSS_MOVE_COUNT = "cross_move_count";
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
@@ -58,6 +60,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_HISTORY  = 8;
     public static final int IDX_MOVE_COUNT = 9;
     public static final int IDX_TPS        = 10;
+    public static final int IDX_CROSS_TIME = 11;
+    public static final int IDX_CROSS_MOVE_COUNT = 12;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -71,7 +75,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_PLL = "PLL";
 
     // Database Version
-    private static final int    DATABASE_VERSION   = 11;
+    private static final int    DATABASE_VERSION   = 13;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -86,7 +90,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_COMMENT + " TEXT,"
             + KEY_HISTORY + " BOOLEAN,"
             + KEY_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_TPS + " REAL DEFAULT 0.0"
+            + KEY_TPS + " REAL DEFAULT 0.0,"
+            + KEY_CROSS_TIME + " INTEGER DEFAULT -1,"
+            + KEY_CROSS_MOVE_COUNT + " INTEGER DEFAULT 0"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -149,6 +155,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 } catch (Exception ignored) {}
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
+                } catch (Exception ignored) {}
+                // Fall through to add cross_time.
+            case 11:
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_CROSS_TIME + " INTEGER DEFAULT -1");
+                } catch (Exception ignored) {}
+                // Fall through to add cross_move_count.
+            case 12:
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_CROSS_MOVE_COUNT + " INTEGER DEFAULT 0");
                 } catch (Exception ignored) {}
         }
     }
@@ -330,6 +346,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
+        values.put(KEY_CROSS_TIME, solve.getCrossTime());
+        values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
 
         // Inserting Row
         return db.insert(TABLE_TIMES, null, values);
@@ -413,6 +431,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
+        values.put(KEY_CROSS_TIME, solve.getCrossTime());
+        values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
@@ -434,7 +454,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         final Cursor cursor = getReadableDatabase().query(TABLE_TIMES,
                 new String[] {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
-                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS },
+                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
+                        KEY_CROSS_TIME, KEY_CROSS_MOVE_COUNT },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
@@ -451,6 +472,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         getBoolean(cursor, 8));
                 solve.setMoveCount(cursor.getInt(9));
                 solve.setTps(cursor.getDouble(10));
+                solve.setCrossTime(cursor.getLong(11));
+                solve.setCrossMoveCount(cursor.getInt(12));
                 return solve;
             }
 

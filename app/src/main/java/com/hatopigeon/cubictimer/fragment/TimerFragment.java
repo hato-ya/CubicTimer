@@ -452,6 +452,8 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeScanMode;
     private boolean isCubeReady;
     private int movesBeforeTimerStart;
+    private long crossTimeMs = -1;
+    private int crossMoveCount;
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
     private Handler cubeReadyHandler;
@@ -551,7 +553,8 @@ public class TimerFragment extends BaseFragment
             updateCubeMoveDisplay();
 
             if (cubeSolver.isSolved()) {
-                Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves());
+                Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves()
+                        + " crossTimeMs=" + crossTimeMs);
                 if (isRunning) {
                     animationDone = false;
                     isExternalTimer = false;
@@ -566,6 +569,17 @@ public class TimerFragment extends BaseFragment
         @Override
         public void onCubeBatteryLevel(int level) {
             Log.d(TAG, "Cube battery: " + level + "%");
+        }
+
+        @Override
+        public void onFaceletsReceived(int[] csFacelets) {
+            if (cubeSolver == null) return;
+            cubeSolver.setStateFacelets(csFacelets);
+            if (crossTimeMs < 0 && isRunning && cubeSolver.isCrossSolved()) {
+                crossTimeMs = chronometer.getElapsedTime();
+                crossMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+                Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms");
+            }
         }
 
         @Override
@@ -1584,6 +1598,8 @@ public class TimerFragment extends BaseFragment
                 0, getLapComment(), false);
         currentSolve.setMoveCount(moveCount);
         currentSolve.setTps(tps);
+        currentSolve.setCrossTime(crossTimeMs);
+        currentSolve.setCrossMoveCount(crossMoveCount);
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -2129,6 +2145,8 @@ public class TimerFragment extends BaseFragment
         // the spinner to visible.
         isRunning = true;
         if (cubeSolver != null) movesBeforeTimerStart = cubeSolver.getNumMoves();
+        crossTimeMs = -1;
+        crossMoveCount = 0;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;

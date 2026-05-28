@@ -25,6 +25,8 @@ public class Solve implements Parcelable {
 
     int    moveCount;
     double tps;
+    long   crossTime = -1;
+    int    crossMoveCount;
 
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
@@ -76,6 +78,8 @@ public class Solve implements Parcelable {
         history = in.readByte() != 0;
         moveCount = in.readInt();
         tps = in.readDouble();
+        crossTime = in.readLong();
+        crossMoveCount = in.readInt();
     }
 
     public void setId(long id) {
@@ -174,6 +178,22 @@ public class Solve implements Parcelable {
         this.tps = tps;
     }
 
+    public long getCrossTime() {
+        return crossTime;
+    }
+
+    public void setCrossTime(long crossTime) {
+        this.crossTime = crossTime;
+    }
+
+    public int getCrossMoveCount() {
+        return crossMoveCount;
+    }
+
+    public void setCrossMoveCount(int crossMoveCount) {
+        this.crossMoveCount = crossMoveCount;
+    }
+
     public int getRawPenalty() {
         return penalty;
     }
@@ -204,6 +224,8 @@ public class Solve implements Parcelable {
         dest.writeByte((byte) (history ? 1 : 0));
         dest.writeInt(moveCount);
         dest.writeDouble(tps);
+        dest.writeLong(crossTime);
+        dest.writeInt(crossMoveCount);
     }
 
     /**

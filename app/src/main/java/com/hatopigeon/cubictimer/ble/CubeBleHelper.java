@@ -61,6 +61,9 @@ public class CubeBleHelper {
 
         @Override
         public void onCubeSolved() {}
+
+        @Override
+        public void onFaceletsReceived(int[] csFacelets) {}
     };
 
     private static MaterialDialog sDialog;

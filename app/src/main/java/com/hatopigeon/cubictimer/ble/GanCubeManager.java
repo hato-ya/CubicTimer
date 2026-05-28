@@ -50,6 +50,7 @@ public class GanCubeManager extends BleManager {
         void onCubeMoves(List<CubeMove> moves);
         void onCubeBatteryLevel(int level);
         void onCubeSolved();
+        void onFaceletsReceived(int[] csFacelets);
     }
 
     private BluetoothGattCharacteristic cubeCommandCharacteristic;
@@ -234,7 +235,7 @@ public class GanCubeManager extends BleManager {
                 disconnect().enqueue();
                 break;
             default:
-                Log.v(TAG, "Unknown event type: " + eventType);
+                //Log.v(TAG, "Unknown event type: " + eventType);
         }
     }
 
@@ -394,7 +395,8 @@ public class GanCubeManager extends BleManager {
         int[] csFacelets = convertToCsFacelets(kociemba);
         cubeState.setFacelets(csFacelets);
         boolean solved = cubeState.isSolved();
-        Log.d(TAG, "Facelets isSolved=" + solved);
+        Log.d(TAG, "Facelets isSolved=" + solved + " csFacelets=" + arrayToString(csFacelets));
+        if (callback != null) callback.onFaceletsReceived(csFacelets);
         if (solved) {
             Log.d(TAG, "Cube solved detected via facelets!");
             if (callback != null) callback.onCubeSolved();

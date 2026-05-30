@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * The same model proves the move engine is sound (sexy x6 = identity, etc.) before it is trusted
  * to build the OLL positions.
  */
-public class CubeStateOllTest {
+public class CubeStateOLLandPLLTest {
 
     private String[] references;
 

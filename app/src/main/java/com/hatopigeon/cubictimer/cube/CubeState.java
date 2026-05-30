@@ -81,7 +81,7 @@ public class CubeState {
     // snapshots; the app never relies on them forming a physically consistent cube group (they
     // don't — composing different faces drifts). OLL recognition, however, must rotate the cube
     // accurately, so it uses the three permutations below, which were generated from a 3D cubie
-    // model and verified (sexy x6 = identity, all 57 OLL cases recognized) in CubeStateOllTest.
+    // model and verified (sexy x6 = identity, all 57 OLL cases recognized) in CubeStateOLLandPLLTest.
     //
     // new[i] = old[perm[i]] (same convention as PERM_CW). Direction -1 applies the inverse.
     //   OLL_U      : a U-layer quarter turn (used to cycle through the 4 AUF positions)
@@ -241,7 +241,7 @@ public class CubeState {
     // signature over its 4 U-turn views (one left coset) and map that canonical to the case index.
     //
     // The 71 canonical -> case entries below were generated from the verified PLL algorithms via a
-    // 3D cubie model in CubeStateOllTest (no collisions). Index = alg_reference_PLL order
+    // 3D cubie model in CubeStateOLLandPLLTest (no collisions). Index = alg_reference_PLL order
     // (H, Ua, Ub, Z, Aa, Ab, E, F, Ga, Gb, Gc, Gd, Ja, Jb, Na, Nb, Ra, Rb, T, V, Y). Each datum is
     // the 25-char signature followed by the 0-based case index.
     private static final java.util.Map<String, Integer> PLL_CANON = buildPllCanon();

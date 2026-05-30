@@ -65,6 +65,10 @@ public class GanCubeManager extends BleManager {
 
     private int lastSerial = -1;
     private long lastMoveTimestamp = 0;
+    // Most recent facelet snapshot, logged together with each move (facelet events don't arrive
+    // 1:1 with moves during fast turning, so we log the latest known state alongside the move).
+    private String lastKociemba = "";
+    private boolean lastSolved = false;
 
     private final CubeState cubeState = new CubeState();
 
@@ -77,6 +81,10 @@ public class GanCubeManager extends BleManager {
 
     public void setCallback(GanCubeCallback callback) {
         this.callback = callback;
+    }
+
+    public GanCubeCallback getCallback() {
+        return callback;
     }
 
     public String getMacAddress() {
@@ -280,6 +288,13 @@ public class GanCubeManager extends BleManager {
             }
             lastMoveTimestamp = timestamp;
 
+            if (BuildConfig.DEBUG && !moves.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (CubeMove m : moves) sb.append(m.toNotation()).append(' ');
+                Log.d(TAG, "Move serial=" + serial + " moves=" + sb.toString().trim()
+                        + " kociemba=" + lastKociemba + " isSolved=" + lastSolved);
+            }
+
             if (!moves.isEmpty() && callback != null) {
                 callback.onCubeMoves(moves);
             }
@@ -388,9 +403,8 @@ public class GanCubeManager extends BleManager {
         int[] csFacelets = convertToCsFacelets(kociemba);
         cubeState.setFacelets(csFacelets);
         boolean solved = cubeState.isSolved();
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Facelets serial=" + serial + " kociemba=" + kociemba + " isSolved=" + solved);
-        }
+        lastKociemba = kociemba;
+        lastSolved = solved;
         if (callback != null) callback.onFaceletsReceived(csFacelets);
         if (solved && callback != null) {
             callback.onCubeSolved();

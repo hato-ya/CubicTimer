@@ -23,6 +23,8 @@ import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.AlgCursorAdapter;
 import com.hatopigeon.cubictimer.ble.CubeBleHelper;
 import com.hatopigeon.cubictimer.ble.GanCubeManager;
+import com.hatopigeon.cubictimer.cube.CubeMove;
+import com.hatopigeon.cubictimer.cube.CubeState;
 import com.hatopigeon.cubictimer.database.AlgTaskLoader;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -36,6 +38,9 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -95,6 +100,52 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
     private Unbinder mUnbinder;
     private String currentSubset;
     private AlgCursorAdapter algCursorAdapter;
+
+    // ── Live OLL detection (only while the OLL list is shown and a smart cube is connected) ──
+    // The list temporarily takes over the cube's callback. Rather than polling on a timer, it
+    // requests a fresh facelet snapshot once on entry and then only when the cube reports a move,
+    // recognizes the OLL set up on the cube, and highlights the matching card.
+    private final CubeState ollDetectState = new CubeState();
+    private String[] ollReferences;
+    private GanCubeManager.GanCubeCallback previousCubeCallback;
+    private boolean ollDetectionActive = false;
+
+    private final GanCubeManager.GanCubeCallback ollDetectCallback = new GanCubeManager.GanCubeCallback() {
+        @Override
+        public void onCubeConnected() {
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
+        }
+
+        @Override
+        public void onCubeDisconnected() {
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
+        }
+
+        @Override
+        public void onCubeMoves(List<CubeMove> moves) {
+            // No request here: the cube already pushes a fresh facelet snapshot after every move,
+            // which arrives via onFaceletsReceived. Requesting again would double the traffic.
+        }
+
+        @Override
+        public void onCubeBatteryLevel(int level) {}
+
+        @Override
+        public void onCubeSolved() {}
+
+        @Override
+        public void onFaceletsReceived(int[] csFacelets) {
+            if (ollReferences == null) {
+                ollReferences = getResources().getStringArray(R.array.alg_reference_OLL);
+            }
+            ollDetectState.setFacelets(csFacelets);
+            // No cross face known here: getOllCase(refs) tries all faces and returns the real OLL.
+            int oll = ollDetectState.getOllCase(ollReferences);
+            if (algCursorAdapter != null) {
+                algCursorAdapter.setHighlightedOllCase(oll);
+            }
+        }
+    };
     // Receives broadcasts about changes to the algorithm data.
     private TTFragmentBroadcastReceiver mAlgDataChangedReceiver
             = new TTFragmentBroadcastReceiver(this, CATEGORY_ALG_DATA_CHANGES) {
@@ -117,10 +168,12 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
                 case ACTION_CUBE_CONNECTED:
                     if (navButtonCube != null)
                         navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+                    startOllDetection();
                     break;
                 case ACTION_CUBE_DISCONNECTED:
                     if (navButtonCube != null)
                         navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_24px);
+                    if (algCursorAdapter != null) algCursorAdapter.setHighlightedOllCase(-1);
                     break;
                 case ACTION_CHANGED_THEME:
                     try {
@@ -226,9 +279,51 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        startOllDetection();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopOllDetection();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         mUnbinder.unbind();
+    }
+
+    /**
+     * Starts live OLL recognition: takes over the connected cube's callback and requests one
+     * facelet snapshot. Subsequent detection is driven by the cube's move events, so no polling.
+     * Only active on the OLL list with a smart cube connected.
+     */
+    private void startOllDetection() {
+        if (ollDetectionActive || !"OLL".equals(currentSubset)) return;
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr == null || !mgr.isConnected()) return;
+
+        previousCubeCallback = mgr.getCallback();
+        mgr.setCallback(ollDetectCallback);
+        ollDetectionActive = true;
+        mgr.requestFacelets(); // detect the current state on entry
+    }
+
+    /** Stops live OLL recognition and restores the cube's previous callback. */
+    private void stopOllDetection() {
+        if (!ollDetectionActive) return;
+        ollDetectionActive = false;
+
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.getCallback() == ollDetectCallback) {
+            mgr.setCallback(previousCubeCallback);
+        }
+        previousCubeCallback = null;
+
+        if (algCursorAdapter != null) algCursorAdapter.setHighlightedOllCase(-1);
     }
 
     @Override

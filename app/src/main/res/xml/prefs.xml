@@ -375,6 +375,12 @@
                     android:summary="@string/cubeMoveDetailsEnabledSummary"
                     android:title="@string/cubeMoveDetailsEnabledTitle" />
 
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeShowModelEnabled"
+                    android:key="@string/pk_smart_cube_show_model"
+                    android:summary="@string/smart_cube_show_model_summary"
+                    android:title="@string/smart_cube_show_model_title" />
+
                 <Preference
                     android:key="@string/pk_smart_cube_cross_face"
                     android:summary="@string/smart_cube_cross_face_summary"
@@ -386,9 +392,9 @@
                     android:title="@string/smart_cube_orientation_title" />
 
                 <Preference
-                    android:key="@string/pk_smart_cube_reset_state"
-                    android:summary="@string/smart_cube_reset_state_summary"
-                    android:title="@string/smart_cube_reset_state_title" />
+                    android:key="@string/pk_smart_cube_reset_gyro"
+                    android:summary="@string/smart_cube_reset_gyro_summary"
+                    android:title="@string/smart_cube_reset_gyro_title" />
             </PreferenceCategory>
 
             <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">

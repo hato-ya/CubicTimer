@@ -86,23 +86,4 @@
         <item>@string/pk_inspection_alert_both</item>
     </string-array>
 
-    <string-array name="pref_array_cross_face">
-        <item>@string/smart_cube_cross_face_auto</item>
-        <item>@string/smart_cube_cross_face_top</item>
-        <item>@string/smart_cube_cross_face_left</item>
-        <item>@string/smart_cube_cross_face_front</item>
-        <item>@string/smart_cube_cross_face_right</item>
-        <item>@string/smart_cube_cross_face_back</item>
-        <item>@string/smart_cube_cross_face_down</item>
-    </string-array>
-
-    <string-array name="pk_pref_array_cross_face">
-        <item>auto</item>
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-    </string-array>
 </resources>

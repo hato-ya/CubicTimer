@@ -42,6 +42,8 @@ import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeCrossFaceSelectDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeOrientationSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
@@ -154,7 +156,25 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_bg_image_portrait,
                         R.string.pk_bg_image_landscape,
                         R.string.pk_bg_image_opacity,
-                        R.string.pk_smart_cube_reset_state)) {
+                        R.string.pk_smart_cube_reset_state,
+                        R.string.pk_smart_cube_orientation,
+                        R.string.pk_smart_cube_cross_face)) {
+
+                    case R.string.pk_smart_cube_cross_face:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeCrossFaceSelectDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_cross_face_dialog");
+                        }
+                        break;
+
+                    case R.string.pk_smart_cube_orientation:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeOrientationSelectDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_orientation_dialog");
+                        }
+                        break;
 
                     case R.string.pk_smart_cube_reset_state: {
                         GanCubeManager mgr = CubicTimer.getCubeBleManager();
@@ -355,7 +375,9 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_bg_image_portrait,
                     R.string.pk_bg_image_landscape,
                     R.string.pk_bg_image_opacity,
-                    R.string.pk_smart_cube_reset_state};
+                    R.string.pk_smart_cube_reset_state,
+                    R.string.pk_smart_cube_orientation,
+                    R.string.pk_smart_cube_cross_face};
 
             for (int prefId : listenerPrefIds) {
                 Preference p = findPreference(getString(prefId));

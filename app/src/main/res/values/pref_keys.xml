@@ -74,6 +74,9 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_show_cube_move_details">showCubeMoveDetails</string>
     <string translatable="false" name="pk_smart_cube_cross_face">smartCubeCrossFace</string>
     <string translatable="false" name="pk_smart_cube_reset_state">smartCubeResetState</string>
+    <string translatable="false" name="pk_smart_cube_orientation">smartCubeOrientation</string>
+    <string translatable="false" name="pk_smart_cube_top_face">smartCubeTopFace</string>
+    <string translatable="false" name="pk_smart_cube_front_face">smartCubeFrontFace</string>
     <string translatable="false" name="pk_scramble_highlight_bg">scrambleHighlightBg</string>
     <string translatable="false" name="pk_scramble_highlight_fg">scrambleHighlightFg</string>
 

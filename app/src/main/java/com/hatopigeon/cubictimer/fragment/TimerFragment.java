@@ -527,7 +527,11 @@ public class TimerFragment extends BaseFragment
                     dirMod4 = 1;
                 }
 
-                moveBuffer.add(new int[]{move.face, dirMod4});
+                // Remap the cube's body-frame face to the scramble-notation face for the user's
+                // holding orientation, so highlighting matches whichever way the cube is held.
+                int notationFace = (move.face >= 0 && move.face < 6)
+                        ? cubeFaceToNotation[move.face] : move.face;
+                moveBuffer.add(new int[]{notationFace, dirMod4});
                 collapseLastMoves();
             }
 
@@ -663,6 +667,10 @@ public class TimerFragment extends BaseFragment
     private int completedScrambleMoves = 0;
     private boolean isScrambleCollapsed = false;
     private ArrayList<int[]> moveBuffer = new ArrayList<>(); // {face, dirMod4} after collapse
+    // Maps a cube-reported face (U=0,R=1,F=2,D=3,L=4,B=5) to the scramble-notation face, based on
+    // the user's holding orientation, so scramble highlighting works whichever way the cube is
+    // held. Identity by default (top=U, front=F).
+    private int[] cubeFaceToNotation = {0, 1, 2, 3, 4, 5};
 
 
     // True if the user has started (and stopped) the timer at least once. Used to trigger
@@ -1041,7 +1049,7 @@ public class TimerFragment extends BaseFragment
         cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
-        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -1489,7 +1497,8 @@ public class TimerFragment extends BaseFragment
         cubeSolver = new CubeSolver();
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
-        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, true);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        updateScrambleOrientationMapping();
 
         if (!smartCubeEnabled) {
             GanCubeManager mgr = CubicTimer.getCubeBleManager();
@@ -3444,6 +3453,64 @@ public class TimerFragment extends BaseFragment
      * Face mapping: U=0, R=1, F=2, D=3, L=4, B=5
      * Direction: 1=CW, 2=DOUBLE, 3=CCW (modulo-4 format)
      */
+    // Outward normals per face (U=0,R=1,F=2,D=3,L=4,B=5) and opposite-face lookup.
+    private static final int[][] FACE_NORMALS =
+            {{0,1,0}, {1,0,0}, {0,0,1}, {0,-1,0}, {-1,0,0}, {0,0,-1}};
+    private static final int[] FACE_OPPOSITE = {3, 4, 5, 0, 1, 2};
+
+    private static int faceLetterToIndex(String letter) {
+        switch (letter) {
+            case "U": return 0;
+            case "R": return 1;
+            case "F": return 2;
+            case "D": return 3;
+            case "L": return 4;
+            case "B": return 5;
+            default:  return -1;
+        }
+    }
+
+    /**
+     * Rebuilds {@link #cubeFaceToNotation} from the holding-orientation preferences (which cube
+     * face is held on top and in front). The cube reports moves in its fixed body frame; remapping
+     * them to the orientation the user holds lets scramble highlighting work from any start face.
+     */
+    private void updateScrambleOrientationMapping() {
+        int top = faceLetterToIndex(Prefs.getString(R.string.pk_smart_cube_top_face, "U"));
+        int front = faceLetterToIndex(Prefs.getString(R.string.pk_smart_cube_front_face, "F"));
+
+        int[] identity = {0, 1, 2, 3, 4, 5};
+        // Top and front must be two different, adjacent (non-opposite) faces; otherwise no remap.
+        if (top < 0 || front < 0 || top == front || FACE_OPPOSITE[top] == front) {
+            cubeFaceToNotation = identity;
+            return;
+        }
+
+        // notationToCube[n] = the body face the user turns when the scramble says notation face n.
+        int[] notationToCube = new int[6];
+        notationToCube[0] = top;                       // U (held top)
+        notationToCube[2] = front;                     // F (held front)
+        notationToCube[3] = FACE_OPPOSITE[top];        // D
+        notationToCube[5] = FACE_OPPOSITE[front];      // B
+        int[] up = FACE_NORMALS[top], fr = FACE_NORMALS[front];
+        int[] right = {                                // Right = Up x Front
+            up[1]*fr[2] - up[2]*fr[1],
+            up[2]*fr[0] - up[0]*fr[2],
+            up[0]*fr[1] - up[1]*fr[0],
+        };
+        int rightFace = 0;
+        for (int f = 0; f < 6; f++) {
+            if (FACE_NORMALS[f][0] == right[0] && FACE_NORMALS[f][1] == right[1]
+                    && FACE_NORMALS[f][2] == right[2]) { rightFace = f; break; }
+        }
+        notationToCube[1] = rightFace;                 // R
+        notationToCube[4] = FACE_OPPOSITE[rightFace];  // L
+
+        int[] map = new int[6];
+        for (int n = 0; n < 6; n++) map[notationToCube[n]] = n;
+        cubeFaceToNotation = map;
+    }
+
     private static int[] parseScrambleToken(String token) {
         if (token == null || token.isEmpty()) return null;
         String faceStr = token.substring(0, 1);

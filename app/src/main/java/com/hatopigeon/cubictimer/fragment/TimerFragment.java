@@ -2255,6 +2255,16 @@ public class TimerFragment extends BaseFragment
         setLapTimeText();
         showToolbar();
         stopCubePolling();
+
+        // Reset the smart-cube tracking state on every stop (not just cube-detected solves, which
+        // go through finishCubeSolve). Scramble tracking must only run once the cube is actually
+        // solved again: clear "ready" / "started" and re-poll for a solved state, so a scrambled
+        // (unsolved) cube can't follow the scramble, and a manual stop won't leave a stale state
+        // that re-matches the next scramble or restarts the timer.
+        cubeStartedSolve = false;
+        isCubeReady = false;
+        cubeSolveHandled = false;
+        if (isCubeConnected) startCubeReadyPolling();
     }
 
     /**

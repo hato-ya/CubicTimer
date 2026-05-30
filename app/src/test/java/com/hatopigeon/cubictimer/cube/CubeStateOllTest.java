@@ -36,7 +36,7 @@ public class CubeStateOllTest {
 
     @Before
     public void setUp() throws Exception {
-        references = loadReferences();
+        references = loadReferences("OLL");
         assertNotNull(references);
         assertEquals(57, references.length);
         Model.init();
@@ -147,13 +147,100 @@ public class CubeStateOllTest {
         assertEquals(-1, state.getOllCase(5, references));
     }
 
+    // ─── PLL recognition ───
+
+    // First algorithm variant for each PLL, in AlgUtils.getDefaultAlgs("PLL") order.
+    private static final String[] PLL_NAMES = {
+        "Aa","Ab","E","F","Ga","Gb","Gc","Gd","H","Ja","Jb","Na","Nb","Ra","Rb","T","Ua","Ub","V","Y","Z",
+    };
+    private static final String[] PLL_ALGS = {
+        "R' F R' B2 R F' R' B2 R2",
+        "R B' R F2 R' B R F2 R2",
+        "y x' R U' R' D R U R' D' R U R' D R U' R' D' x",
+        "R' U R U' R2 F' U' F U R F R' F' R2 U'",
+        "(y) R2 U (R' U R' U') R U' R2 D U' R' U R D'",
+        "R' U' R y R2 u R' U R U' R u' R2",
+        "(y) R2' u' R U' R U R' u R2 (y) R U' R'",
+        "(y2) R U R' (y') R2 u' R U' R' U R' u R2",
+        "M2 U M2 U2 M2 U M2",
+        "B' U F' U2 B U' B' U2 F B U'",
+        "R U R' F' R U R' U' R' F R2 U' R' U'",
+        "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'",
+        "R' U L' U2 R U' L R' U L' U2 R U' L",
+        "(y2) L U2 L' U2 L F' L' U' L U L F L2",
+        "R' U2 R U2 R' F R U R' U' R' F' R2",
+        "R U R' U' R' F R2 U' R' U' R U R' F'",
+        "R2 U' R' U' R U R U R U' R",
+        "R' U R' U' R' U' R' U R U R2",
+        "R' U R' d' R' F' R2 U' R' U R' F R F",
+        "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+        "M2 U M2 U M' U2 M2 U2 M'",
+    };
+    // The reference_states.xml PLL order (AlgUtils.getSubsetCases), which getPllCase indexes into.
+    private static final List<String> PLL_REF_ORDER = java.util.Arrays.asList(
+        "H","Ua","Ub","Z","Aa","Ab","E","F","Ga","Gb","Gc","Gd","Ja","Jb","Na","Nb","Ra","Rb","T","V","Y");
+
+    @Test
+    public void recognizesAll21Plls() {
+        // Several PLL algorithms include whole-cube rotations / wide moves, so applying their
+        // inverse from solved can leave the cube in a rotated frame. getPllCase() auto-detects the
+        // cross face (centre-relative) and matches position signatures, so it recognizes the case
+        // regardless of orientation.
+        List<String> failures = new ArrayList<>();
+        for (int i = 0; i < PLL_NAMES.length; i++) {
+            Model.reset();
+            Model.algInv(PLL_ALGS[i]);
+            CubeState state = new CubeState();
+            state.setFacelets(Model.facelets());
+            int expected = PLL_REF_ORDER.indexOf(PLL_NAMES[i]) + 1;
+            int detected = state.getPllCase();
+            if (detected != expected) {
+                failures.add(PLL_NAMES[i] + " expected " + expected + " -> " + detected);
+            }
+        }
+        assertTrue("Misrecognized: " + failures, failures.isEmpty());
+    }
+
+    @Test
+    public void recognizesRealCubePllF() {
+        // Regression: a PLL F captured from the cube (kociemba) that previously failed to
+        // recognize because matching only covered post-AUF, not the full AUF double coset.
+        String k = "UUUUUUUUUBBBRRRRRRFLRFFFFFFDDDDDDDDDRFLLLLLLLLRFBBBBBB";
+        int[] charToFace = new int[128];
+        charToFace[(int)'U']=0; charToFace[(int)'R']=3; charToFace[(int)'F']=2;
+        charToFace[(int)'D']=5; charToFace[(int)'L']=1; charToFace[(int)'B']=4;
+        int[] tsToCs = new int[54];
+        for (int i = 0; i < 9; i++) {
+            tsToCs[i] = i; tsToCs[9+i] = 27+i; tsToCs[18+i] = 18+i;
+            tsToCs[27+i] = 45+i; tsToCs[36+i] = 9+i; tsToCs[45+i] = 36+i;
+        }
+        int[] cs = new int[54];
+        for (int i = 0; i < 54; i++) cs[tsToCs[i]] = charToFace[k.charAt(i)];
+        CubeState st = new CubeState();
+        st.setFacelets(cs);
+        int fIndex = PLL_REF_ORDER.indexOf("F") + 1;
+        assertEquals(fIndex, st.getPllCase());
+        assertEquals(fIndex, st.getPllCase(5));
+    }
+    @Test
+    public void pllReturnsZeroOnSolvedAndMinusOneOnOll() {
+        CubeState solved = new CubeState();
+        assertEquals(0, solved.getPllCase(5));
+        // An OLL (non-oriented last layer) is not a PLL.
+        Model.reset();
+        Model.algInv("R U R' U' R' F R F'"); // OLL 33
+        CubeState oll = new CubeState();
+        oll.setFacelets(Model.facelets());
+        assertEquals(-1, oll.getPllCase(5));
+    }
+
     // ─── reference loader ───
 
-    private static String[] loadReferences() throws Exception {
+    private static String[] loadReferences(String subset) throws Exception {
         File xml = new File("src/main/res/values/reference_states.xml");
         if (!xml.exists()) xml = new File("app/src/main/res/values/reference_states.xml");
         String content = new String(Files.readAllBytes(xml.toPath()), StandardCharsets.UTF_8);
-        int start = content.indexOf("name=\"alg_reference_OLL\"");
+        int start = content.indexOf("name=\"alg_reference_" + subset + "\"");
         int a = content.indexOf('>', start) + 1;
         int e = content.indexOf("</string-array>", a);
         Matcher m = Pattern.compile("<item>([^<]*)</item>").matcher(content.substring(a, e));
@@ -288,9 +375,11 @@ public class CubeStateOllTest {
             }
         }
 
-        static void alg(String a) { for (String t : a.trim().split("\\s+")) if (!t.isEmpty()) tok(t, false); }
+        // Parentheses in algorithms are just visual grouping; drop them before tokenizing.
+        static String clean(String a) { return a.replace('(', ' ').replace(')', ' ').trim(); }
+        static void alg(String a) { for (String t : clean(a).split("\\s+")) if (!t.isEmpty()) tok(t, false); }
         static void algInv(String a) {
-            String[] ts = a.trim().split("\\s+");
+            String[] ts = clean(a).split("\\s+");
             for (int i = ts.length - 1; i >= 0; i--) if (!ts[i].isEmpty()) tok(ts[i], true);
         }
         static void tok(String t, boolean invFlag) {

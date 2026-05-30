@@ -135,14 +135,20 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
 
         @Override
         public void onFaceletsReceived(int[] csFacelets) {
-            if (ollReferences == null) {
-                ollReferences = getResources().getStringArray(R.array.alg_reference_OLL);
-            }
             ollDetectState.setFacelets(csFacelets);
-            // No cross face known here: getOllCase(refs) tries all faces and returns the real OLL.
-            int oll = ollDetectState.getOllCase(ollReferences);
+            // The cross face is unknown here, so both recognizers try all faces and return the
+            // case (1-based, matching the alg list order) the user has set up on the cube.
+            int detected;
+            if ("PLL".equals(currentSubset)) {
+                detected = ollDetectState.getPllCase();
+            } else {
+                if (ollReferences == null) {
+                    ollReferences = getResources().getStringArray(R.array.alg_reference_OLL);
+                }
+                detected = ollDetectState.getOllCase(ollReferences);
+            }
             if (algCursorAdapter != null) {
-                algCursorAdapter.setHighlightedOllCase(oll);
+                algCursorAdapter.setHighlightedCase(detected);
             }
         }
     };
@@ -173,7 +179,7 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
                 case ACTION_CUBE_DISCONNECTED:
                     if (navButtonCube != null)
                         navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_24px);
-                    if (algCursorAdapter != null) algCursorAdapter.setHighlightedOllCase(-1);
+                    if (algCursorAdapter != null) algCursorAdapter.setHighlightedCase(-1);
                     break;
                 case ACTION_CHANGED_THEME:
                     try {
@@ -302,7 +308,7 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
      * Only active on the OLL list with a smart cube connected.
      */
     private void startOllDetection() {
-        if (ollDetectionActive || !"OLL".equals(currentSubset)) return;
+        if (ollDetectionActive || !("OLL".equals(currentSubset) || "PLL".equals(currentSubset))) return;
         GanCubeManager mgr = CubicTimer.getCubeBleManager();
         if (mgr == null || !mgr.isConnected()) return;
 
@@ -323,7 +329,7 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         }
         previousCubeCallback = null;
 
-        if (algCursorAdapter != null) algCursorAdapter.setHighlightedOllCase(-1);
+        if (algCursorAdapter != null) algCursorAdapter.setHighlightedCase(-1);
     }
 
     @Override

@@ -45,8 +45,8 @@ public class AlgCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHol
     // Locks opening new windows until the last one is dismissed
     private boolean isLocked;
 
-    // OLL case (1-57) to highlight in pale green; -1 = none. Updated live from the smart cube.
-    private int highlightedOllCase = -1;
+    // OLL/PLL case (1-based, per subset) to highlight in pale green; -1 = none. Live from the cube.
+    private int highlightedCase = -1;
 
     public AlgCursorAdapter(Context context, Cursor cursor, Fragment listFragment) {
         super(cursor);
@@ -114,10 +114,10 @@ public class AlgCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHol
         holder.progressBar.setProgress(pProgress);
         holder.cube.setCubeState(pState);
 
-        // Highlight the OLL case currently detected on the connected smart cube in pale green.
+        // Highlight the OLL/PLL case currently detected on the connected smart cube in pale green.
         // Rows are recycled, so the background is reset to the theme default on every bind.
-        if ("OLL".equals(pSubset)
-                && AlgUtils.caseNameToSubsetId("OLL", pName) + 1 == highlightedOllCase) {
+        if (("OLL".equals(pSubset) || "PLL".equals(pSubset))
+                && AlgUtils.caseNameToSubsetId(pSubset, pName) + 1 == highlightedCase) {
             holder.card.setCardBackgroundColor(
                     ContextCompat.getColor(mContext, R.color.oll_detected_highlight));
         } else {
@@ -133,12 +133,12 @@ public class AlgCursorAdapter extends CursorRecyclerAdapter<RecyclerView.ViewHol
     }
 
     /**
-     * Sets the OLL case (1-57) to highlight in pale green, or -1/0 for none. Triggers a rebind so
-     * the highlight updates live as the smart cube changes. No-op if unchanged.
+     * Sets the OLL/PLL case (1-based, per subset) to highlight in pale green, or -1/0 for none.
+     * Triggers a rebind so the highlight updates live as the smart cube changes. No-op if unchanged.
      */
-    public void setHighlightedOllCase(int ollCase) {
-        if (ollCase != highlightedOllCase) {
-            highlightedOllCase = ollCase;
+    public void setHighlightedCase(int caseNumber) {
+        if (caseNumber != highlightedCase) {
+            highlightedCase = caseNumber;
             notifyDataSetChanged();
         }
     }

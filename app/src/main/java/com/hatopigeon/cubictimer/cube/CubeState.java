@@ -235,6 +235,110 @@ public class CubeState {
         return oriented ? 0 : -1;
     }
 
+    // PLL recognition by position signature. A PLL case is invariant under AUF turns on *both*
+    // sides (the U turn before and after the algorithm), i.e. the whole double coset, so a single
+    // case can present many distinct sticker patterns. We canonicalise a state to the smallest
+    // signature over its 4 U-turn views (one left coset) and map that canonical to the case index.
+    //
+    // The 71 canonical -> case entries below were generated from the verified PLL algorithms via a
+    // 3D cubie model in CubeStateOllTest (no collisions). Index = alg_reference_PLL order
+    // (H, Ua, Ub, Z, Aa, Ab, E, F, Ga, Gb, Gc, Gd, Ja, Jb, Na, Nb, Ra, Rb, T, V, Y). Each datum is
+    // the 25-char signature followed by the 0-based case index.
+    private static final java.util.Map<String, Integer> PLL_CANON = buildPllCanon();
+    private static java.util.Map<String, Integer> buildPllCanon() {
+        String[] data = {
+            "X111X200042000330003X442X12", "X111X200043000220004X343X1",  "X111X200043000430003X422X13",
+            "X111X200044000230003X432X7",  "X111X200044000320004X323X2",  "X113X200022000340004X143X19",
+            "X113X200022000430001X434X5",  "X113X200023000230001X444X13", "X113X200023000440004X123X20",
+            "X113X200024000240004X133X14", "X113X200024000330001X424X9",  "X114X200032000320001X344X13",
+            "X114X200032000440003X132X4",  "X114X200033000240003X142X8",  "X114X200033000420001X324X17",
+            "X114X200034000220001X334X18", "X114X200034000340003X122X13", "X121X200041000320004X343X3",
+            "X121X200041000430003X432X17", "X121X200043000130003X442X4",  "X121X200043000420004X313X1",
+            "X121X200044000120004X333X1",  "X121X200044000330003X412X10", "X123X200021000330001X444X7",
+            "X123X200021000440004X133X19", "X123X200023000140004X143X6",  "X123X200023000430001X414X17",
+            "X123X200024000130001X434X16", "X123X200024000340004X113X19", "X124X200031000340003X142X7",
+            "X124X200031000420001X334X16", "X124X200033000120001X344X4",  "X124X200033000440003X112X10",
+            "X124X200034000140003X132X9",  "X124X200034000320001X314X9",  "X131X200041000230003X442X11",
+            "X131X200041000420004X323X2",  "X131X200042000120004X343X1",  "X131X200042000430003X412X18",
+            "X131X200044000130003X422X9",  "X131X200044000220004X313X0",  "X133X200021000240004X143X19",
+            "X133X200021000430001X424X11", "X133X200022000130001X444X12", "X133X200022000440004X113X15",
+            "X133X200024000140004X123X20", "X133X200024000230001X414X4",  "X134X200031000220001X344X8",
+            "X134X200031000440003X122X17", "X134X200032000140003X142X11", "X134X200032000420001X314X7",
+            "X134X200034000120001X324X11", "X134X200034000240003X112X5",  "X141X200041000220004X333X2",
+            "X141X200041000330003X422X5",  "X141X200042000130003X432X16", "X141X200042000320004X313X2",
+            "X141X200043000120004X323X3",  "X141X200043000230003X412X8",  "X143X200021000230001X434X8",
+            "X143X200021000340004X123X6",  "X143X200022000140004X133X20", "X143X200022000330001X414X10",
+            "X143X200023000130001X424X18", "X143X200023000240004X113X20", "X144X200031000240003X132X16",
+            "X144X200031000320001X324X5",  "X144X200032000120001X334X12", "X144X200032000340003X112X12",
+            "X144X200033000140003X122X18", "X144X200033000220001X314X10",
+        };
+        java.util.Map<String, Integer> m = new java.util.HashMap<>(data.length * 2);
+        for (String d : data) m.put(d.substring(0, 25), Integer.parseInt(d.substring(25)));
+        return m;
+    }
+
+    /**
+     * Recognizes the exact PLL case of the last layer (the face opposite the cross), independent of
+     * AUF. Returns the 1-based PLL index (1-21, matching alg_reference_PLL order), 0 if the last
+     * layer is solved (PLL skip), or -1 if F2L isn't solved or the last layer isn't oriented yet
+     * (i.e. it's still an OLL, not a PLL).
+     *
+     * The last layer is rotated onto U, canonicalised to the smallest position signature over its 4
+     * AUF views, and looked up in {@link #PLL_CANON}. Each sticker is identified by the face
+     * position whose centre colour it matches, so recognition is independent of cross face, colour
+     * scheme, and which AUF the case was left at.
+     */
+    public int getPllCase(int crossFace) {
+        if (crossFace < 0) return -1;
+        if (!isF2LSolved(crossFace)) return -1;
+
+        CubeState work = new CubeState();
+        work.setFacelets(this.facelets);
+        work.orientLastFaceToU(OPPOSITE[crossFace]);
+
+        if (!work.isLastLayerOriented()) return -1; // still an OLL, not a PLL
+
+        String canon = null;
+        for (int auf = 0; auf < 4; auf++) {
+            String sig = work.pllSignatureU();
+            if (canon == null || sig.compareTo(canon) < 0) canon = sig;
+            work.applyPerm(OLL_U, 1);
+        }
+        Integer c = PLL_CANON.get(canon);
+        return c == null ? 0 : c + 1; // no match => solved last layer (PLL skip)
+    }
+
+    /**
+     * Recognizes the PLL case without knowing the cross face: tries all six faces and returns the
+     * first that yields a real PLL (1-21). Returns 0 if some face is solved/oriented (skip), or -1
+     * if no face has an oriented, F2L-solved last layer.
+     */
+    public int getPllCase() {
+        boolean skip = false;
+        for (int crossFace = 0; crossFace < 6; crossFace++) {
+            int c = getPllCase(crossFace);
+            if (c > 0) return c;
+            if (c == 0) skip = true;
+        }
+        return skip ? 0 : -1;
+    }
+
+    /**
+     * Builds the PLL position signature with the last layer on U: each side cell holds the face
+     * position (0-5) whose centre colour matches the sticker, so it's independent of how the cube
+     * was rotated to bring the last layer onto U. Corners are 'X'.
+     */
+    private String pllSignatureU() {
+        int[] posOf = new int[6];
+        for (int p = 0; p < 6; p++) posOf[facelets[p * 9 + 4]] = p;
+        char[] sig = new char[25];
+        for (int i = 0; i < 25; i++) {
+            int fc = OLL_GRID_TO_FACELET[i];
+            sig[i] = (fc < 0) ? 'X' : (char) ('0' + posOf[facelets[fc]]);
+        }
+        return new String(sig);
+    }
+
     /** True when every facelet of the U face already shows the U center color. */
     private boolean isLastLayerOriented() {
         int center = facelets[U * 9 + 4];

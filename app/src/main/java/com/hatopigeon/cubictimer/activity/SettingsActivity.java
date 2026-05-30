@@ -43,6 +43,7 @@ import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CubeCrossFaceSelectDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeGyroResetDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CubeOrientationSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
@@ -157,6 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_bg_image_landscape,
                         R.string.pk_bg_image_opacity,
                         R.string.pk_smart_cube_reset_state,
+                        R.string.pk_smart_cube_reset_gyro,
                         R.string.pk_smart_cube_orientation,
                         R.string.pk_smart_cube_cross_face)) {
 
@@ -173,6 +175,14 @@ public class SettingsActivity extends AppCompatActivity {
                             CubeOrientationSelectDialog.newInstance().show(
                                     ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
                                     "cube_orientation_dialog");
+                        }
+                        break;
+
+                    case R.string.pk_smart_cube_reset_gyro:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeGyroResetDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_gyro_reset_dialog");
                         }
                         break;
 
@@ -375,7 +385,7 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_bg_image_portrait,
                     R.string.pk_bg_image_landscape,
                     R.string.pk_bg_image_opacity,
-                    R.string.pk_smart_cube_reset_state,
+                    R.string.pk_smart_cube_reset_gyro,
                     R.string.pk_smart_cube_orientation,
                     R.string.pk_smart_cube_cross_face};
 
@@ -407,7 +417,8 @@ public class SettingsActivity extends AppCompatActivity {
                 R.string.pk_show_cube_move_details,
                 R.string.pk_smart_cube_cross_face,
                 R.string.pk_smart_cube_orientation,
-                R.string.pk_smart_cube_reset_state,
+                R.string.pk_smart_cube_reset_gyro,
+                R.string.pk_smart_cube_show_model,
         };
 
         private void refreshSmartCubeDependents(boolean smartCubeOn) {

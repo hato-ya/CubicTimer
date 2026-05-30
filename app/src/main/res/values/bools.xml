@@ -30,6 +30,7 @@
     <bool name="default_smartCubeEnabled">true</bool>
     <bool name="default_cubeStatusEnabled">true</bool>
     <bool name="default_cubeMoveDetailsEnabled">false</bool>
+    <bool name="default_smartCubeShowModelEnabled">true</bool>
     <bool name="default_inspectionByResetEnabled">true</bool>
 
     <bool name="default_crossHintTopEnabled">true</bool>

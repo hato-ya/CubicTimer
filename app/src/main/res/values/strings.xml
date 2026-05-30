@@ -460,6 +460,12 @@
     <string name="smart_cube_reset_state_summary">Tell the cube its current position is solved (physically solve it first)</string>
     <string name="smart_cube_reset_state_done">Cube state reset to solved</string>
     <string name="smart_cube_reset_state_not_connected">Connect a smart cube first</string>
+    <string name="smart_cube_reset_gyro_title">Reset Cube State</string>
+    <string name="smart_cube_reset_gyro_summary">Reset the cube to solved, or tap the 3D model to reset the gyroscope</string>
+    <string name="smart_cube_reset_gyro_instruction">Click the cube to reset gyro</string>
+    <string name="smart_cube_reset_gyro_not_connected">Connect a smart cube first</string>
+    <string name="smart_cube_show_model_title">Show 3D model</string>
+    <string name="smart_cube_show_model_summary">Display the live 3D cube below the timer</string>
     <string name="smart_cube_orientation_title">Holding orientation</string>
     <string name="smart_cube_orientation_summary">Set which faces you hold on top and in front, for correct scramble highlighting</string>
     <string name="smart_cube_orientation_instruction">Tap the top face, then the front face</string>

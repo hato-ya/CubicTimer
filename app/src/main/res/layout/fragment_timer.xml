@@ -151,6 +151,15 @@
             android:visibility="gone"/>
     </LinearLayout>
 
+    <com.hatopigeon.cubictimer.layout.Cube3DView
+        android:id="@+id/cube_3d_view"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_below="@id/chronometer"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="4dp"
+        android:visibility="gone" />
+
     <ImageView
         android:id="@+id/scramble_img"
         android:layout_width="84dp"

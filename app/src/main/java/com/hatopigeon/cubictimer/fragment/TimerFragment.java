@@ -400,6 +400,9 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.cancelReadyButton)
     ImageView cancelReadyButton;
 
+    @BindView(R.id.cube_3d_view)
+    com.hatopigeon.cubictimer.layout.Cube3DView cube3DView;
+
     @BindView(R.id.multi_phase_status_message)
     TextView multiPhaseStatusMessage;
 
@@ -489,6 +492,10 @@ public class TimerFragment extends BaseFragment
                 mgr.requestFacelets();
                 mgr.requestBattery();
             }
+            if (cube3DView != null) {
+                cube3DView.loadColorScheme();
+                cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+            }
             startCubeReadyPolling();
         }
 
@@ -504,6 +511,12 @@ public class TimerFragment extends BaseFragment
             broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
             updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
             cancelReadyButton.setVisibility(View.GONE);
+            if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onGyroData(float w, float x, float y, float z) {
+            if (cube3DView != null) cube3DView.setQuaternion(w, x, y, z);
         }
 
         @Override
@@ -516,6 +529,7 @@ public class TimerFragment extends BaseFragment
 
             for (CubeMove move : moves) {
                 cubeSolver.addMove(move);
+                if (cube3DView != null) cube3DView.animateMove(move);
                 if (isRunning || !isCubeReady) continue;
 
                 int dirMod4;
@@ -609,6 +623,7 @@ public class TimerFragment extends BaseFragment
         public void onFaceletsReceived(int[] csFacelets) {
             if (cubeSolver == null) return;
             cubeSolver.setStateFacelets(csFacelets);
+            if (cube3DView != null) cube3DView.setFacelets(csFacelets);
             if (crossTimeMs < 0 && isRunning) {
                 String crossFacePref = Prefs.getString(R.string.pk_smart_cube_cross_face, "auto");
                 int detectedFace = -1;
@@ -959,7 +974,24 @@ public class TimerFragment extends BaseFragment
         View root = inflater.inflate(R.layout.fragment_timer, container, false);
         mUnbinder = ButterKnife.bind(this, root);
 
+        // Tapping the 3D cube re-homes the gyroscope to the default orientation.
+        if (cube3DView != null) cube3DView.setOnClickListener(v -> resetCubeGyro());
+
         return root;
+    }
+
+    /** Whether the live 3D cube model should be shown below the timer (user preference). */
+    private boolean showCubeModelEnabled() {
+        return Prefs.getBoolean(R.string.pk_smart_cube_show_model, true);
+    }
+
+    /** Re-homes the smart cube gyroscope so the 3D model returns to its default orientation. */
+    private void resetCubeGyro() {
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.isConnected()) {
+            mgr.resetGyro();
+            if (cube3DView != null) cube3DView.setQuaternion(1f, 0f, 0f, 0f);
+        }
     }
 
     @SuppressLint({"ClickableViewAccessibility", "RestrictedApi"})
@@ -1518,11 +1550,16 @@ public class TimerFragment extends BaseFragment
                 updateCubeStatus(getString(R.string.smart_cube_status_check_message));
                 mgr.requestFacelets();
                 mgr.requestBattery();
+                if (cube3DView != null) {
+                    cube3DView.loadColorScheme();
+                    cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+                }
                 startCubeReadyPolling();
                 broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
             } else {
                 isCubeConnected = false;
                 cubeStartedSolve = false;
+                if (cube3DView != null) cube3DView.setVisibility(View.GONE);
             }
         }
     }

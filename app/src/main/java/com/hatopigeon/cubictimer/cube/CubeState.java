@@ -39,24 +39,26 @@ public class CubeState {
          18,19,20,21,22,23,
          27,28,29,30,31,32,
          36,37,38,39,40,41},
-        // Cross L(1), opposite R(3): side faces U,F,D,B, skip right col on each
+        // Cross L(1), opposite R(3): last layer is R, so skip each side face's R-adjacent column.
+        // That is the right column of U/F/D, but the LEFT column of B (the back face is mirrored).
         {9,10,11,12,13,14,15,16,17,
          0,1,3,4,6,7,
          18,19,21,22,24,25,
          45,46,48,49,51,52,
-         36,37,39,40,42,43},
+         37,38,40,41,43,44},
         // Cross F(2), opposite B(4): side faces U,L,D,R
         {18,19,20,21,22,23,24,25,26,
          3,4,5,6,7,8,
          10,11,13,14,16,17,
          45,46,47,48,49,50,
          27,28,30,31,33,34},
-        // Cross R(3), opposite L(1): side faces U,F,D,B, skip left col on each
+        // Cross R(3), opposite L(1): last layer is L, so skip each side face's L-adjacent column.
+        // That is the left column of U/F/D, but the RIGHT column of B (the back face is mirrored).
         {27,28,29,30,31,32,33,34,35,
          1,2,4,5,7,8,
          19,20,22,23,25,26,
          46,47,49,50,52,53,
-         37,38,40,41,43,44},
+         36,37,39,40,42,43},
         // Cross B(4), opposite F(2): side faces U,L,D,R
         {36,37,38,39,40,41,42,43,44,
          0,1,2,3,4,5,
@@ -72,6 +74,53 @@ public class CubeState {
     };
 
     private static final int[][] PERM_CW = createPermutations();
+
+    // ─── OLL recognition ───
+    //
+    // The legacy PERM_CW tables above are only ever used to *track* moves between full facelet
+    // snapshots; the app never relies on them forming a physically consistent cube group (they
+    // don't — composing different faces drifts). OLL recognition, however, must rotate the cube
+    // accurately, so it uses the three permutations below, which were generated from a 3D cubie
+    // model and verified (sexy x6 = identity, all 57 OLL cases recognized) in CubeStateOllTest.
+    //
+    // new[i] = old[perm[i]] (same convention as PERM_CW). Direction -1 applies the inverse.
+    //   OLL_U      : a U-layer quarter turn (used to cycle through the 4 AUF positions)
+    //   OLL_ROT_X  : whole-cube rotation that brings F onto U (x)
+    //   OLL_ROT_Z  : whole-cube rotation that brings L onto U (z)
+    private static final int[] OLL_U = {
+        6, 3, 0, 7, 4, 1, 8, 5, 2, 18, 19, 20, 12, 13, 14, 15, 16, 17,
+        27, 28, 29, 21, 22, 23, 24, 25, 26, 36, 37, 38, 30, 31, 32, 33, 34, 35,
+        9, 10, 11, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+    };
+    private static final int[] OLL_ROT_X = {
+        18, 19, 20, 21, 22, 23, 24, 25, 26, 11, 14, 17, 10, 13, 16, 9, 12, 15,
+        45, 46, 47, 48, 49, 50, 51, 52, 53, 33, 30, 27, 34, 31, 28, 35, 32, 29,
+        8, 7, 6, 5, 4, 3, 2, 1, 0, 44, 43, 42, 41, 40, 39, 38, 37, 36,
+    };
+    private static final int[] OLL_ROT_Z = {
+        15, 12, 9, 16, 13, 10, 17, 14, 11, 51, 48, 45, 52, 49, 46, 53, 50, 47,
+        24, 21, 18, 25, 22, 19, 26, 23, 20, 6, 3, 0, 7, 4, 1, 8, 5, 2,
+        38, 41, 44, 37, 40, 43, 36, 39, 42, 33, 30, 27, 34, 31, 28, 35, 32, 29,
+    };
+
+    // The 57 OLL reference patterns (alg_reference_OLL in reference_states.xml) describe a 5x5
+    // grid (index = 5*row + col) seen from above the last layer (with the front face toward the
+    // bottom of the grid). The four corners are "don't care" (X). 'Y' = sticker shows the last
+    // layer color, 'N' = it doesn't. This maps each of the 25 grid cells to a facelet index
+    // assuming the last layer is U (=0). -1 marks the four ignored corners.
+    //
+    //         .  c1 c2 c3  .          back row    = B stickers adjacent to U
+    //         c5 c6 c7 c8 c9          left/right  = L / R stickers adjacent to U
+    //        c10 ...      c14         center 3x3  = U face
+    //        c15 ...      c19
+    //         . c21 c22 c23 .         front row   = F stickers adjacent to U
+    private static final int[] OLL_GRID_TO_FACELET = {
+        -1, 38, 37, 36, -1,
+         9,  0,  1,  2, 29,
+        10,  3,  4,  5, 28,
+        11,  6,  7,  8, 27,
+        -1, 18, 19, 20, -1,
+    };
 
     public CubeState() {
         reset();
@@ -135,6 +184,96 @@ public class CubeState {
         return true;
     }
 
+    /**
+     * Recognizes the exact OLL case (1-57) of the last layer (the face opposite the cross face),
+     * independent of the U-layer rotation (AUF). Returns the OLL number (1-57), 0 if the last
+     * layer is already oriented (OLL skip), or -1 if F2L is not solved or no case matches.
+     *
+     * The last layer is rotated onto U, then matched against the {@code references} array
+     * (R.array.alg_reference_OLL) over all four AUF rotations. Because OLL is defined up to a
+     * U-layer turn, mirror cases such as OLL 3 / OLL 4 are distinguished correctly: each case has
+     * a unique orientation signature across its four AUFs, so only one reference can match.
+     *
+     * @param crossFace  the solved cross face (0-5), as returned by {@link #getCrossFace()}
+     * @param references the 57 OLL reference strings from reference_states.xml
+     */
+    public int getOllCase(int crossFace, String[] references) {
+        if (crossFace < 0 || references == null || references.length == 0) return -1;
+        if (!isF2LSolved(crossFace)) return -1;
+
+        CubeState work = new CubeState();
+        work.setFacelets(this.facelets);
+        work.orientLastFaceToU(OPPOSITE[crossFace]);
+
+        if (work.isLastLayerOriented()) return 0;
+
+        for (int auf = 0; auf < 4; auf++) {
+            String sig = work.ollSignatureU();
+            for (int i = 0; i < references.length; i++) {
+                if (sig.equals(references[i])) return i + 1;
+            }
+            work.applyPerm(OLL_U, 1);
+        }
+        return -1;
+    }
+
+    /**
+     * Recognizes the OLL case without knowing the cross face: tries all six faces as the cross
+     * and returns the first that yields a real OLL (1-57). Returns 0 if some face has F2L solved
+     * with the last layer already oriented (solved / OLL skip), or -1 if no face has F2L solved.
+     *
+     * Useful for a trainer view where the cube is solved except for a last-layer orientation set
+     * up by hand: only the genuine cross face produces a non-trivial OLL.
+     */
+    public int getOllCase(String[] references) {
+        boolean oriented = false;
+        for (int crossFace = 0; crossFace < 6; crossFace++) {
+            int c = getOllCase(crossFace, references);
+            if (c > 0) return c;
+            if (c == 0) oriented = true;
+        }
+        return oriented ? 0 : -1;
+    }
+
+    /** True when every facelet of the U face already shows the U center color. */
+    private boolean isLastLayerOriented() {
+        int center = facelets[U * 9 + 4];
+        for (int i = U * 9; i < U * 9 + 9; i++) {
+            if (facelets[i] != center) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Builds the 25-character OLL signature for the current state assuming the last layer is U,
+     * using the same Y/N/X convention as the reference patterns.
+     */
+    private String ollSignatureU() {
+        int center = facelets[U * 9 + 4];
+        char[] sig = new char[25];
+        for (int i = 0; i < 25; i++) {
+            int fc = OLL_GRID_TO_FACELET[i];
+            if (fc < 0) {
+                sig[i] = 'X';
+            } else {
+                sig[i] = (facelets[fc] == center) ? 'Y' : 'N';
+            }
+        }
+        return new String(sig);
+    }
+
+    /** Rotates the whole cube so the given face becomes U, preserving orientation otherwise. */
+    private void orientLastFaceToU(int face) {
+        switch (face) {
+            case U: break;                                            // already on top
+            case D: applyPerm(OLL_ROT_X, 1); applyPerm(OLL_ROT_X, 1); break; // x2
+            case F: applyPerm(OLL_ROT_X, 1); break;                   // x  (F -> U)
+            case B: applyPerm(OLL_ROT_X, -1); break;                  // x' (B -> U)
+            case L: applyPerm(OLL_ROT_Z, 1); break;                   // z  (L -> U)
+            case R: applyPerm(OLL_ROT_Z, -1); break;                  // z' (R -> U)
+        }
+    }
+
     public boolean isCrossSolved() {
         return getCrossFace() >= 0;
     }
@@ -179,6 +318,15 @@ public class CubeState {
         int[] next = new int[54];
         for (int i = 0; i < 54; i++) {
             next[i] = facelets[perm[i]];
+        }
+        System.arraycopy(next, 0, facelets, 0, 54);
+    }
+
+    private void applyPerm(int[] perm, int direction) {
+        int[] p = (direction == 1) ? perm : invertPerm(perm);
+        int[] next = new int[54];
+        for (int i = 0; i < 54; i++) {
+            next[i] = facelets[p[i]];
         }
         System.arraycopy(next, 0, facelets, 0, 54);
     }

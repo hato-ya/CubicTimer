@@ -388,7 +388,36 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
+            // Smart-cube settings that only make sense with the feature on AND a cube connected.
+            Preference smartCubeToggle = findPreference(getString(R.string.pk_smart_cube_enabled));
+            if (smartCubeToggle != null) {
+                smartCubeToggle.setOnPreferenceChangeListener((pref, newValue) -> {
+                    refreshSmartCubeDependents(Boolean.TRUE.equals(newValue));
+                    return true;
+                });
+            }
+            refreshSmartCubeDependents(Prefs.getBoolean(R.string.pk_smart_cube_enabled, true));
+
             mainScreen = getPreferenceScreen();
+        }
+
+        // Smart-cube preferences disabled unless the feature is on and a cube is connected.
+        // "show cube status" and the master toggle itself stay enabled.
+        private static final int[] SMART_CUBE_DEPENDENT_KEYS = {
+                R.string.pk_show_cube_move_details,
+                R.string.pk_smart_cube_cross_face,
+                R.string.pk_smart_cube_orientation,
+                R.string.pk_smart_cube_reset_state,
+        };
+
+        private void refreshSmartCubeDependents(boolean smartCubeOn) {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            boolean connected = mgr != null && mgr.isConnected();
+            boolean enabled = smartCubeOn && connected;
+            for (int key : SMART_CUBE_DEPENDENT_KEYS) {
+                Preference p = findPreference(getString(key));
+                if (p != null) p.setEnabled(enabled);
+            }
         }
 
         @Override
@@ -422,6 +451,8 @@ public class SettingsActivity extends AppCompatActivity {
             // about time elapsed depending on user's current inspection duration
             updateInspectionAlertText();
             updatePhaseNumText();
+            // Re-evaluate smart-cube prefs in case the cube connection changed while away.
+            refreshSmartCubeDependents(Prefs.getBoolean(R.string.pk_smart_cube_enabled, true));
         }
 
         private void updateInspectionAlertText() {

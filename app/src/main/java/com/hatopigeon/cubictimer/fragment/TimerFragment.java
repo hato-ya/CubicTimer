@@ -454,6 +454,9 @@ public class TimerFragment extends BaseFragment
     private boolean isCubeScanMode;
     private boolean pendingPermissionForCubeScan;
     private boolean isCubeReady;
+    // True once a solved cube state has been handled, to avoid re-firing onCubeSolved on every
+    // facelet poll while the cube stays solved. Reset as soon as the cube is turned again.
+    private boolean cubeSolveHandled;
     private int movesBeforeTimerStart;
     private int crossFace = -1;
     private long crossTimeMs = -1;
@@ -500,6 +503,10 @@ public class TimerFragment extends BaseFragment
         @Override
         public void onCubeMoves(List<CubeMove> moves) {
             if (cubeSolver == null || moves.isEmpty() || !smartCubeEnabled) return;
+
+            // A turn means the cube is no longer in its just-solved state; allow the next solve
+            // to be handled (and logged) again.
+            cubeSolveHandled = false;
 
             for (CubeMove move : moves) {
                 cubeSolver.addMove(move);
@@ -622,6 +629,9 @@ public class TimerFragment extends BaseFragment
 
         @Override
         public void onCubeSolved() {
+            // Facelets are polled repeatedly; only handle the first solved snapshot of a streak.
+            if (cubeSolveHandled) return;
+            cubeSolveHandled = true;
             Log.d(TAG, "Cube solved via facelets!");
             if (isRunning) {
                 finishCubeSolve();
@@ -2204,6 +2214,7 @@ public class TimerFragment extends BaseFragment
         ollMoveCount = 0;
         pllTimeMs = -1;
         pllMoveCount = 0;
+        cubeSolveHandled = false;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;

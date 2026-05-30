@@ -475,6 +475,13 @@ public class GanCubeManager extends BleManager {
         sendCommand(cmd);
     }
 
+    /** Requests the battery level; the cube replies with a type-9 event -> onCubeBatteryLevel. */
+    public void requestBattery() {
+        byte[] cmd = new byte[20];
+        cmd[0] = 0x09;
+        sendCommand(cmd);
+    }
+
     @Override
     protected void onServicesInvalidated() {
         cubeCommandCharacteristic = null;

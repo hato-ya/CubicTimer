@@ -457,6 +457,8 @@ public class TimerFragment extends BaseFragment
     // True once a solved cube state has been handled, to avoid re-firing onCubeSolved on every
     // facelet poll while the cube stays solved. Reset as soon as the cube is turned again.
     private boolean cubeSolveHandled;
+    // Last reported smart-cube battery level (%), or -1 if unknown. Shown after "Connected".
+    private int cubeBatteryLevel = -1;
     private int movesBeforeTimerStart;
     private int crossFace = -1;
     private long crossTimeMs = -1;
@@ -483,7 +485,10 @@ public class TimerFragment extends BaseFragment
             updateCubeStatus(getString(R.string.smart_cube_status_check_message));
             updateScrambleColors();
             GanCubeManager mgr = CubicTimer.getCubeBleManager();
-            if (mgr != null) mgr.requestFacelets();
+            if (mgr != null) {
+                mgr.requestFacelets();
+                mgr.requestBattery();
+            }
             startCubeReadyPolling();
         }
 
@@ -493,6 +498,7 @@ public class TimerFragment extends BaseFragment
             isCubeConnected = false;
             cubeStartedSolve = false;
             isCubeReady = false;
+            cubeBatteryLevel = -1;
             moveBuffer.clear();
             stopCubeReadyPolling();
             broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
@@ -553,7 +559,7 @@ public class TimerFragment extends BaseFragment
                     chronometer.holdForStart();
                 }
 
-                updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+                updateCubeStatus(cubeConnectedLabel() + " | Ready");
                 updateCancelReadyButtonVisibility();
                 return;
             }
@@ -564,7 +570,7 @@ public class TimerFragment extends BaseFragment
                 }
                 isExternalTimer = true;
                 startChronometer();
-                updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Solving");
+                updateCubeStatus(cubeConnectedLabel() + " | Solving");
             }
 
             if (!isRunning) return;
@@ -587,6 +593,12 @@ public class TimerFragment extends BaseFragment
         @Override
         public void onCubeBatteryLevel(int level) {
             Log.d(TAG, "Cube battery: " + level + "%");
+            cubeBatteryLevel = level;
+            // Refresh the status so the new battery level shows next to "Connected" (only while
+            // idle/connected, not while solving where the move/TPS display is shown instead).
+            if (isCubeConnected && !isRunning) {
+                updateCubeStatus(cubeConnectedLabel());
+            }
         }
 
         @Override
@@ -642,7 +654,7 @@ public class TimerFragment extends BaseFragment
                 stopCubeReadyPolling();
                 updateScrambleColors();
             }
-            updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+            updateCubeStatus(cubeConnectedLabel());
         }
     };
 
@@ -1376,7 +1388,7 @@ public class TimerFragment extends BaseFragment
                                 cubeStartedSolve = true;
                                 hideToolbar();
                                 chronometer.holdForStart();
-                                updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
+                                updateCubeStatus(cubeConnectedLabel() + " | Ready");
                                 updateCancelReadyButtonVisibility();
                             } else if (inspectionEnabled) {
                                 hideToolbar();
@@ -1496,6 +1508,7 @@ public class TimerFragment extends BaseFragment
                 updateScrambleColors();
                 updateCubeStatus(getString(R.string.smart_cube_status_check_message));
                 mgr.requestFacelets();
+                mgr.requestBattery();
                 startCubeReadyPolling();
                 broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
             } else {
@@ -3317,7 +3330,7 @@ public class TimerFragment extends BaseFragment
         stopInspectionCountdown();
         chronometer.reset();
         showToolbar();
-        updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+        updateCubeStatus(cubeConnectedLabel());
         cancelReadyButton.setVisibility(View.GONE);
     }
 
@@ -3344,6 +3357,12 @@ public class TimerFragment extends BaseFragment
         cubeStartedSolve = false;
     }
 
+    /** "Connected" label, with the battery level appended (e.g. "Connected (85%)") when known. */
+    private String cubeConnectedLabel() {
+        String base = getString(R.string.smart_cube_status_connect_message);
+        return cubeBatteryLevel >= 0 ? base + " (" + cubeBatteryLevel + "%)" : base;
+    }
+
     private void updateCubeStatus(String status) {
         if (cubeStateMessage != null) {
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
@@ -3367,7 +3386,7 @@ public class TimerFragment extends BaseFragment
             if (elapsed > 0) {
                 displayTps = displayMoveCount / (elapsed / 1000.0);
             }
-            String status = getString(R.string.smart_cube_status_connect_message)
+            String status = cubeConnectedLabel()
                     + " | " + String.format(Locale.US, getString(R.string.smart_cube_move_count), displayMoveCount)
                     + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), displayTps);
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);

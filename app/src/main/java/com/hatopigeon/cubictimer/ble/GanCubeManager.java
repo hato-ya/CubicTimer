@@ -52,6 +52,8 @@ public class GanCubeManager extends BleManager {
         void onCubeBatteryLevel(int level);
         void onCubeSolved();
         void onFaceletsReceived(int[] csFacelets);
+        /** Cube orientation as a unit quaternion (w,x,y,z) from the gyroscope. */
+        default void onGyroData(float w, float x, float y, float z) {}
     }
 
     private BluetoothGattCharacteristic cubeCommandCharacteristic;
@@ -221,9 +223,9 @@ public class GanCubeManager extends BleManager {
         int eventType = getBitWord(plain, 0, 4);
 
         switch (eventType) {
-            // case 1: // gyro event — keep for debugging
-            //     Log.d(TAG, "Gyro event: " + bytesToHex(plain) + " len=" + plain.length);
-            //     break;
+            case 1:
+                handleGyroEvent(plain, timestamp);
+                break;
             case 2:
                 handleMoveEvent(plain, timestamp);
                 break;
@@ -438,6 +440,58 @@ public class GanCubeManager extends BleManager {
             result[csIdx] = CHAR_TO_FACE[kociemba.charAt(i)];
         }
         return result;
+    }
+
+    // Last raw orientation reported by the cube and the "home" offset (inverse of the orientation
+    // captured at the last resetGyro()). Delivered quaternion = raw * homeInverse, so the cube is
+    // shown in its reference orientation when held as it was at reset time.
+    private final float[] lastRawQuat = {1f, 0f, 0f, 0f};
+    private final float[] gyroHomeInv = {1f, 0f, 0f, 0f};
+
+    private void handleGyroEvent(byte[] data, long timestamp) {
+        if (callback == null) return;
+        // GAN Gen2 gyro event: quaternion components as signed 16-bit words.
+        int rw = getBitWord(data, 4, 16);
+        int rx = getBitWord(data, 20, 16);
+        int ry = getBitWord(data, 36, 16);
+        int rz = getBitWord(data, 52, 16);
+        float w = quatComponent(rw);
+        float x = quatComponent(rx);
+        float y = quatComponent(ry);
+        float z = quatComponent(rz);
+        // Remap the GAN IMU axes to the 3D-model frame (Y up): (x, y, z) -> (x, z, -y).
+        // Matches afedotov/gan-cube-sample: new THREE.Quaternion(qx, qz, -qy, qw).
+        lastRawQuat[0] = w;
+        lastRawQuat[1] = x;
+        lastRawQuat[2] = z;
+        lastRawQuat[3] = -y;
+        // Apply the home offset on the LEFT (frame change): out = homeInverse * raw.
+        float[] out = quatMul(gyroHomeInv, lastRawQuat);
+        callback.onGyroData(out[0], out[1], out[2], out[3]);
+    }
+
+    /** Re-homes the gyroscope so the cube's current physical orientation becomes the reference. */
+    public void resetGyro() {
+        // homeInverse = conjugate(current raw orientation).
+        gyroHomeInv[0] = lastRawQuat[0];
+        gyroHomeInv[1] = -lastRawQuat[1];
+        gyroHomeInv[2] = -lastRawQuat[2];
+        gyroHomeInv[3] = -lastRawQuat[3];
+    }
+
+    // Hamilton product of two quaternions (w, x, y, z).
+    private static float[] quatMul(float[] a, float[] b) {
+        return new float[]{
+            a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+            a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+            a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+            a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
+        };
+    }
+
+    // Converts a raw 16-bit quaternion word to [-1, 1]: bit 15 is the sign, bits 0-14 the magnitude.
+    private static float quatComponent(int raw) {
+        return (1 - (raw >> 15) * 2) * (raw & 0x7FFF) / 32767.0f;
     }
 
     private void handleBatteryEvent(byte[] data, long timestamp) {

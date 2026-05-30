@@ -95,11 +95,6 @@ public class CubeState {
         return true;
     }
 
-    public boolean isF2LSolved() {
-        int crossFace = getCrossFace();
-        return crossFace >= 0 && isF2LSolved(crossFace);
-    }
-
     public boolean isF2LSolved(int crossFace) {
         if (crossFace < 0) return false;
 
@@ -128,11 +123,6 @@ public class CubeState {
             if (faceCrossSolved) return face;
         }
         return -1;
-    }
-
-    public boolean isOLLSolved() {
-        int crossFace = getCrossFace();
-        return crossFace >= 0 && isOLLSolved(crossFace);
     }
 
     public boolean isOLLSolved(int crossFace) {

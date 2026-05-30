@@ -565,20 +565,15 @@ public class TimerFragment extends BaseFragment
             updateCubeMoveDisplay();
 
             if (cubeSolver.isSolved()) {
-                Log.d(TAG, "Cube solved! Moves: " + cubeSolver.getNumMoves()
-                        + " crossTimeMs=" + crossTimeMs);
-                if (isRunning) {
-                    if (ollTimeMs >= 0 && pllTimeMs < 0) {
-                        pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
-                        pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount - ollMoveCount;
-                    }
-                    animationDone = false;
-                    isExternalTimer = false;
-                    stopChronometer();
-                    addNewSolve();
-                    cubeStartedSolve = false;
-                }
-                updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
+                // Move tracking only *suggests* a solve: its reference is the cube state from
+                // before the timer started, so a dropped BLE move or a cancelled prior attempt
+                // can make it reach "solved" while the cube physically is not. Don't stop here —
+                // request the real facelets and let onCubeSolved() finalize once the cube
+                // actually reports solved (this is the ground truth).
+                Log.d(TAG, "Cube solved (move tracking) — confirming via facelets. Moves: "
+                        + cubeSolver.getNumMoves() + " crossTimeMs=" + crossTimeMs);
+                GanCubeManager mgr = CubicTimer.getCubeBleManager();
+                if (mgr != null) mgr.requestFacelets();
             }
         }
 
@@ -629,15 +624,7 @@ public class TimerFragment extends BaseFragment
         public void onCubeSolved() {
             Log.d(TAG, "Cube solved via facelets!");
             if (isRunning) {
-                if (ollTimeMs >= 0 && pllTimeMs < 0) {
-                    pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
-                    pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount - ollMoveCount;
-                }
-                animationDone = false;
-                isExternalTimer = false;
-                stopChronometer();
-                addNewSolve();
-                cubeStartedSolve = false;
+                finishCubeSolve();
             } else if (!cubeStartedSolve) {
                 isCubeReady = true;
                 moveBuffer.clear();
@@ -1534,12 +1521,10 @@ public class TimerFragment extends BaseFragment
         if (requestCode == TimerFragment.REQUEST_ENABLE_BT) {
             Log.d(TAG,"BLE : onActivityResult " + resultCode);
             if (resultCode == RESULT_OK) {
-                if (pendingPermissionForCubeScan) {
-                    pendingPermissionForCubeScan = false;
-                    startBleScan();
-                } else {
-                    startBleScan();
-                }
+                // isCubeScanMode (set during the cube-scan permission round-trip) already
+                // routes startBleScan() to the correct mode; just clear the pending flag.
+                pendingPermissionForCubeScan = false;
+                startBleScan();
             }
         }
     }
@@ -3329,32 +3314,29 @@ public class TimerFragment extends BaseFragment
         cancelReadyButton.setVisibility(cubeStartedSolve && !isRunning ? View.VISIBLE : View.GONE);
     }
 
-    private void toggleCubeSolve() {
-        if (!smartCubeEnabled) return;
-        if (cubeStartedSolve) {
-            cubeStartedSolve = false;
-            cancelReadyButton.setVisibility(View.GONE);
-            if (isRunning) {
-                cancelChronometer();
-            }
-            updateCubeStatus(getString(R.string.smart_cube_status_connect_message));
-        } else {
-            if (!isCubeReady) {
-                updateCubeStatus(getString(R.string.smart_cube_status_check_message));
-                return;
-            }
-            if (cubeSolver != null) cubeSolver.reset();
-            cubeStartedSolve = true;
-            hideToolbar();
-            updateCubeStatus(getString(R.string.smart_cube_status_connect_message) + " | Ready");
-            updateCancelReadyButtonVisibility();
+    /**
+     * Finalizes a smart-cube solve: records the trailing PLL split (if OLL was already
+     * detected), stops the chronometer and persists the solve. No-op when the timer is
+     * not running. Shared by the move-event and facelets-event solved detection paths.
+     */
+    private void finishCubeSolve() {
+        if (!isRunning) return;
+        if (ollTimeMs >= 0 && pllTimeMs < 0) {
+            pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
+            pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart
+                    - crossMoveCount - f2lMoveCount - ollMoveCount;
         }
+        animationDone = false;
+        isExternalTimer = false;
+        stopChronometer();
+        addNewSolve();
+        cubeStartedSolve = false;
     }
 
     private void updateCubeStatus(String status) {
         if (cubeStateMessage != null) {
             cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
-            if (cubeMoveDetailsEnabled && isCubeConnected || !isRunning) {
+            if ((cubeMoveDetailsEnabled && isCubeConnected) || !isRunning) {
                 cubeStateMessage.setVisibility(View.VISIBLE);
             }
         }

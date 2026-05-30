@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubictimer.cube.CubeMove;
 import com.hatopigeon.cubictimer.cube.CubeState;
 
@@ -106,10 +107,6 @@ public class GanCubeManager extends BleManager {
         this.ivSpec = new IvParameterSpec(derivedIv);
 
         Log.d(TAG, "AES-128-CBC key/IV derived from MAC " + macAddress);
-    }
-
-    public int getBatteryLevel() {
-        return lastBatteryLevel;
     }
 
     @Override
@@ -347,7 +344,6 @@ public class GanCubeManager extends BleManager {
     private void handleFaceletsEvent(byte[] data, long timestamp) {
         int serial = getBitWord(data, 4, 8);
         if (lastSerial == -1) lastSerial = serial;
-        Log.d(TAG, "Facelets event serial=" + serial + " dataLen=" + data.length);
 
         // Corner Permutation: bits 12-32 (7 values, 3 bits each)
         int[] cp = new int[8];
@@ -387,30 +383,18 @@ public class GanCubeManager extends BleManager {
 
         // Build Kociemba facelet string
         String kociemba = toKociembaFacelets(cp, co, ep, eo);
-        Log.d(TAG, "Facelets kociemba=" + kociemba + " cp=" + arrayToString(cp)
-                + " co=" + arrayToString(co) + " ep=" + arrayToString(ep)
-                + " eo=" + arrayToString(eo));
 
         // Convert to CubeState internal format and check solved
         int[] csFacelets = convertToCsFacelets(kociemba);
         cubeState.setFacelets(csFacelets);
         boolean solved = cubeState.isSolved();
-        Log.d(TAG, "Facelets isSolved=" + solved + " csFacelets=" + arrayToString(csFacelets));
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Facelets serial=" + serial + " kociemba=" + kociemba + " isSolved=" + solved);
+        }
         if (callback != null) callback.onFaceletsReceived(csFacelets);
-        if (solved) {
-            Log.d(TAG, "Cube solved detected via facelets!");
-            if (callback != null) callback.onCubeSolved();
+        if (solved && callback != null) {
+            callback.onCubeSolved();
         }
-    }
-
-    private String arrayToString(int[] arr) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < arr.length; i++) {
-            if (i > 0) sb.append(",");
-            sb.append(arr[i]);
-        }
-        sb.append("]");
-        return sb.toString();
     }
 
     private String toKociembaFacelets(int[] cp, int[] co, int[] ep, int[] eo) {

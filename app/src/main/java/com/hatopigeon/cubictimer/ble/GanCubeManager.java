@@ -482,6 +482,17 @@ public class GanCubeManager extends BleManager {
         sendCommand(cmd);
     }
 
+    /**
+     * Resets the cube's internal facelet state to solved (GAN Gen2 reset command). Use when the
+     * tracked state has drifted from the physical cube: physically solve the cube, then send this.
+     */
+    public void requestReset() {
+        int[] reset = {0x0A, 0x05, 0x39, 0x77, 0x00, 0x00, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB};
+        byte[] cmd = new byte[20];
+        for (int i = 0; i < reset.length; i++) cmd[i] = (byte) reset[i];
+        sendCommand(cmd);
+    }
+
     @Override
     protected void onServicesInvalidated() {
         cubeCommandCharacteristic = null;

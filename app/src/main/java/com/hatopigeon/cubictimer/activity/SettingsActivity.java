@@ -39,6 +39,8 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
+import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
@@ -151,7 +153,22 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_timer_animation_duration,
                         R.string.pk_bg_image_portrait,
                         R.string.pk_bg_image_landscape,
-                        R.string.pk_bg_image_opacity)) {
+                        R.string.pk_bg_image_opacity,
+                        R.string.pk_smart_cube_reset_state)) {
+
+                    case R.string.pk_smart_cube_reset_state: {
+                        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+                        if (mgr != null && mgr.isConnected()) {
+                            mgr.requestReset();
+                            Toast.makeText(mContext, R.string.smart_cube_reset_state_done,
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(mContext, R.string.smart_cube_reset_state_not_connected,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    }
+
 
                     case R.string.pk_inspection_time:
                         createNumberDialog(R.string.inspection_time, R.string.pk_inspection_time);
@@ -337,7 +354,8 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_timer_animation_duration,
                     R.string.pk_bg_image_portrait,
                     R.string.pk_bg_image_landscape,
-                    R.string.pk_bg_image_opacity};
+                    R.string.pk_bg_image_opacity,
+                    R.string.pk_smart_cube_reset_state};
 
             for (int prefId : listenerPrefIds) {
                 Preference p = findPreference(getString(prefId));

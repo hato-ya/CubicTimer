@@ -455,6 +455,10 @@
     <string name="smart_cube_scan_title">Smart Cube devices</string>
     <string name="smart_cube_cross_face_title">Cross detection</string>
     <string name="smart_cube_cross_face_summary">Choose which face to detect as cross</string>
+    <string name="smart_cube_reset_state_title">Reset cube state</string>
+    <string name="smart_cube_reset_state_summary">Tell the cube its current position is solved (physically solve it first)</string>
+    <string name="smart_cube_reset_state_done">Cube state reset to solved</string>
+    <string name="smart_cube_reset_state_not_connected">Connect a smart cube first</string>
     <string name="smart_cube_cross_face_auto">Auto</string>
     <string name="smart_cube_cross_face_top">White</string>
     <string name="smart_cube_cross_face_left">Orange</string>

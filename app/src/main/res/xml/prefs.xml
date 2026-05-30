@@ -382,6 +382,11 @@
                     android:key="@string/pk_smart_cube_cross_face"
                     android:summary="@string/smart_cube_cross_face_summary"
                     android:title="@string/smart_cube_cross_face_title" />
+
+                <Preference
+                    android:key="@string/pk_smart_cube_reset_state"
+                    android:summary="@string/smart_cube_reset_state_summary"
+                    android:title="@string/smart_cube_reset_state_title" />
             </PreferenceCategory>
 
             <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">

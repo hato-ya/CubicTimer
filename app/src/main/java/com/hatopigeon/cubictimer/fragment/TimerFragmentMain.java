@@ -395,11 +395,11 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                     break;
 
                 case ACTION_CUBE_CONNECTED:
-                    navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+                    navButtonCube.setImageResource(R.drawable.ic_cube_filled_24px);
                     break;
 
                 case ACTION_CUBE_DISCONNECTED:
-                    navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_24px);
+                    navButtonCube.setImageResource(R.drawable.ic_cube_outline_24px);
                     break;
 
             }

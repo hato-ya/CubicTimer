@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#000000">
+    <!-- Solid cube silhouette with the three visible faces shaded by alpha. -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.55"
+        android:pathData="M12,2 L21,7 L12,12 L3,7 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.85"
+        android:pathData="M3,7 L12,12 L12,22 L3,17 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M21,7 L12,12 L12,22 L21,17 Z" />
+</vector>

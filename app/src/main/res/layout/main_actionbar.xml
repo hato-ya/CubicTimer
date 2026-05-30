@@ -170,7 +170,7 @@
             android:focusable="true"
             android:padding="8dp"
             android:tint="?colorActionBarText"
-            app:srcCompat="@drawable/ic_outline_bluetooth_24px" />
+            app:srcCompat="@drawable/ic_cube_outline_24px" />
 
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

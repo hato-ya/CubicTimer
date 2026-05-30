@@ -173,12 +173,12 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
             switch (intent.getAction()) {
                 case ACTION_CUBE_CONNECTED:
                     if (navButtonCube != null)
-                        navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+                        navButtonCube.setImageResource(R.drawable.ic_cube_filled_24px);
                     startOllDetection();
                     break;
                 case ACTION_CUBE_DISCONNECTED:
                     if (navButtonCube != null)
-                        navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_24px);
+                        navButtonCube.setImageResource(R.drawable.ic_cube_outline_24px);
                     if (algCursorAdapter != null) algCursorAdapter.setHighlightedCase(-1);
                     break;
                 case ACTION_CHANGED_THEME:
@@ -267,7 +267,7 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
         // Set initial cube bluetooth icon state
         GanCubeManager mgr = CubicTimer.getCubeBleManager();
         if (mgr != null && mgr.isConnected()) {
-            navButtonCube.setImageResource(R.drawable.ic_outline_bluetooth_connect_24px);
+            navButtonCube.setImageResource(R.drawable.ic_cube_filled_24px);
         }
 
         InsetsUtils.applySafeInsetsPadding(rootLayout, false);

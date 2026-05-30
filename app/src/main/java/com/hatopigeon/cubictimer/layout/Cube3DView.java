@@ -34,6 +34,7 @@ public class Cube3DView extends View {
     private static final float CUBIE_HALF = 0.47f;   // half-size of each small cubie
     private static final float STICKER_HALF = 0.40f; // coloured sticker half-size on a cubie face
     private static final float CUBE_RADIUS = 2.7f;   // bounding radius so the whole cube fits
+    private static final float CAM_DIST = 12f;       // camera distance for perspective (bigger = flatter)
     private static final int BODY_COLOR = 0xFF161616;
     private static final int ANIM_DURATION_MS = 80;
 
@@ -191,7 +192,8 @@ public class Cube3DView extends View {
         super.onDraw(canvas);
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
-        float scale = Math.min(getWidth(), getHeight()) / 2f / CUBE_RADIUS;
+        // Leave a little headroom for the perspective foreshortening of near vertices.
+        float scale = Math.min(getWidth(), getHeight()) / 2f / (CUBE_RADIUS * 1.08f);
 
         // Ease the displayed orientation toward the latest gyro reading (smooths jitter/steps).
         boolean quatSettled = stepOrientation();
@@ -228,14 +230,16 @@ public class Cube3DView extends View {
             for (int k = 0; k < 4; k++) {
                 float[] src = turning ? layerRotate(tl.body[k], curAxis, ac, as) : tl.body[k];
                 float[] r = rotate(src);
-                pBody[i][k][0] = cx + r[0] * scale;
-                pBody[i][k][1] = cy - r[1] * scale;
+                float f = CAM_DIST / (CAM_DIST - r[2]);
+                pBody[i][k][0] = cx + r[0] * scale * f;
+                pBody[i][k][1] = cy - r[1] * scale * f;
                 zSum += r[2];
                 if (tl.exterior) {
                     float[] s2 = turning ? layerRotate(tl.sticker[k], curAxis, ac, as) : tl.sticker[k];
                     float[] rs = rotate(s2);
-                    pStick[i][k][0] = cx + rs[0] * scale;
-                    pStick[i][k][1] = cy - rs[1] * scale;
+                    float fs = CAM_DIST / (CAM_DIST - rs[2]);
+                    pStick[i][k][0] = cx + rs[0] * scale * fs;
+                    pStick[i][k][1] = cy - rs[1] * scale * fs;
                 }
             }
             depth[i] = zSum / 4f;

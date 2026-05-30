@@ -3346,6 +3346,10 @@ public class TimerFragment extends BaseFragment
 
     private void cancelReadyState() {
         cubeStartedSolve = false;
+        // No solve happened: mark as canceled so the toolbar-restored flow doesn't show the
+        // post-solve quick-action buttons (via showItems) or broadcast a new solve. The flag is
+        // reset automatically after that flow runs.
+        isCanceled = true;
         stopInspectionCountdown();
         chronometer.reset();
         showToolbar();

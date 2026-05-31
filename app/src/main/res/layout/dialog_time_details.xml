@@ -111,42 +111,6 @@
                     android:textSize="14sp"
                     tools:text="TPS: 8.50" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/crossTimeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:textSize="14sp"
-                tools:text="Cross: 1.25" />
-
-            <TextView
-                android:id="@+id/f2lTimeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:textSize="14sp"
-                tools:text="F2L: 3.45" />
-
-            <TextView
-                android:id="@+id/ollTimeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:textSize="14sp"
-                tools:text="OLL: 1.23" />
-
-            <TextView
-                android:id="@+id/pllTimeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:textSize="14sp"
-                tools:text="PLL: 0.89" />
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatTextView

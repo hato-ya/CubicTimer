@@ -87,14 +87,7 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_MOVE_COUNT;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TPS;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_CROSS_TIME;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_CROSS_MOVE_COUNT;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_F2L_TIME;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_F2L_MOVE_COUNT;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_OLL_TIME;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_OLL_MOVE_COUNT;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_PLL_TIME;
-import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_PLL_MOVE_COUNT;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_STEP_SPLITS;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
 import static com.hatopigeon.cubictimer.fragment.TimerFragmentMain.TIMER_PAGE;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
@@ -828,10 +821,7 @@ public class MainActivity extends AppCompatActivity
                         publishProgress(0, cursor.getCount());
                         csvWriter.writeNext(new String[] {"Puzzle", "Category", "Time(millis)",
                                 "Date(millis)", "Scramble", "Penalty", "Comment",
-                                "CrossTime(millis)", "MoveCount", "TPS", "CrossMoveCount",
-                                "F2LTime(millis)", "F2LMoveCount",
-                                "OLLTime(millis)", "OLLMoveCount",
-                                "PLLTime(millis)", "PLLMoveCount"});
+                                "MoveCount", "TPS", "StepSplits"});
 
                         while (cursor.moveToNext()) {
                             csvWriter.writeNext(new String[] {
@@ -842,16 +832,9 @@ public class MainActivity extends AppCompatActivity
                                     cursor.getString(IDX_SCRAMBLE),
                                     String.valueOf(cursor.getInt(IDX_PENALTY)),
                                     cursor.getString(IDX_COMMENT),
-                                    String.valueOf(cursor.getLong(IDX_CROSS_TIME)),
                                     String.valueOf(cursor.getInt(IDX_MOVE_COUNT)),
                                     String.valueOf(cursor.getDouble(IDX_TPS)),
-                                    String.valueOf(cursor.getInt(IDX_CROSS_MOVE_COUNT)),
-                                    String.valueOf(cursor.getLong(IDX_F2L_TIME)),
-                                    String.valueOf(cursor.getInt(IDX_F2L_MOVE_COUNT)),
-                                    String.valueOf(cursor.getLong(IDX_OLL_TIME)),
-                                    String.valueOf(cursor.getInt(IDX_OLL_MOVE_COUNT)),
-                                    String.valueOf(cursor.getLong(IDX_PLL_TIME)),
-                                    String.valueOf(cursor.getInt(IDX_PLL_MOVE_COUNT))
+                                    cursor.getString(IDX_STEP_SPLITS)
                             });
                             exports++;
                             if (exports % 1000 == 0 || exports == cursor.getCount()) {
@@ -1044,25 +1027,12 @@ public class MainActivity extends AppCompatActivity
                             Solve solve = new Solve(
                                 Long.parseLong(line[2]), line[0], line[1], Long.parseLong(line[3]),
                                 line[4], Integer.parseInt(line[5]), line[6], mIsToArchive);
+                            if (line.length >= 9) {
+                                solve.setMoveCount(Integer.parseInt(line[7]));
+                                solve.setTps(Double.parseDouble(line[8]));
+                            }
                             if (line.length >= 10) {
-                                solve.setCrossTime(Long.parseLong(line[7]));
-                                solve.setMoveCount(Integer.parseInt(line[8]));
-                                solve.setTps(Double.parseDouble(line[9]));
-                            }
-                            if (line.length >= 11) {
-                                solve.setCrossMoveCount(Integer.parseInt(line[10]));
-                            }
-                            if (line.length >= 13) {
-                                solve.setF2lTime(Long.parseLong(line[11]));
-                                solve.setF2lMoveCount(Integer.parseInt(line[12]));
-                            }
-                            if (line.length >= 15) {
-                                solve.setOllTime(Long.parseLong(line[13]));
-                                solve.setOllMoveCount(Integer.parseInt(line[14]));
-                            }
-                            if (line.length >= 17) {
-                                solve.setPllTime(Long.parseLong(line[15]));
-                                solve.setPllMoveCount(Integer.parseInt(line[16]));
+                                solve.setStepSplits(line[9]);
                             }
                             solveList.add(solve);
                         } catch (Exception e) {

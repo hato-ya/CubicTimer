@@ -466,17 +466,13 @@ public class TimerFragment extends BaseFragment
     private int crossFace = -1;
     private long crossTimeMs = -1;
     private int crossMoveCount;
-    private long f2lTimeMs = -1;
-    private int f2lMoveCount;
-    private long ollTimeMs = -1;
-    private int ollMoveCount;
-    private long pllTimeMs = -1;
-    private int pllMoveCount;
-    // Generic step detection for the non-"advanced" methods. methodSteps lists the step kinds for
-    // the selected method; stepTime/stepMoves are sized to it (per-step time in ms since the prior
-    // step, -1 until detected). methodSteps == null means the advanced (named-field) method.
+    // Step detection. methodSteps lists the step kinds for the selected method; stepTime/stepMoves
+    // are sized to it (per-step time in ms since the prior step, -1 until detected). Every method
+    // (including advanced) is detected through this generic path; methodSteps == null means "none".
     private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
-            STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6;
+            STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6, STEP_OLL = 7;
+    private static final int[] STEPS_ADVANCED = {STEP_CROSS, STEP_SECOND, STEP_OLL, STEP_SOLVED};
+    private static final String[] NAMES_ADVANCED = {"Cross", "F2L", "OLL", "PLL"};
     private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,
             STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
     private static final String[] NAMES_INTERMEDIATE = {"Cross", "F2L", "Opposite cross",
@@ -486,7 +482,7 @@ public class TimerFragment extends BaseFragment
     private static final String[] NAMES_BEGINNER = {"Cross", "First layer", "Second layer",
             "Opposite cross", "Opposite edges", "Corners position", "Corners orient"};
     private String detectionMethod = "advanced"; // none / advanced / intermediate / beginner
-    private int[] methodSteps;          // null = advanced or none
+    private int[] methodSteps;          // null = none
     private String[] methodStepNames;
     private long[] stepTime = new long[0];
     private int[] stepMoves = new int[0];
@@ -674,17 +670,6 @@ public class TimerFragment extends BaseFragment
             }
             if (methodSteps != null) {
                 detectSteps();
-            } else {
-                if (crossFace >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved(crossFace)) {
-                    f2lTimeMs = chronometer.getElapsedTime() - crossTimeMs;
-                    f2lMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount;
-                    Log.d(TAG, "F2L detected from facelets at +" + f2lTimeMs + "ms");
-                }
-                if (crossFace >= 0 && f2lTimeMs >= 0 && ollTimeMs < 0 && isRunning && cubeSolver.isOLLSolved(crossFace)) {
-                    ollTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs;
-                    ollMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount;
-                    Log.d(TAG, "OLL detected from facelets at +" + ollTimeMs + "ms");
-                }
             }
         }
 
@@ -1117,8 +1102,10 @@ public class TimerFragment extends BaseFragment
             methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
         } else if ("intermediate".equals(detectionMethod)) {
             methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else if ("none".equals(detectionMethod)) {
+            methodSteps = null; methodStepNames = null;
         } else {
-            methodSteps = null; methodStepNames = null; // advanced or none
+            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
         }
         if (methodSteps != null) {
             stepTime = new long[methodSteps.length];
@@ -1577,8 +1564,10 @@ public class TimerFragment extends BaseFragment
             methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
         } else if ("intermediate".equals(detectionMethod)) {
             methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else if ("none".equals(detectionMethod)) {
+            methodSteps = null; methodStepNames = null;
         } else {
-            methodSteps = null; methodStepNames = null; // advanced or none
+            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
         }
         if (methodSteps != null) {
             stepTime = new long[methodSteps.length];
@@ -1765,14 +1754,6 @@ public class TimerFragment extends BaseFragment
                 0, getLapComment(), false);
         currentSolve.setMoveCount(moveCount);
         currentSolve.setTps(tps);
-        currentSolve.setCrossTime(crossTimeMs);
-        currentSolve.setCrossMoveCount(crossMoveCount);
-        currentSolve.setF2lTime(f2lTimeMs);
-        currentSolve.setF2lMoveCount(f2lMoveCount);
-        currentSolve.setOllTime(ollTimeMs);
-        currentSolve.setOllMoveCount(ollMoveCount);
-        currentSolve.setPllTime(pllTimeMs);
-        currentSolve.setPllMoveCount(pllMoveCount);
         currentSolve.setStepSplits(buildStepSplits());
 
         if (currentPenalty != PENALTY_DNF) {
@@ -2322,12 +2303,6 @@ public class TimerFragment extends BaseFragment
         crossFace = -1;
         crossTimeMs = -1;
         crossMoveCount = 0;
-        f2lTimeMs = -1;
-        f2lMoveCount = 0;
-        ollTimeMs = -1;
-        ollMoveCount = 0;
-        pllTimeMs = -1;
-        pllMoveCount = 0;
         for (int s = 0; s < stepTime.length; s++) { stepTime[s] = -1; stepMoves[s] = 0; }
         cubeSolveHandled = false;
 
@@ -3461,11 +3436,6 @@ public class TimerFragment extends BaseFragment
      */
     private void finishCubeSolve() {
         if (!isRunning) return;
-        if (methodSteps == null && ollTimeMs >= 0 && pllTimeMs < 0) {
-            pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
-            pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart
-                    - crossMoveCount - f2lMoveCount - ollMoveCount;
-        }
         if (methodSteps != null) {
             detectSteps(); // catch up any steps the final snapshot reached at once
             int last = methodSteps.length - 1; // the SOLVED step
@@ -3487,6 +3457,7 @@ public class TimerFragment extends BaseFragment
             case STEP_CROSS:        return crossFace >= 0;
             case STEP_FIRST:        return cubeSolver.isFirstLayerSolved(crossFace);
             case STEP_SECOND:       return cubeSolver.isF2LSolved(crossFace);
+            case STEP_OLL:          return cubeSolver.isOLLSolved(crossFace);
             case STEP_OPP_CROSS:    return cubeSolver.isLLCrossOriented(crossFace);
             case STEP_OPP_EDGES:    return cubeSolver.isLLCrossSolved(crossFace);
             case STEP_CORNERS_POS:  return cubeSolver.areLLCornersPositioned(crossFace);

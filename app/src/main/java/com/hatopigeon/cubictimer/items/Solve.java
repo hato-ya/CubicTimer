@@ -25,15 +25,7 @@ public class Solve implements Parcelable {
 
     int    moveCount;
     double tps;
-    long   crossTime = -1;
-    int    crossMoveCount;
-    long   f2lTime = -1;
-    int    f2lMoveCount;
-    long   ollTime = -1;
-    int    ollMoveCount;
-    long   pllTime = -1;
-    int    pllMoveCount;
-    // Generic per-step breakdown ("name:timeMs:moves;...") for intermediate/beginner methods.
+    // Generic per-step breakdown ("name:timeMs:moves;...") for every detection method.
     String stepSplits = "";
 
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
@@ -86,14 +78,6 @@ public class Solve implements Parcelable {
         history = in.readByte() != 0;
         moveCount = in.readInt();
         tps = in.readDouble();
-        crossTime = in.readLong();
-        crossMoveCount = in.readInt();
-        f2lTime = in.readLong();
-        f2lMoveCount = in.readInt();
-        ollTime = in.readLong();
-        ollMoveCount = in.readInt();
-        pllTime = in.readLong();
-        pllMoveCount = in.readInt();
         stepSplits = in.readString();
     }
 
@@ -193,70 +177,6 @@ public class Solve implements Parcelable {
         this.tps = tps;
     }
 
-    public long getCrossTime() {
-        return crossTime;
-    }
-
-    public void setCrossTime(long crossTime) {
-        this.crossTime = crossTime;
-    }
-
-    public int getCrossMoveCount() {
-        return crossMoveCount;
-    }
-
-    public void setCrossMoveCount(int crossMoveCount) {
-        this.crossMoveCount = crossMoveCount;
-    }
-
-    public long getF2lTime() {
-        return f2lTime;
-    }
-
-    public void setF2lTime(long f2lTime) {
-        this.f2lTime = f2lTime;
-    }
-
-    public int getF2lMoveCount() {
-        return f2lMoveCount;
-    }
-
-    public void setF2lMoveCount(int f2lMoveCount) {
-        this.f2lMoveCount = f2lMoveCount;
-    }
-
-    public long getOllTime() {
-        return ollTime;
-    }
-
-    public void setOllTime(long ollTime) {
-        this.ollTime = ollTime;
-    }
-
-    public int getOllMoveCount() {
-        return ollMoveCount;
-    }
-
-    public void setOllMoveCount(int ollMoveCount) {
-        this.ollMoveCount = ollMoveCount;
-    }
-
-    public long getPllTime() {
-        return pllTime;
-    }
-
-    public void setPllTime(long pllTime) {
-        this.pllTime = pllTime;
-    }
-
-    public int getPllMoveCount() {
-        return pllMoveCount;
-    }
-
-    public void setPllMoveCount(int pllMoveCount) {
-        this.pllMoveCount = pllMoveCount;
-    }
-
     public String getStepSplits() {
         return stepSplits == null ? "" : stepSplits;
     }
@@ -295,14 +215,6 @@ public class Solve implements Parcelable {
         dest.writeByte((byte) (history ? 1 : 0));
         dest.writeInt(moveCount);
         dest.writeDouble(tps);
-        dest.writeLong(crossTime);
-        dest.writeInt(crossMoveCount);
-        dest.writeLong(f2lTime);
-        dest.writeInt(f2lMoveCount);
-        dest.writeLong(ollTime);
-        dest.writeInt(ollMoveCount);
-        dest.writeLong(pllTime);
-        dest.writeInt(pllMoveCount);
         dest.writeString(stepSplits);
     }
 

@@ -73,10 +73,6 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.statsLayout)       LinearLayout statsLayout;
     @BindView(R.id.moveCountText)     TextView     moveCountText;
     @BindView(R.id.tpsText)           TextView     tpsText;
-    @BindView(R.id.crossTimeText)     TextView     crossTimeText;
-    @BindView(R.id.f2lTimeText)       TextView     f2lTimeText;
-    @BindView(R.id.ollTimeText)       TextView     ollTimeText;
-    @BindView(R.id.pllTimeText)       TextView     pllTimeText;
     private long            mId;
     private Solve           solve;
     private DialogListener  dialogListener;
@@ -296,63 +292,6 @@ public class TimeDialog extends DialogFragment {
             String stepSplits = solve.getStepSplits();
             if (stepSplits != null && !stepSplits.isEmpty()) {
                 showStepSplits(stepSplits, solve);
-                crossTimeText.setVisibility(View.GONE);
-                f2lTimeText.setVisibility(View.GONE);
-                ollTimeText.setVisibility(View.GONE);
-                pllTimeText.setVisibility(View.GONE);
-            } else {
-            if (solve.getCrossTime() >= 0) {
-                String crossFormatted = PuzzleUtils.convertTimeToString(
-                        solve.getCrossTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
-                if (solve.getCrossMoveCount() > 0) {
-                    crossTimeText.setText(getString(R.string.smart_cube_cross_time_moves,
-                            crossFormatted, solve.getCrossMoveCount()));
-                } else {
-                    crossTimeText.setText(getString(R.string.smart_cube_cross_time, crossFormatted));
-                }
-                statsLayout.setVisibility(View.VISIBLE);
-            }
-
-            if (solve.getF2lTime() >= 0) {
-                String f2lFormatted = PuzzleUtils.convertTimeToString(
-                        solve.getF2lTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
-                if (solve.getF2lMoveCount() > 0) {
-                    f2lTimeText.setText(getString(R.string.smart_cube_f2l_time_moves,
-                            f2lFormatted, solve.getF2lMoveCount()));
-                } else {
-                    f2lTimeText.setText(getString(R.string.smart_cube_f2l_time, f2lFormatted));
-                }
-                statsLayout.setVisibility(View.VISIBLE);
-            }
-
-            if (solve.getOllTime() >= 0) {
-                String ollFormatted = PuzzleUtils.convertTimeToString(
-                        solve.getOllTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
-                if (solve.getOllMoveCount() > 0) {
-                    ollTimeText.setText(getString(R.string.smart_cube_oll_time_moves,
-                            ollFormatted, solve.getOllMoveCount()));
-                } else {
-                    ollTimeText.setText(getString(R.string.smart_cube_oll_time, ollFormatted));
-                }
-                statsLayout.setVisibility(View.VISIBLE);
-            }
-
-            if (solve.getPllTime() >= 0) {
-                String pllFormatted = PuzzleUtils.convertTimeToString(
-                        solve.getPllTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
-                if (solve.getPllMoveCount() > 0) {
-                    pllTimeText.setText(getString(R.string.smart_cube_pll_time_moves,
-                            pllFormatted, solve.getPllMoveCount()));
-                } else {
-                    pllTimeText.setText(getString(R.string.smart_cube_pll_time, pllFormatted));
-                }
-                statsLayout.setVisibility(View.VISIBLE);
-            }
-
-            crossTimeText.setVisibility(solve.getCrossTime() >= 0 ? View.VISIBLE : View.GONE);
-            f2lTimeText.setVisibility(solve.getF2lTime() >= 0 ? View.VISIBLE : View.GONE);
-            ollTimeText.setVisibility(solve.getOllTime() >= 0 ? View.VISIBLE : View.GONE);
-            pllTimeText.setVisibility(solve.getPllTime() >= 0 ? View.VISIBLE : View.GONE);
             }
 
             if (solve.getScramble() != null) {
@@ -391,9 +330,9 @@ public class TimeDialog extends DialogFragment {
             String text = f[0] + ": " + tf + (mv > 0 ? " (" + mv + ")" : "");
             TextView tv = new TextView(getContext());
             tv.setText(text);
-            tv.setTextColor(crossTimeText.getTextColors());
-            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, crossTimeText.getTextSize());
-            tv.setGravity(crossTimeText.getGravity());
+            tv.setTextColor(moveCountText.getTextColors());
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, moveCountText.getTextSize());
+            tv.setGravity(moveCountText.getGravity());
             statsLayout.addView(tv);
         }
     }

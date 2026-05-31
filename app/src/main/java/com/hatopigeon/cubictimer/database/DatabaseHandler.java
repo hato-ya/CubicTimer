@@ -43,16 +43,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_HISTORY  = "history";
     public static final String KEY_MOVE_COUNT = "move_count";
     public static final String KEY_TPS        = "tps";
-    public static final String KEY_CROSS_TIME = "cross_time";
-    public static final String KEY_CROSS_MOVE_COUNT = "cross_move_count";
-    public static final String KEY_F2L_TIME = "f2l_time";
-    public static final String KEY_F2L_MOVE_COUNT = "f2l_move_count";
-    public static final String KEY_OLL_TIME = "oll_time";
-    public static final String KEY_OLL_MOVE_COUNT = "oll_move_count";
-    public static final String KEY_PLL_TIME = "pll_time";
-    public static final String KEY_PLL_MOVE_COUNT = "pll_move_count";
-    // Generic per-step breakdown for non-advanced detection methods (intermediate/beginner),
-    // serialized as "name:timeMs:moves;name:timeMs:moves;...". Empty for the advanced method.
+    // Generic per-step breakdown for all detection methods (advanced/intermediate/beginner),
+    // serialized as "name:timeMs:moves;name:timeMs:moves;...". Empty when no step detection ran.
     public static final String KEY_STEP_SPLITS = "step_splits";
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
@@ -69,15 +61,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_HISTORY  = 8;
     public static final int IDX_MOVE_COUNT = 9;
     public static final int IDX_TPS        = 10;
-    public static final int IDX_CROSS_TIME = 11;
-    public static final int IDX_CROSS_MOVE_COUNT = 12;
-    public static final int IDX_F2L_TIME = 13;
-    public static final int IDX_F2L_MOVE_COUNT = 14;
-    public static final int IDX_OLL_TIME = 15;
-    public static final int IDX_OLL_MOVE_COUNT = 16;
-    public static final int IDX_PLL_TIME = 17;
-    public static final int IDX_PLL_MOVE_COUNT = 18;
-    public static final int IDX_STEP_SPLITS = 19;
+    public static final int IDX_STEP_SPLITS = 11;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -91,7 +75,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_PLL = "PLL";
 
     // Database Version
-    private static final int    DATABASE_VERSION   = 16;
+    private static final int    DATABASE_VERSION   = 11;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -107,14 +91,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_HISTORY + " BOOLEAN,"
             + KEY_MOVE_COUNT + " INTEGER DEFAULT 0,"
             + KEY_TPS + " REAL DEFAULT 0.0,"
-            + KEY_CROSS_TIME + " INTEGER DEFAULT -1,"
-            + KEY_CROSS_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_F2L_TIME + " INTEGER DEFAULT -1,"
-            + KEY_F2L_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_OLL_TIME + " INTEGER DEFAULT -1,"
-            + KEY_OLL_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_PLL_TIME + " INTEGER DEFAULT -1,"
-            + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0,"
             + KEY_STEP_SPLITS + " TEXT DEFAULT ''"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
@@ -173,46 +149,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         .apply();
                 // Fall through to add new columns for existing users.
             case 10:
+                // Smart-cube columns: move count, TPS, and the generic per-step breakdown.
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_MOVE_COUNT + " INTEGER DEFAULT 0");
                 } catch (Exception ignored) {}
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
                 } catch (Exception ignored) {}
-                // Fall through to add cross_time.
-            case 11:
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_CROSS_TIME + " INTEGER DEFAULT -1");
-                } catch (Exception ignored) {}
-                // Fall through to add cross_move_count.
-            case 12:
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_CROSS_MOVE_COUNT + " INTEGER DEFAULT 0");
-                } catch (Exception ignored) {}
-                // Fall through to add f2l_time and f2l_move_count.
-            case 13:
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_F2L_TIME + " INTEGER DEFAULT -1");
-                } catch (Exception ignored) {}
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_F2L_MOVE_COUNT + " INTEGER DEFAULT 0");
-                } catch (Exception ignored) {}
-                // Fall through to add oll_time, oll_move_count, pll_time, pll_move_count.
-            case 14:
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_OLL_TIME + " INTEGER DEFAULT -1");
-                } catch (Exception ignored) {}
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_OLL_MOVE_COUNT + " INTEGER DEFAULT 0");
-                } catch (Exception ignored) {}
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_PLL_TIME + " INTEGER DEFAULT -1");
-                } catch (Exception ignored) {}
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0");
-                } catch (Exception ignored) {}
-                // Fall through to add step_splits.
-            case 15:
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_STEP_SPLITS + " TEXT DEFAULT ''");
                 } catch (Exception ignored) {}
@@ -396,14 +339,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_CROSS_TIME, solve.getCrossTime());
-        values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
-        values.put(KEY_F2L_TIME, solve.getF2lTime());
-        values.put(KEY_F2L_MOVE_COUNT, solve.getF2lMoveCount());
-        values.put(KEY_OLL_TIME, solve.getOllTime());
-        values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
-        values.put(KEY_PLL_TIME, solve.getPllTime());
-        values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
         values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Inserting Row
@@ -488,14 +423,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
         values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_CROSS_TIME, solve.getCrossTime());
-        values.put(KEY_CROSS_MOVE_COUNT, solve.getCrossMoveCount());
-        values.put(KEY_F2L_TIME, solve.getF2lTime());
-        values.put(KEY_F2L_MOVE_COUNT, solve.getF2lMoveCount());
-        values.put(KEY_OLL_TIME, solve.getOllTime());
-        values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
-        values.put(KEY_PLL_TIME, solve.getPllTime());
-        values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
         values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Updating row
@@ -519,10 +446,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[] {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
                         KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
-                        KEY_CROSS_TIME, KEY_CROSS_MOVE_COUNT,
-                        KEY_F2L_TIME, KEY_F2L_MOVE_COUNT,
-                        KEY_OLL_TIME, KEY_OLL_MOVE_COUNT,
-                        KEY_PLL_TIME, KEY_PLL_MOVE_COUNT, KEY_STEP_SPLITS },
+                        KEY_STEP_SPLITS },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
@@ -539,15 +463,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         getBoolean(cursor, 8));
                 solve.setMoveCount(cursor.getInt(9));
                 solve.setTps(cursor.getDouble(10));
-                solve.setCrossTime(cursor.getLong(11));
-                solve.setCrossMoveCount(cursor.getInt(12));
-                solve.setF2lTime(cursor.getLong(13));
-                solve.setF2lMoveCount(cursor.getInt(14));
-                solve.setOllTime(cursor.getLong(15));
-                solve.setOllMoveCount(cursor.getInt(16));
-                solve.setPllTime(cursor.getLong(17));
-                solve.setPllMoveCount(cursor.getInt(18));
-                solve.setStepSplits(cursor.getString(19));
+                solve.setStepSplits(cursor.getString(11));
                 return solve;
             }
 
@@ -568,13 +484,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Builds a full {@link Statistics} object per solve step (cross, F2L, … or the beginner steps),
      * fed with each step's per-solve times in chronological order, so the timer-graph table can be
-     * rendered for each step exactly like the overall stats. Reads the generic step breakdown for
-     * intermediate/beginner solves and the named cross/F2L/OLL/PLL columns for advanced solves.
+     * rendered for each step exactly like the overall stats. Reads the generic step breakdown,
+     * which every detection method (advanced/intermediate/beginner) writes.
      */
     public java.util.LinkedHashMap<String, Statistics> getStepStatistics(String type, String subtype) {
         java.util.LinkedHashMap<String, Statistics> map = new java.util.LinkedHashMap<>();
-        final String sql = "SELECT " + KEY_CROSS_TIME + ", " + KEY_F2L_TIME + ", " + KEY_OLL_TIME
-                + ", " + KEY_PLL_TIME + ", " + KEY_STEP_SPLITS + ", " + KEY_PENALTY + ", "
+        final String sql = "SELECT " + KEY_STEP_SPLITS + ", " + KEY_PENALTY + ", "
                 + KEY_HISTORY + ", " + KEY_DATE + " FROM " + TABLE_TIMES
                 + " WHERE " + KEY_TYPE + "=? AND " + KEY_SUBTYPE + "=? ORDER BY " + KEY_DATE + " ASC";
         final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
@@ -592,26 +507,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         try {
             while (cursor.moveToNext()) {
-                if (Solve.getPenalty(cursor.getInt(5)) == PuzzleUtils.PENALTY_DNF) continue;
-                boolean session = cursor.getInt(6) == 0; // current session = not archived
-                long date = cursor.getLong(7);
+                if (Solve.getPenalty(cursor.getInt(1)) == PuzzleUtils.PENALTY_DNF) continue;
+                boolean session = cursor.getInt(2) == 0; // current session = not archived
+                long date = cursor.getLong(3);
                 boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
-                String splits = cursor.getString(4);
-                if (splits != null && !splits.isEmpty()) {
-                    for (String part : splits.split(";")) {
-                        String[] f = part.split(":");
-                        if (f.length < 2) continue;
-                        long t;
-                        try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
-                        if (t >= 0) addStepTime(map, f[0], t, session, today, type);
-                    }
-                } else {
-                    long cross = cursor.getLong(0), f2l = cursor.getLong(1);
-                    long oll = cursor.getLong(2), pll = cursor.getLong(3);
-                    if (cross >= 0) addStepTime(map, "Cross", cross, session, today, type);
-                    if (f2l >= 0) addStepTime(map, "F2L", f2l, session, today, type);
-                    if (oll >= 0) addStepTime(map, "OLL", oll, session, today, type);
-                    if (pll >= 0) addStepTime(map, "PLL", pll, session, today, type);
+                String splits = cursor.getString(0);
+                if (splits == null || splits.isEmpty()) continue;
+                for (String part : splits.split(";")) {
+                    String[] f = part.split(":");
+                    if (f.length < 2) continue;
+                    long t;
+                    try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
+                    if (t >= 0) addStepTime(map, f[0], t, session, today, type);
                 }
             }
         } finally {

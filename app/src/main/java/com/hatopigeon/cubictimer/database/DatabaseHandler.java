@@ -558,6 +558,80 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    // Preferred display order for detected steps; unknown names are appended in first-seen order.
+    private static final String[] STEP_ORDER = {
+        "Cross", "F2L", "OLL", "PLL",
+        "First layer", "Second layer", "Opposite cross", "Opposite edges",
+        "Corners position", "Corners orient",
+    };
+
+    /**
+     * Builds a full {@link Statistics} object per solve step (cross, F2L, … or the beginner steps),
+     * fed with each step's per-solve times in chronological order, so the timer-graph table can be
+     * rendered for each step exactly like the overall stats. Reads the generic step breakdown for
+     * intermediate/beginner solves and the named cross/F2L/OLL/PLL columns for advanced solves.
+     */
+    public java.util.LinkedHashMap<String, Statistics> getStepStatistics(String type, String subtype) {
+        java.util.LinkedHashMap<String, Statistics> map = new java.util.LinkedHashMap<>();
+        final String sql = "SELECT " + KEY_CROSS_TIME + ", " + KEY_F2L_TIME + ", " + KEY_OLL_TIME
+                + ", " + KEY_PLL_TIME + ", " + KEY_STEP_SPLITS + ", " + KEY_PENALTY + ", "
+                + KEY_HISTORY + ", " + KEY_DATE + " FROM " + TABLE_TIMES
+                + " WHERE " + KEY_TYPE + "=? AND " + KEY_SUBTYPE + "=? ORDER BY " + KEY_DATE + " ASC";
+        final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
+
+        org.joda.time.DateTime dtNow = new org.joda.time.DateTime();
+        org.joda.time.DateTime dtFrom, dtTo;
+        if (dtNow.getHourOfDay() < 5) {
+            dtTo = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            dtNow = dtNow.minusDays(1);
+            dtFrom = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+        } else {
+            dtFrom = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            dtNow = dtNow.plusDays(1);
+            dtTo = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+        }
+        try {
+            while (cursor.moveToNext()) {
+                if (Solve.getPenalty(cursor.getInt(5)) == PuzzleUtils.PENALTY_DNF) continue;
+                boolean session = cursor.getInt(6) == 0; // current session = not archived
+                long date = cursor.getLong(7);
+                boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
+                String splits = cursor.getString(4);
+                if (splits != null && !splits.isEmpty()) {
+                    for (String part : splits.split(";")) {
+                        String[] f = part.split(":");
+                        if (f.length < 2) continue;
+                        long t;
+                        try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
+                        if (t >= 0) addStepTime(map, f[0], t, session, today, type);
+                    }
+                } else {
+                    long cross = cursor.getLong(0), f2l = cursor.getLong(1);
+                    long oll = cursor.getLong(2), pll = cursor.getLong(3);
+                    if (cross >= 0) addStepTime(map, "Cross", cross, session, today, type);
+                    if (f2l >= 0) addStepTime(map, "F2L", f2l, session, today, type);
+                    if (oll >= 0) addStepTime(map, "OLL", oll, session, today, type);
+                    if (pll >= 0) addStepTime(map, "PLL", pll, session, today, type);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+
+        // Re-order canonically.
+        java.util.LinkedHashMap<String, Statistics> ordered = new java.util.LinkedHashMap<>();
+        for (String name : STEP_ORDER) if (map.containsKey(name)) ordered.put(name, map.remove(name));
+        ordered.putAll(map);
+        return ordered;
+    }
+
+    private static void addStepTime(java.util.LinkedHashMap<String, Statistics> map, String name,
+                                    long time, boolean session, boolean today, String puzzleType) {
+        Statistics st = map.get(name);
+        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(name, st); }
+        st.addTime(time, session, today);
+    }
+
     public boolean getBoolean(Cursor cursor, int columnIndex) {
         return ! (cursor.isNull(columnIndex) || cursor.getShort(columnIndex) == 0);
     }

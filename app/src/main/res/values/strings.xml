@@ -466,6 +466,15 @@
     <string name="smart_cube_reset_gyro_not_connected">Connect a smart cube first</string>
     <string name="smart_cube_show_model_title">Show 3D model</string>
     <string name="smart_cube_show_model_summary">Display the live 3D cube below the timer</string>
+    <string name="step_stats_title">Step statistics</string>
+    <string name="step_stats_overall">Overall</string>
+    <string name="step_stats_session">Session</string>
+    <string name="step_stats_all">All time</string>
+    <string name="step_stats_col_step">Step</string>
+    <string name="step_stats_col_avg">Avg</string>
+    <string name="step_stats_col_best">Best</string>
+    <string name="step_stats_col_worst">Worst</string>
+    <string name="step_stats_col_pct">%</string>
     <string name="smart_cube_detection_method_title">Method Split Timer Detection</string>
     <string name="smart_cube_detection_method_summary">How a solve is split into steps</string>
     <string name="smart_cube_detection_none">None</string>

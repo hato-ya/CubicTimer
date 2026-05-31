@@ -397,6 +397,61 @@ public class CubeState {
         return true;
     }
 
+    // ─── Beginner (LBL) step detection ───
+    //
+    // The 8 corners, each as its 3 facelet indices (one per adjacent face), in CubeState order.
+    // Converted from GanCubeManager.CORNER_FACELET_MAP via TS_TO_CS_POS.
+    private static final int[][] CORNERS = {
+        {8, 27, 20}, {6, 18, 11}, {0, 9, 38}, {2, 36, 29},
+        {47, 26, 33}, {45, 17, 24}, {51, 44, 15}, {53, 35, 42},
+    };
+
+    private static int centerOf(int idx) {
+        return (idx / 9) * 9 + 4;
+    }
+
+    /** First layer complete: the cross face's cross AND its four corners solved in place. */
+    public boolean isFirstLayerSolved(int crossFace) {
+        if (crossFace < 0 || !isCrossSolved(crossFace)) return false;
+        for (int[] c : CORNERS) {
+            if (c[0] / 9 != crossFace && c[1] / 9 != crossFace && c[2] / 9 != crossFace) continue;
+            for (int fc : c) if (facelets[fc] != facelets[centerOf(fc)]) return false;
+        }
+        return true;
+    }
+
+    /** Opposite "cross": the four last-layer edges oriented (showing the LL colour), ignoring sides. */
+    public boolean isLLCrossOriented(int crossFace) {
+        if (crossFace < 0) return false;
+        int opp = OPPOSITE[crossFace];
+        int oc = opp * 9 + 4;
+        return facelets[opp * 9 + 1] == facelets[oc] && facelets[opp * 9 + 3] == facelets[oc]
+                && facelets[opp * 9 + 5] == facelets[oc] && facelets[opp * 9 + 7] == facelets[oc];
+    }
+
+    /** Last-layer edges aligned to centres (the opposite cross fully solved). */
+    public boolean isLLCrossSolved(int crossFace) {
+        if (crossFace < 0) return false;
+        return isCrossSolved(OPPOSITE[crossFace]);
+    }
+
+    /** Last-layer corners in their correct slot (correct colour set), regardless of twist. */
+    public boolean areLLCornersPositioned(int crossFace) {
+        if (crossFace < 0) return false;
+        int opp = OPPOSITE[crossFace];
+        for (int[] c : CORNERS) {
+            if (c[0] / 9 != opp && c[1] / 9 != opp && c[2] / 9 != opp) continue;
+            int a = facelets[c[0]], b = facelets[c[1]], d = facelets[c[2]];
+            int ca = facelets[centerOf(c[0])], cb = facelets[centerOf(c[1])], cd = facelets[centerOf(c[2])];
+            // Both sets hold 3 distinct values, so membership of each implies equal sets.
+            boolean inA = a == ca || a == cb || a == cd;
+            boolean inB = b == ca || b == cb || b == cd;
+            boolean inD = d == ca || d == cb || d == cd;
+            if (!(inA && inB && inD)) return false;
+        }
+        return true;
+    }
+
     private static final int[] FACE_MAP_CUBEMOVE_TO_CUBESTATE = {0, 3, 2, 5, 1, 4};
 
     public void applyMove(CubeMove move) {

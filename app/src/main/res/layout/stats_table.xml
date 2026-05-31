@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="?graph_stats_card_background_faded"
-        app:layout_constraintBottom_toTopOf="@+id/stats_table_viewflipper"
+        app:layout_constraintBottom_toTopOf="@+id/stats_step_scroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -51,6 +51,25 @@
 
     </LinearLayout>
 
+    <HorizontalScrollView
+        android:id="@+id/stats_step_scroll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:visibility="gone"
+        android:background="?graph_stats_card_background_faded"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stats_tab_layout">
+
+        <LinearLayout
+            android:id="@+id/stats_step_tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
+
     <ViewFlipper
         android:id="@+id/stats_table_viewflipper"
         android:layout_width="0dp"
@@ -58,7 +77,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stats_tab_layout">
+        app:layout_constraintTop_toBottomOf="@id/stats_step_scroll">
 
         <include
             android:id="@+id/stats_table_improvement"

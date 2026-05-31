@@ -527,6 +527,10 @@ public class TimerFragment extends BaseFragment
             // to be handled (and logged) again.
             cubeSolveHandled = false;
 
+            // Move count before this batch is applied: if the timer starts on a move in this batch,
+            // that move must be counted, so the baseline is taken before the batch (not after).
+            int movesBeforeBatch = cubeSolver.getNumMoves();
+
             for (CubeMove move : moves) {
                 cubeSolver.addMove(move);
                 if (cube3DView != null) cube3DView.animateMove(move);
@@ -588,6 +592,9 @@ public class TimerFragment extends BaseFragment
                 }
                 isExternalTimer = true;
                 startChronometer();
+                // The move(s) in this batch are the first solve move(s); count them by rewinding the
+                // baseline to before the batch (startChronometer() set it to the post-batch count).
+                movesBeforeTimerStart = movesBeforeBatch;
                 updateCubeStatus(cubeConnectedLabel() + " | Solving");
             }
 

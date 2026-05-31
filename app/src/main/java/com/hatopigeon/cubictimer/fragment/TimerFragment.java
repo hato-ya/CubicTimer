@@ -472,6 +472,24 @@ public class TimerFragment extends BaseFragment
     private int ollMoveCount;
     private long pllTimeMs = -1;
     private int pllMoveCount;
+    // Generic step detection for the non-"advanced" methods. methodSteps lists the step kinds for
+    // the selected method; stepTime/stepMoves are sized to it (per-step time in ms since the prior
+    // step, -1 until detected). methodSteps == null means the advanced (named-field) method.
+    private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
+            STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6;
+    private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,
+            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
+    private static final String[] NAMES_INTERMEDIATE = {"Cross", "F2L", "Opposite cross",
+            "Opposite edges", "Corners position", "Corners orient"};
+    private static final int[] STEPS_BEGINNER = {STEP_CROSS, STEP_FIRST, STEP_SECOND, STEP_OPP_CROSS,
+            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
+    private static final String[] NAMES_BEGINNER = {"Cross", "First layer", "Second layer",
+            "Opposite cross", "Opposite edges", "Corners position", "Corners orient"};
+    private String detectionMethod = "advanced"; // none / advanced / intermediate / beginner
+    private int[] methodSteps;          // null = advanced or none
+    private String[] methodStepNames;
+    private long[] stepTime = new long[0];
+    private int[] stepMoves = new int[0];
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
     private Handler cubeReadyHandler;
@@ -631,6 +649,7 @@ public class TimerFragment extends BaseFragment
             if (cubeSolver == null) return;
             cubeSolver.setStateFacelets(csFacelets);
             if (cube3DView != null) cube3DView.setFacelets(csFacelets);
+            if ("none".equals(detectionMethod)) return; // no step/phase detection
             if (crossTimeMs < 0 && isRunning) {
                 String crossFacePref = Prefs.getString(R.string.pk_smart_cube_cross_face, "auto");
                 int detectedFace = -1;
@@ -653,15 +672,19 @@ public class TimerFragment extends BaseFragment
                     Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms, face=" + crossFace);
                 }
             }
-            if (crossFace >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved(crossFace)) {
-                f2lTimeMs = chronometer.getElapsedTime() - crossTimeMs;
-                f2lMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount;
-                Log.d(TAG, "F2L detected from facelets at +" + f2lTimeMs + "ms");
-            }
-            if (crossFace >= 0 && f2lTimeMs >= 0 && ollTimeMs < 0 && isRunning && cubeSolver.isOLLSolved(crossFace)) {
-                ollTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs;
-                ollMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount;
-                Log.d(TAG, "OLL detected from facelets at +" + ollTimeMs + "ms");
+            if (methodSteps != null) {
+                detectSteps();
+            } else {
+                if (crossFace >= 0 && f2lTimeMs < 0 && isRunning && cubeSolver.isF2LSolved(crossFace)) {
+                    f2lTimeMs = chronometer.getElapsedTime() - crossTimeMs;
+                    f2lMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount;
+                    Log.d(TAG, "F2L detected from facelets at +" + f2lTimeMs + "ms");
+                }
+                if (crossFace >= 0 && f2lTimeMs >= 0 && ollTimeMs < 0 && isRunning && cubeSolver.isOLLSolved(crossFace)) {
+                    ollTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs;
+                    ollMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart - crossMoveCount - f2lMoveCount;
+                    Log.d(TAG, "OLL detected from facelets at +" + ollTimeMs + "ms");
+                }
             }
         }
 
@@ -1089,6 +1112,18 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
+        if ("beginner".equals(detectionMethod)) {
+            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
+        } else if ("intermediate".equals(detectionMethod)) {
+            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else {
+            methodSteps = null; methodStepNames = null; // advanced or none
+        }
+        if (methodSteps != null) {
+            stepTime = new long[methodSteps.length];
+            stepMoves = new int[methodSteps.length];
+        }
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -1537,6 +1572,18 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
+        if ("beginner".equals(detectionMethod)) {
+            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
+        } else if ("intermediate".equals(detectionMethod)) {
+            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else {
+            methodSteps = null; methodStepNames = null; // advanced or none
+        }
+        if (methodSteps != null) {
+            stepTime = new long[methodSteps.length];
+            stepMoves = new int[methodSteps.length];
+        }
         updateScrambleOrientationMapping();
 
         if (!smartCubeEnabled) {
@@ -1726,6 +1773,7 @@ public class TimerFragment extends BaseFragment
         currentSolve.setOllMoveCount(ollMoveCount);
         currentSolve.setPllTime(pllTimeMs);
         currentSolve.setPllMoveCount(pllMoveCount);
+        currentSolve.setStepSplits(buildStepSplits());
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -2280,6 +2328,7 @@ public class TimerFragment extends BaseFragment
         ollMoveCount = 0;
         pllTimeMs = -1;
         pllMoveCount = 0;
+        for (int s = 0; s < stepTime.length; s++) { stepTime[s] = -1; stepMoves[s] = 0; }
         cubeSolveHandled = false;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
@@ -3412,16 +3461,82 @@ public class TimerFragment extends BaseFragment
      */
     private void finishCubeSolve() {
         if (!isRunning) return;
-        if (ollTimeMs >= 0 && pllTimeMs < 0) {
+        if (methodSteps == null && ollTimeMs >= 0 && pllTimeMs < 0) {
             pllTimeMs = chronometer.getElapsedTime() - crossTimeMs - f2lTimeMs - ollTimeMs;
             pllMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart
                     - crossMoveCount - f2lMoveCount - ollMoveCount;
+        }
+        if (methodSteps != null) {
+            detectSteps(); // catch up any steps the final snapshot reached at once
+            int last = methodSteps.length - 1; // the SOLVED step
+            if (last > 0 && stepTime[last - 1] >= 0 && stepTime[last] < 0) {
+                recordStep(last, chronometer.getElapsedTime(),
+                        cubeSolver.getNumMoves() - movesBeforeTimerStart);
+            }
         }
         animationDone = false;
         isExternalTimer = false;
         stopChronometer();
         addNewSolve();
         cubeStartedSolve = false;
+    }
+
+    /** True when the cube state satisfies the given step kind for the current cross face. */
+    private boolean stepDone(int kind) {
+        switch (kind) {
+            case STEP_CROSS:        return crossFace >= 0;
+            case STEP_FIRST:        return cubeSolver.isFirstLayerSolved(crossFace);
+            case STEP_SECOND:       return cubeSolver.isF2LSolved(crossFace);
+            case STEP_OPP_CROSS:    return cubeSolver.isLLCrossOriented(crossFace);
+            case STEP_OPP_EDGES:    return cubeSolver.isLLCrossSolved(crossFace);
+            case STEP_CORNERS_POS:  return cubeSolver.areLLCornersPositioned(crossFace);
+            case STEP_SOLVED:       return cubeSolver.isSolved();
+            default:                return false;
+        }
+    }
+
+    /** Sequentially detects the steps of the selected method from the current cube state. */
+    private void detectSteps() {
+        if (methodSteps == null || !isRunning || crossFace < 0 || chronometer == null) return;
+        long elapsed = chronometer.getElapsedTime();
+        int totalMoves = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+
+        if (stepTime[0] < 0) {        // step 0 is always the cross
+            stepTime[0] = crossTimeMs >= 0 ? crossTimeMs : elapsed;
+            stepMoves[0] = crossMoveCount;
+            Log.d(TAG, "Step 0 (" + methodStepNames[0] + "): " + stepTime[0] + "ms / " + stepMoves[0] + " moves");
+        }
+        // The last step (solved) is finalized in finishCubeSolve, not here.
+        for (int s = 1; s < methodSteps.length - 1; s++) {
+            if (stepTime[s - 1] >= 0 && stepTime[s] < 0 && stepDone(methodSteps[s])) {
+                recordStep(s, elapsed, totalMoves);
+            }
+        }
+    }
+
+    private void recordStep(int s, long elapsed, int totalMoves) {
+        long prevTime = 0;
+        int prevMoves = 0;
+        for (int i = 0; i < s; i++) {
+            if (stepTime[i] > 0) prevTime += stepTime[i];
+            prevMoves += stepMoves[i];
+        }
+        stepTime[s] = elapsed - prevTime;
+        stepMoves[s] = totalMoves - prevMoves;
+        Log.d(TAG, "Step " + s + " (" + methodStepNames[s] + "): +"
+                + stepTime[s] + "ms / " + stepMoves[s] + " moves");
+    }
+
+    /** Serializes the detected steps as "name:timeMs:moves;..." for storage (non-advanced methods). */
+    private String buildStepSplits() {
+        if (methodSteps == null || methodStepNames == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < methodSteps.length && i < methodStepNames.length; i++) {
+            if (i > 0) sb.append(';');
+            sb.append(methodStepNames[i].replace(';', ' ').replace(':', ' '))
+                    .append(':').append(stepTime[i]).append(':').append(stepMoves[i]);
+        }
+        return sb.toString();
     }
 
     /** "Connected" label, with the battery level appended (e.g. "Connected (85%)") when known. */

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/pref_category_title_locale">
 
@@ -374,6 +375,14 @@
                     android:key="@string/pk_show_cube_move_details"
                     android:summary="@string/cubeMoveDetailsEnabledSummary"
                     android:title="@string/cubeMoveDetailsEnabledTitle" />
+
+                <ListPreference
+                    android:defaultValue="advanced"
+                    android:entries="@array/pref_array_detection_method"
+                    android:entryValues="@array/pk_pref_array_detection_method"
+                    android:key="@string/pk_smart_cube_detection_method"
+                    android:summary="@string/smart_cube_detection_method_summary"
+                    android:title="@string/smart_cube_detection_method_title" />
 
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_smartCubeShowModelEnabled"

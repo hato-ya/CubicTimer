@@ -51,6 +51,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_OLL_MOVE_COUNT = "oll_move_count";
     public static final String KEY_PLL_TIME = "pll_time";
     public static final String KEY_PLL_MOVE_COUNT = "pll_move_count";
+    // Generic per-step breakdown for non-advanced detection methods (intermediate/beginner),
+    // serialized as "name:timeMs:moves;name:timeMs:moves;...". Empty for the advanced method.
+    public static final String KEY_STEP_SPLITS = "step_splits";
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
@@ -74,6 +77,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_OLL_MOVE_COUNT = 16;
     public static final int IDX_PLL_TIME = 17;
     public static final int IDX_PLL_MOVE_COUNT = 18;
+    public static final int IDX_STEP_SPLITS = 19;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -87,7 +91,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_PLL = "PLL";
 
     // Database Version
-    private static final int    DATABASE_VERSION   = 15;
+    private static final int    DATABASE_VERSION   = 16;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -110,7 +114,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_OLL_TIME + " INTEGER DEFAULT -1,"
             + KEY_OLL_MOVE_COUNT + " INTEGER DEFAULT 0,"
             + KEY_PLL_TIME + " INTEGER DEFAULT -1,"
-            + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0"
+            + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0,"
+            + KEY_STEP_SPLITS + " TEXT DEFAULT ''"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -205,6 +210,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 } catch (Exception ignored) {}
                 try {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_PLL_MOVE_COUNT + " INTEGER DEFAULT 0");
+                } catch (Exception ignored) {}
+                // Fall through to add step_splits.
+            case 15:
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_STEP_SPLITS + " TEXT DEFAULT ''");
                 } catch (Exception ignored) {}
         }
     }
@@ -394,6 +404,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
         values.put(KEY_PLL_TIME, solve.getPllTime());
         values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
+        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Inserting Row
         return db.insert(TABLE_TIMES, null, values);
@@ -485,6 +496,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_OLL_MOVE_COUNT, solve.getOllMoveCount());
         values.put(KEY_PLL_TIME, solve.getPllTime());
         values.put(KEY_PLL_MOVE_COUNT, solve.getPllMoveCount());
+        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
@@ -510,7 +522,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         KEY_CROSS_TIME, KEY_CROSS_MOVE_COUNT,
                         KEY_F2L_TIME, KEY_F2L_MOVE_COUNT,
                         KEY_OLL_TIME, KEY_OLL_MOVE_COUNT,
-                        KEY_PLL_TIME, KEY_PLL_MOVE_COUNT },
+                        KEY_PLL_TIME, KEY_PLL_MOVE_COUNT, KEY_STEP_SPLITS },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
@@ -535,6 +547,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 solve.setOllMoveCount(cursor.getInt(16));
                 solve.setPllTime(cursor.getLong(17));
                 solve.setPllMoveCount(cursor.getInt(18));
+                solve.setStepSplits(cursor.getString(19));
                 return solve;
             }
 

@@ -419,6 +419,7 @@ public class SettingsActivity extends AppCompatActivity {
                 R.string.pk_smart_cube_orientation,
                 R.string.pk_smart_cube_reset_gyro,
                 R.string.pk_smart_cube_show_model,
+                R.string.pk_smart_cube_detection_method,
         };
 
         private void refreshSmartCubeDependents(boolean smartCubeOn) {

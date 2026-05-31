@@ -293,6 +293,14 @@ public class TimeDialog extends DialogFragment {
                 tpsText.setText(getString(R.string.smart_cube_tps, solve.getTps()));
             }
 
+            String stepSplits = solve.getStepSplits();
+            if (stepSplits != null && !stepSplits.isEmpty()) {
+                showStepSplits(stepSplits, solve);
+                crossTimeText.setVisibility(View.GONE);
+                f2lTimeText.setVisibility(View.GONE);
+                ollTimeText.setVisibility(View.GONE);
+                pllTimeText.setVisibility(View.GONE);
+            } else {
             if (solve.getCrossTime() >= 0) {
                 String crossFormatted = PuzzleUtils.convertTimeToString(
                         solve.getCrossTime(), PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
@@ -345,6 +353,7 @@ public class TimeDialog extends DialogFragment {
             f2lTimeText.setVisibility(solve.getF2lTime() >= 0 ? View.VISIBLE : View.GONE);
             ollTimeText.setVisibility(solve.getOllTime() >= 0 ? View.VISIBLE : View.GONE);
             pllTimeText.setVisibility(solve.getPllTime() >= 0 ? View.VISIBLE : View.GONE);
+            }
 
             if (solve.getScramble() != null) {
                 if (solve.getScramble().equals(""))
@@ -360,6 +369,33 @@ public class TimeDialog extends DialogFragment {
         }
 
         return dialogView;
+    }
+
+    /** Renders a generic per-step breakdown ("name:timeMs:moves;...") as rows in the stats layout. */
+    private void showStepSplits(String splits, Solve solve) {
+        statsLayout.setVisibility(View.VISIBLE);
+        for (String part : splits.split(";")) {
+            String[] f = part.split(":");
+            if (f.length < 3) continue;
+            long t;
+            int mv;
+            try {
+                t = Long.parseLong(f[1]);
+                mv = Integer.parseInt(f[2]);
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            if (t < 0) continue; // step was not detected
+            String tf = PuzzleUtils.convertTimeToString(
+                    t, PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
+            String text = f[0] + ": " + tf + (mv > 0 ? " (" + mv + ")" : "");
+            TextView tv = new TextView(getContext());
+            tv.setText(text);
+            tv.setTextColor(crossTimeText.getTextColors());
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, crossTimeText.getTextSize());
+            tv.setGravity(crossTimeText.getGravity());
+            statsLayout.addView(tv);
+        }
     }
 
     @Override

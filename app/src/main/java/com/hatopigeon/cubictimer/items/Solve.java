@@ -33,6 +33,8 @@ public class Solve implements Parcelable {
     int    ollMoveCount;
     long   pllTime = -1;
     int    pllMoveCount;
+    // Generic per-step breakdown ("name:timeMs:moves;...") for intermediate/beginner methods.
+    String stepSplits = "";
 
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
@@ -92,6 +94,7 @@ public class Solve implements Parcelable {
         ollMoveCount = in.readInt();
         pllTime = in.readLong();
         pllMoveCount = in.readInt();
+        stepSplits = in.readString();
     }
 
     public void setId(long id) {
@@ -254,6 +257,14 @@ public class Solve implements Parcelable {
         this.pllMoveCount = pllMoveCount;
     }
 
+    public String getStepSplits() {
+        return stepSplits == null ? "" : stepSplits;
+    }
+
+    public void setStepSplits(String stepSplits) {
+        this.stepSplits = stepSplits == null ? "" : stepSplits;
+    }
+
     public int getRawPenalty() {
         return penalty;
     }
@@ -292,6 +303,7 @@ public class Solve implements Parcelable {
         dest.writeInt(ollMoveCount);
         dest.writeLong(pllTime);
         dest.writeInt(pllMoveCount);
+        dest.writeString(stepSplits);
     }
 
     /**

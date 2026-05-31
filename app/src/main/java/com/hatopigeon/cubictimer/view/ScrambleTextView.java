@@ -41,7 +41,12 @@ public class ScrambleTextView extends AppCompatTextView {
         if (scrambleTokens != null && completedMoves > 0 && completedMoves <= scrambleTokens.length) {
             Layout layout = getLayout();
             if (layout != null) {
+                // Match the offset TextView uses to draw the text, so the highlight aligns with it
+                // (and the vertical padding gives room for the margin above/below the letters).
+                canvas.save();
+                canvas.translate(getTotalPaddingLeft(), getTotalPaddingTop());
                 drawCompletedBackgrounds(canvas, layout);
+                canvas.restore();
             }
         }
         super.onDraw(canvas);
@@ -52,9 +57,10 @@ public class ScrambleTextView extends AppCompatTextView {
         bgPaint.setColor(Color.parseColor("#" + bgHex));
         bgPaint.setStyle(Paint.Style.FILL);
 
-        float padH = 8f;
-        float padV = 4f;
-        float radius = 12f;
+        float density = getResources().getDisplayMetrics().density;
+        float padH = 4f * density;
+        float padV = 8f * density;
+        float radius = 4f * density;
 
         String fullText = getText().toString();
         int searchPos = 0;
@@ -98,13 +104,20 @@ public class ScrambleTextView extends AppCompatTextView {
         }
     }
 
+    private final android.graphics.Rect refBounds = new android.graphics.Rect();
+
     private void drawGroupRect(Canvas canvas, Layout layout, int start, int end,
                                int line, Paint paint, float padH, float padV, float radius) {
         int baseline = layout.getLineBaseline(line);
         float left = layout.getPrimaryHorizontal(start) - padH;
         float right = layout.getPrimaryHorizontal(end) + padH;
-        float top = baseline + layout.getLineAscent(line) - padV;
-        float bottom = baseline + layout.getLineDescent(line) + padV;
+
+        // Use a fixed uppercase reference (not the font's asymmetric ascent/descent, nor each
+        // group's own ink which shifts with primes) so every highlight is the same height and
+        // centred on the letter band with equal margin above and below.
+        getPaint().getTextBounds("M", 0, 1, refBounds);
+        float top = baseline + refBounds.top - padV;
+        float bottom = baseline + refBounds.bottom + padV;
 
         left = Math.max(0, left);
         right = Math.min(getWidth(), right);

@@ -482,7 +482,7 @@
     <string name="step_stats_col_best">Best</string>
     <string name="step_stats_col_worst">Worst</string>
     <string name="step_stats_col_pct">%</string>
-    <string name="smart_cube_detection_method_title">Method Split Timer Detection</string>
+    <string name="smart_cube_detection_method_title">Split Timer Method Detection</string>
     <string name="smart_cube_detection_method_summary">How a solve is split into steps</string>
     <string name="smart_cube_detection_none">None</string>
     <string name="smart_cube_detection_advanced">CFOP Advanced (4 steps)\n<small>%1$s / %2$s / %3$s / %4$s</small></string>

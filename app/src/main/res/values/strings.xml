@@ -472,6 +472,7 @@
     <string name="step_name_corners_position">Corners position</string>
     <string name="step_name_corners_orient">Corners orient</string>
     <string name="step_name_last_layer">last layer</string>
+    <string name="add_time_invalid">Invalid time</string>
     <string name="step_stats_title">Step statistics</string>
     <string name="step_stats_overall">Overall</string>
     <string name="step_stats_session">Session</string>

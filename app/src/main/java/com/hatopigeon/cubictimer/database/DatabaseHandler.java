@@ -328,6 +328,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private long addSolveInternal(SQLiteDatabase db, Solve solve) {
         // Cutting off last digit to fix rounding errors
         long time = solve.getTime();
+        if (time <= 0L && solve.getRawPenalty() != PuzzleUtils.PENALTY_DNF) {
+            Log.w("DatabaseHandler", "Rejecting solve with invalid time: " + time
+                    + ", penalty=" + solve.getRawPenalty());
+            return -1;
+        }
 
         ContentValues values = new ContentValues();
 
@@ -476,7 +481,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-    // Preferred display order for detected steps; unknown names are appended in first-seen order.
+    // Preferred order for detected steps; unknown names are appended in first-seen order. These are
+    // canonical step keys (matching TimerFragment.NAMES_*), not display text — localized via
+    // StepNames at render time.
     private static final String[] STEP_ORDER = {
         "Cross", "F2L", "OLL", "PLL",
         "First layer", "Second layer", "Opposite cross", "Opposite edges",
@@ -520,7 +527,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     if (f.length < 2) continue;
                     long t;
                     try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
-                    if (t >= 0) addStepTime(map, f[0], t, session, today, type);
+                    if (t > 0) addStepTime(map, f[0], t, session, today, type);
                 }
             }
         } finally {
@@ -632,7 +639,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(isForCurrentSession, isToday);
-                } else {
+                } else if (cursor.getLong(timeCol) > 0) {
                     statistics.addTime(cursor.getLong(timeCol), isForCurrentSession, isToday);
                 }
             }
@@ -689,7 +696,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(cursor.getLong(dateCol));
-                } else {
+                } else if (cursor.getLong(timeCol) > 0) {
                     statistics.addTime(cursor.getLong(timeCol), cursor.getLong(dateCol));
                 }
             }

@@ -716,7 +716,7 @@ public class PuzzleUtils {
                 timeMillis += Long.valueOf(strMillis);
             }
         } catch (NumberFormatException ignore) {
-            timeMillis = 0; // Invalid time format.
+            timeMillis = -1; // Invalid time format.
         }
 
         return timeMillis;

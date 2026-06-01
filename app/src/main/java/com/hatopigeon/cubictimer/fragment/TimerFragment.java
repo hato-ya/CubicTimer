@@ -3403,6 +3403,7 @@ public class TimerFragment extends BaseFragment
         CubicTimer.clearCubeBleManager();
         updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
         cancelReadyButton.setVisibility(View.GONE);
+        if (cube3DView != null) cube3DView.setVisibility(View.GONE);
         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
     }
 

@@ -390,6 +390,12 @@
                     android:summary="@string/smart_cube_show_model_summary"
                     android:title="@string/smart_cube_show_model_title" />
 
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeAutoStartStopEnabled"
+                    android:key="@string/pk_smart_cube_auto_start_stop"
+                    android:summary="@string/smart_cube_auto_start_stop_summary"
+                    android:title="@string/smart_cube_auto_start_stop_title" />
+
                 <Preference
                     android:key="@string/pk_smart_cube_cross_face"
                     android:summary="@string/smart_cube_cross_face_summary"

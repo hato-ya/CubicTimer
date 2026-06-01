@@ -460,6 +460,8 @@
     <string name="smart_cube_reset_gyro_not_connected">Connect a smart cube first</string>
     <string name="smart_cube_show_model_title">Show 3D model</string>
     <string name="smart_cube_show_model_summary">Display the live 3D cube below the timer</string>
+    <string name="smart_cube_auto_start_stop_title">Auto start/stop</string>
+    <string name="smart_cube_auto_start_stop_summary">Automatically start and stop the timer based on cube detection</string>
     <!-- Solve-step display labels (stored canonically; localized only for display). -->
     <string name="step_name_cross">Cross</string>
     <string name="step_name_f2l" translatable="false">F2L</string>

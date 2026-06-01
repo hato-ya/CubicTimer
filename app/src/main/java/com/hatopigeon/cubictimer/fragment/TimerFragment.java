@@ -430,6 +430,7 @@ public class TimerFragment extends BaseFragment
     private boolean smartCubeEnabled;
     private boolean cubeStatusEnabled;
     private boolean cubeMoveDetailsEnabled;
+    private boolean smartCubeAutoStartStop;
     private boolean bleStatusEnabled;
     private boolean inspectionByResetEnabled;
 
@@ -591,7 +592,8 @@ public class TimerFragment extends BaseFragment
 
             if (isCubeReady && !cubeStartedSolve && scrambleMoveTokens != null
                     && scrambleMoveTokens.length > 0
-                    && completedScrambleMoves == scrambleMoveTokens.length) {
+                    && completedScrambleMoves == scrambleMoveTokens.length
+                    && smartCubeAutoStartStop) {
                 cubeStartedSolve = true;
                 hideToolbar();
 
@@ -609,7 +611,7 @@ public class TimerFragment extends BaseFragment
                 return;
             }
 
-            if (cubeStartedSolve && !isRunning) {
+            if (cubeStartedSolve && !isRunning && smartCubeAutoStartStop) {
                 if (countingDown) {
                     stopInspectionCountdown();
                 }
@@ -688,7 +690,7 @@ public class TimerFragment extends BaseFragment
             if (cubeSolveHandled) return;
             cubeSolveHandled = true;
             Log.d(TAG, "Cube solved via facelets!");
-            if (isRunning) {
+            if (isRunning && smartCubeAutoStartStop) {
                 finishCubeSolve();
             } else if (!cubeStartedSolve) {
                 isCubeReady = true;
@@ -1106,6 +1108,7 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        smartCubeAutoStartStop = Prefs.getBoolean(R.string.pk_smart_cube_auto_start_stop, true);
         configureDetectionMethod();
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
@@ -1413,7 +1416,7 @@ public class TimerFragment extends BaseFragment
                             return false;
                     }
                 } else if (!isRunning) { // Not running and not counting down.
-                    if (isCubeConnected && cubeStartedSolve) {
+                    if (isCubeConnected && cubeStartedSolve && smartCubeAutoStartStop) {
                         return false; // Wait for cube move before starting timer
                     }
                     switch (motionEvent.getAction()) {
@@ -1444,7 +1447,7 @@ public class TimerFragment extends BaseFragment
                                 // Checks if the user was holding the screen when the inspection
                                 // timed out and saved a DNF
                                 holdingDNF = false;
-                            } else if (isCubeConnected && !cubeStartedSolve) {
+                            } else if (isCubeConnected && !cubeStartedSolve && smartCubeAutoStartStop) {
                                 // Cube connected but not armed: arm it on tap, don't start timer
                                 // No cubeSolver.reset() here — all moves since connection are tracked from SOLVED,
                                 // so scramble (post-connect) + solve cancel out correctly. Only a full solve
@@ -1555,6 +1558,7 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        smartCubeAutoStartStop = Prefs.getBoolean(R.string.pk_smart_cube_auto_start_stop, true);
         configureDetectionMethod();
         updateScrambleOrientationMapping();
 

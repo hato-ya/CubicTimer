@@ -76,6 +76,7 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_smart_cube_reset_state">smartCubeResetState</string>
     <string translatable="false" name="pk_smart_cube_reset_gyro">smartCubeResetGyro</string>
     <string translatable="false" name="pk_smart_cube_show_model">smartCubeShowModel</string>
+    <string translatable="false" name="pk_smart_cube_auto_start_stop">smartCubeAutoStartStop</string>
     <string translatable="false" name="pk_smart_cube_detection_method">smartCubeDetectionMethod</string>
     <string translatable="false" name="pk_smart_cube_orientation">smartCubeOrientation</string>
     <string translatable="false" name="pk_smart_cube_top_face">smartCubeTopFace</string>

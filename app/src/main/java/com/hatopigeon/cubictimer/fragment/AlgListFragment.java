@@ -294,6 +294,7 @@ public class AlgListFragment extends BaseFragment implements LoaderManager.Loade
     public void onPause() {
         super.onPause();
         stopOllDetection();
+        CubeBleHelper.cancelScan();
     }
 
     @Override

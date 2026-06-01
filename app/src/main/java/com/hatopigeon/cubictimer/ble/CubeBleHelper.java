@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -38,6 +40,15 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.broadcast;
 public class CubeBleHelper {
 
     private static final String TAG = "CubeBleHelper";
+
+    /** Request codes for the permission / enable-Bluetooth round-trips. */
+    public static final int REQ_BLE_PERMISSIONS = 9801;
+    public static final int REQ_ENABLE_BT = 9802;
+    /** Hard cap on how long a scan (and its dialog) may stay alive without a selection. */
+    private static final long SCAN_TIMEOUT_MS = 20_000;
+
+    private static final Handler sHandler = new Handler(Looper.getMainLooper());
+    private static final Runnable sScanTimeout = CubeBleHelper::cleanupScan;
 
     private static final GanCubeManager.GanCubeCallback sDefaultCallback =
             new GanCubeManager.GanCubeCallback() {
@@ -115,7 +126,7 @@ public class CubeBleHelper {
                         .onPositive((dialog, which) ->
                             ActivityCompat.requestPermissions(activity,
                                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    9801))
+                                    REQ_BLE_PERMISSIONS))
                         .show());
                 return;
             }
@@ -123,7 +134,7 @@ public class CubeBleHelper {
 
         if (!requestPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(activity,
-                    requestPermissions.toArray(new String[0]), 9801);
+                    requestPermissions.toArray(new String[0]), REQ_BLE_PERMISSIONS);
             return;
         }
 
@@ -131,7 +142,7 @@ public class CubeBleHelper {
         if (bluetoothAdapter == null) return;
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            activity.startActivityForResult(enableBtIntent, 9802);
+            activity.startActivityForResult(enableBtIntent, REQ_ENABLE_BT);
             return;
         }
 
@@ -142,6 +153,9 @@ public class CubeBleHelper {
         if (sIsScanning) return;
         sIsScanning = true;
         sScanPeriod = reportDelayMillis;
+        // Bound the scan so the scanner and its dialog never run indefinitely (battery/leak).
+        sHandler.removeCallbacks(sScanTimeout);
+        sHandler.postDelayed(sScanTimeout, SCAN_TIMEOUT_MS);
         if (sDevices == null) {
             sDevices = new ArrayList<>();
         }
@@ -240,7 +254,16 @@ public class CubeBleHelper {
         sIsScanning = false;
     }
 
+    /**
+     * Cancels any in-progress scan and dismisses its dialog. Call from the host's onPause/onDestroy
+     * so a scan started against a now-gone Activity does not leak it via the static dialog.
+     */
+    public static void cancelScan() {
+        cleanupScan();
+    }
+
     private static void cleanupScan() {
+        sHandler.removeCallbacks(sScanTimeout);
         stopScanner();
         if (sDialog != null) {
             sDialog.dismiss();

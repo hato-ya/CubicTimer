@@ -181,9 +181,10 @@ public class TimerFragment extends BaseFragment
     public static final String TIMER_MODE_TRAINER = "TIMER_MODE_TRAINER";
 
     /**
-     * Flag to enable debug logging for this class.
+     * Flag to enable debug logging for this class. Off by default; flip to {@code true} (or tie to
+     * {@code BuildConfig.DEBUG}) when diagnosing timer/smart-cube behaviour.
      */
-    private static final boolean DEBUG_ME = true;
+    private static final boolean DEBUG_ME = false;
 
     /**
      * A "tag" to identify this class in log messages.
@@ -526,6 +527,11 @@ public class TimerFragment extends BaseFragment
             updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
             cancelReadyButton.setVisibility(View.GONE);
             if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+            // Cube-initiated disconnect (e.g. powered off / out of range): close the manager so its
+            // BluetoothGatt is released instead of lingering in the app singleton. Posted to avoid
+            // closing the manager re-entrantly from within its own disconnect callback. The user
+            // re-scans to reconnect (which recreates the manager), matching the manual-disconnect flow.
+            new Handler(Looper.getMainLooper()).post(CubicTimer::clearCubeBleManager);
         }
 
         @Override
@@ -567,7 +573,7 @@ public class TimerFragment extends BaseFragment
                 collapseLastMoves();
             }
 
-            if (isCubeReady) {
+            if (isCubeReady && scrambleMoveTokens != null) {
                 completedScrambleMoves = 0;
                 while (completedScrambleMoves < scrambleMoveTokens.length
                         && completedScrambleMoves < moveBuffer.size()) {
@@ -581,7 +587,8 @@ public class TimerFragment extends BaseFragment
 
             updateScrambleColors();
 
-            if (isCubeReady && !cubeStartedSolve && scrambleMoveTokens.length > 0
+            if (isCubeReady && !cubeStartedSolve && scrambleMoveTokens != null
+                    && scrambleMoveTokens.length > 0
                     && completedScrambleMoves == scrambleMoveTokens.length) {
                 cubeStartedSolve = true;
                 hideToolbar();
@@ -595,7 +602,7 @@ public class TimerFragment extends BaseFragment
                     chronometer.holdForStart();
                 }
 
-                updateCubeStatus(cubeConnectedLabel() + " | Ready");
+                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_ready));
                 updateCancelReadyButtonVisibility();
                 return;
             }
@@ -609,7 +616,7 @@ public class TimerFragment extends BaseFragment
                 // The move(s) in this batch are the first solve move(s); count them by rewinding the
                 // baseline to before the batch (startChronometer() set it to the post-batch count).
                 movesBeforeTimerStart = movesBeforeBatch;
-                updateCubeStatus(cubeConnectedLabel() + " | Solving");
+                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_solving));
             }
 
             if (!isRunning) return;
@@ -1097,20 +1104,7 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
-        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
-        if ("beginner".equals(detectionMethod)) {
-            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
-        } else if ("intermediate".equals(detectionMethod)) {
-            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
-        } else if ("none".equals(detectionMethod)) {
-            methodSteps = null; methodStepNames = null;
-        } else {
-            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
-        }
-        if (methodSteps != null) {
-            stepTime = new long[methodSteps.length];
-            stepMoves = new int[methodSteps.length];
-        }
+        configureDetectionMethod();
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -1457,7 +1451,7 @@ public class TimerFragment extends BaseFragment
                                 cubeStartedSolve = true;
                                 hideToolbar();
                                 chronometer.holdForStart();
-                                updateCubeStatus(cubeConnectedLabel() + " | Ready");
+                                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_ready));
                                 updateCancelReadyButtonVisibility();
                             } else if (inspectionEnabled) {
                                 hideToolbar();
@@ -1559,20 +1553,7 @@ public class TimerFragment extends BaseFragment
         smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
                 && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
         cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
-        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
-        if ("beginner".equals(detectionMethod)) {
-            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
-        } else if ("intermediate".equals(detectionMethod)) {
-            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
-        } else if ("none".equals(detectionMethod)) {
-            methodSteps = null; methodStepNames = null;
-        } else {
-            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
-        }
-        if (methodSteps != null) {
-            stepTime = new long[methodSteps.length];
-            stepMoves = new int[methodSteps.length];
-        }
+        configureDetectionMethod();
         updateScrambleOrientationMapping();
 
         if (!smartCubeEnabled) {
@@ -1625,6 +1606,17 @@ public class TimerFragment extends BaseFragment
             bleClientManager.close();
             bleClientManager = null;
         }
+
+        // Smart cube: detach our callback so the app-scoped BLE manager (which outlives this
+        // fragment) doesn't retain it, and stop the polling loops that would otherwise keep
+        // firing BLE requests and touching paused/destroyed views. Re-attached in onResume.
+        GanCubeManager cubeMgr = CubicTimer.getCubeBleManager();
+        if (cubeMgr != null && cubeMgr.getCallback() == cubeCallback) {
+            cubeMgr.setCallback(null);
+        }
+        stopCubeReadyPolling();
+        stopCubePolling();
+        CubeBleHelper.cancelScan();
     }
 
     @Override
@@ -3451,6 +3443,24 @@ public class TimerFragment extends BaseFragment
         cubeStartedSolve = false;
     }
 
+    /** Reads the step-detection method preference and sizes the per-step buffers to it. */
+    private void configureDetectionMethod() {
+        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
+        if ("beginner".equals(detectionMethod)) {
+            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
+        } else if ("intermediate".equals(detectionMethod)) {
+            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else if ("none".equals(detectionMethod)) {
+            methodSteps = null; methodStepNames = null;
+        } else {
+            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
+        }
+        if (methodSteps != null) {
+            stepTime = new long[methodSteps.length];
+            stepMoves = new int[methodSteps.length];
+        }
+    }
+
     /** True when the cube state satisfies the given step kind for the current cross face. */
     private boolean stepDone(int kind) {
         switch (kind) {
@@ -3696,6 +3706,13 @@ public class TimerFragment extends BaseFragment
         scrambleText.setScrambleProgress(scrambleMoveTokens, completedScrambleMoves);
 
         SpannableString spannable = new SpannableString(realScramble);
+        // Parse the highlight colour once (not per token) and fall back to white on a bad value.
+        int fgColor;
+        try {
+            fgColor = Color.parseColor("#" + Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF"));
+        } catch (IllegalArgumentException e) {
+            fgColor = Color.WHITE;
+        }
         int searchPos = 0;
         int i = 0;
 
@@ -3707,9 +3724,8 @@ public class TimerFragment extends BaseFragment
             searchPos = end;
 
             if (i < completedScrambleMoves) {
-                String fgHex = Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF");
                 spannable.setSpan(
-                        new ForegroundColorSpan(Color.parseColor("#" + fgHex)),
+                        new ForegroundColorSpan(fgColor),
                         start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             i++;

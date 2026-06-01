@@ -142,12 +142,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             case 6:
                 db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_HISTORY + " BOOLEAN DEFAULT 0");
                 // Fall through to the next upgrade step.
+            case 7:
             case 8:
                 Prefs.edit()
                         .putInt(R.string.pk_timer_text_size,
                                 Prefs.getInt(R.string.pk_timer_text_size, 10) * 10)
                         .apply();
                 // Fall through to add new columns for existing users.
+            case 9:
             case 10:
                 // Smart-cube columns: move count, TPS, and the generic per-step breakdown.
                 try {

@@ -17,22 +17,44 @@ public class ScrambleTextView extends AppCompatTextView {
     private String[] scrambleTokens;
     private int completedMoves;
     private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // Reusable scratch so onDraw allocates nothing in the hot path.
+    private final RectF groupRect = new RectF();
+    // Cached uppercase reference band; recomputed only when the text size changes.
+    private final android.graphics.Rect refBounds = new android.graphics.Rect();
+    private float refBoundsTextSize = -1f;
 
     public ScrambleTextView(Context context) {
         super(context);
+        bgPaint.setStyle(Paint.Style.FILL);
+        refreshHighlightColor();
     }
 
     public ScrambleTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        bgPaint.setStyle(Paint.Style.FILL);
+        refreshHighlightColor();
     }
 
     public ScrambleTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        bgPaint.setStyle(Paint.Style.FILL);
+        refreshHighlightColor();
+    }
+
+    /** Re-reads the highlight colour from preferences. Call when the setting may have changed. */
+    public void refreshHighlightColor() {
+        String bgHex = Prefs.getString(com.hatopigeon.cubicify.R.string.pk_scramble_highlight_bg, "000000");
+        try {
+            bgPaint.setColor(Color.parseColor("#" + bgHex));
+        } catch (IllegalArgumentException e) {
+            bgPaint.setColor(Color.BLACK);
+        }
     }
 
     public void setScrambleProgress(String[] tokens, int completed) {
         this.scrambleTokens = tokens;
         this.completedMoves = completed;
+        refreshHighlightColor();
         invalidate();
     }
 
@@ -53,10 +75,6 @@ public class ScrambleTextView extends AppCompatTextView {
     }
 
     private void drawCompletedBackgrounds(Canvas canvas, Layout layout) {
-        String bgHex = Prefs.getString(com.hatopigeon.cubicify.R.string.pk_scramble_highlight_bg, "000000");
-        bgPaint.setColor(Color.parseColor("#" + bgHex));
-        bgPaint.setStyle(Paint.Style.FILL);
-
         float density = getResources().getDisplayMetrics().density;
         float padH = 4f * density;
         float padV = 8f * density;
@@ -104,8 +122,6 @@ public class ScrambleTextView extends AppCompatTextView {
         }
     }
 
-    private final android.graphics.Rect refBounds = new android.graphics.Rect();
-
     private void drawGroupRect(Canvas canvas, Layout layout, int start, int end,
                                int line, Paint paint, float padH, float padV, float radius) {
         int baseline = layout.getLineBaseline(line);
@@ -114,14 +130,19 @@ public class ScrambleTextView extends AppCompatTextView {
 
         // Use a fixed uppercase reference (not the font's asymmetric ascent/descent, nor each
         // group's own ink which shifts with primes) so every highlight is the same height and
-        // centred on the letter band with equal margin above and below.
-        getPaint().getTextBounds("M", 0, 1, refBounds);
+        // centred on the letter band with equal margin above and below. The bounds only change
+        // with the text size, so cache them rather than measuring every draw.
+        if (refBoundsTextSize != getTextSize()) {
+            getPaint().getTextBounds("M", 0, 1, refBounds);
+            refBoundsTextSize = getTextSize();
+        }
         float top = baseline + refBounds.top - padV;
         float bottom = baseline + refBounds.bottom + padV;
 
         left = Math.max(0, left);
         right = Math.min(getWidth(), right);
 
-        canvas.drawRoundRect(new RectF(left, top, right, bottom), radius, radius, paint);
+        groupRect.set(left, top, right, bottom);
+        canvas.drawRoundRect(groupRect, radius, radius, paint);
     }
 }

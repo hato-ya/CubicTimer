@@ -77,11 +77,8 @@ public class CubeState {
 
     // ─── OLL recognition ───
     //
-    // The legacy PERM_CW tables above are only ever used to *track* moves between full facelet
-    // snapshots; the app never relies on them forming a physically consistent cube group (they
-    // don't — composing different faces drifts). OLL recognition, however, must rotate the cube
-    // accurately, so it uses the three permutations below, which were generated from a 3D cubie
-    // model and verified (sexy x6 = identity, all 57 OLL cases recognized) in CubeStateOLLandPLLTest.
+    // Whole-cube rotations used to bring the last layer onto U for OLL matching. Generated from a
+    // 3D cubie model and verified (all 57 OLL cases recognized) in CubeStateOLLandPLLTest.
     //
     // new[i] = old[perm[i]] (same convention as PERM_CW). Direction -1 applies the inverse.
     //   OLL_U      : a U-layer quarter turn (used to cycle through the 4 AUF positions)
@@ -514,132 +511,71 @@ public class CubeState {
     // For each CW permutation:
     //   new[i] = old[perm[i]]
 
+    // Generates each face's 90° CW facelet permutation from a real 3D cubie model (the same net
+    // layout used everywhere else) instead of hand-written sticker cycles. Deriving them from
+    // geometry guarantees they compose correctly across faces, so move tracking and the 3D model
+    // stay consistent through fast multi-move bursts. Verified by CubeStateMoveEngineTest
+    // (each face^4, sexy x6, Sune x6, T-perm x2 = identity).
     private static int[][] createPermutations() {
+        int[][] pos = new int[54][3];
+        int[][] nrm = new int[54][3];
+        fillGeom(pos, nrm, 0,  new int[]{0, 1, 0},  (r, c) -> new int[]{c - 1, 1, r - 1});   // U
+        fillGeom(pos, nrm, 9,  new int[]{-1, 0, 0}, (r, c) -> new int[]{-1, 1 - r, c - 1});  // L
+        fillGeom(pos, nrm, 18, new int[]{0, 0, 1},  (r, c) -> new int[]{c - 1, 1 - r, 1});   // F
+        fillGeom(pos, nrm, 27, new int[]{1, 0, 0},  (r, c) -> new int[]{1, 1 - r, 1 - c});   // R
+        fillGeom(pos, nrm, 36, new int[]{0, 0, -1}, (r, c) -> new int[]{1 - c, 1 - r, -1});  // B
+        fillGeom(pos, nrm, 45, new int[]{0, -1, 0}, (r, c) -> new int[]{c - 1, -1, 1 - r});  // D
+
+        java.util.HashMap<String, Integer> lookup = new java.util.HashMap<>();
+        for (int i = 0; i < 54; i++) lookup.put(geomKey(pos[i], nrm[i]), i);
+
         int[][] p = new int[6][54];
-        for (int f = 0; f < 6; f++)
-            for (int i = 0; i < 54; i++)
-                p[f][i] = i;
-
-        // ─── U CW ───
-        // U face (0-8) rotates CW
-        //   corners: 0→2→8→6→0  edges: 1→5→7→3→1
-        // Adjacent: F(18,19,20) → L(9,10,11)  [top of F → top of L]
-        //           L(9,10,11) → B(36,37,38)  [top of L → top of B]
-        //           B(36,37,38) → R(27,28,29) [top of B → top of R]
-        //           R(27,28,29) → F(18,19,20) [top of R → top of F]
-        int[] u = fresh();
-        u[2] = 0;  u[5] = 1;  u[8] = 2;
-        u[1] = 3;  u[4] = 4;  u[7] = 5;
-        u[0] = 6;  u[3] = 7;  u[6] = 8;
-
-        u[9] = 18;  u[10] = 19;  u[11] = 20;
-        u[36] = 9;  u[37] = 10;  u[38] = 11;
-        u[27] = 36; u[28] = 37;  u[29] = 38;
-        u[18] = 27; u[19] = 28;  u[20] = 29;
-        p[U] = u;
-
-        // ─── L CW ───
-        // L face (9-17) rotates CW
-        //   corners: 9→11→17→15→9  edges: 10→14→16→12→10
-        // Adjacent: U(0,3,6) → F(18,21,24) [left col of U → left col of F]
-        //           F(18,21,24) → D(45,48,51) [left col of F → left col of D]
-        //           D(45,48,51) → B(42,39,36) [left col of D → right col of B, reversed]
-        //           B(42,39,36) → U(6,3,0) [right col of B → left col of U, reversed]
-        int[] l = fresh();
-        l[11] = 9;  l[14] = 10; l[17] = 11;
-        l[10] = 12; l[13] = 13; l[16] = 14;
-        l[9] = 15;  l[12] = 16; l[15] = 17;
-
-        l[18] = 0;  l[21] = 3;  l[24] = 6;
-        l[45] = 18; l[48] = 21; l[51] = 24;
-        l[42] = 45; l[39] = 48; l[36] = 51;
-        l[0] = 42;  l[3] = 39;  l[6] = 36;
-        p[L] = l;
-
-        // ─── F CW ───
-        // F face (18-26) rotates CW
-        //   corners: 18→20→26→24→18  edges: 19→23→25→21→19
-        // Adjacent: U(6,7,8) → R(27,30,33) [bottom of U → left col of R]
-        //           R(27,30,33) → D(47,46,45) [left col of R → top of D, reversed]
-        //           D(47,46,45) → L(11,14,17) [top of D → right col of L]
-        //           L(11,14,17) → U(8,7,6) [right col of L → bottom of U, reversed]
-        int[] f = fresh();
-        f[20] = 18; f[23] = 19; f[26] = 20;
-        f[19] = 21; f[22] = 22; f[25] = 23;
-        f[18] = 24; f[21] = 25; f[24] = 26;
-
-        f[27] = 6;  f[30] = 7;  f[33] = 8;
-        f[47] = 27; f[46] = 30; f[45] = 33;
-        f[11] = 47; f[14] = 46; f[17] = 45;
-        f[6] = 11;  f[7] = 14;  f[8] = 17;
-        p[F] = f;
-
-        // ─── R CW ───
-        // R face (27-35) rotates CW
-        //   corners: 27→29→35→33→27  edges: 28→32→34→30→28
-        // Adjacent: U(2,5,8) → B(36,39,42) [right col of U → left col of B]
-        //           B(36,39,42) → D(47,50,53) [left col of B → right col of D]
-        //           D(47,50,53) → F(20,23,26) [right col of D → right col of F, reversed]
-        //           F(20,23,26) → U(8,5,2) [right col of F → right col of U, reversed]
-        int[] r = fresh();
-        r[29] = 27; r[32] = 28; r[35] = 29;
-        r[28] = 30; r[31] = 31; r[34] = 32;
-        r[27] = 33; r[30] = 34; r[33] = 35;
-
-        r[36] = 2;  r[39] = 5;  r[42] = 8;
-        r[47] = 36; r[50] = 39; r[53] = 42;
-        r[20] = 47; r[23] = 50; r[26] = 53;
-        r[2] = 20;  r[5] = 23;  r[8] = 26;
-        p[R] = r;
-
-        // ─── B CW ───
-        // B face (36-44) rotates CW
-        //   corners: 36→38→44→42→36  edges: 37→41→43→39→37
-        // Adjacent: U(6,7,8) → L(9,12,15) [back of U → left col of L, reversed]
-        //           L(9,12,15) → D(51,52,53) [left col of L → bottom of D]
-        //           D(51,52,53) → R(33,30,27) [bottom of D → right col of R, reversed]
-        //           R(33,30,27) → U(6,7,8) [right col of R → back of U]
-        int[] b2 = fresh();
-        // B face corners
-        b2[38] = 36; b2[44] = 38; b2[42] = 44; b2[36] = 42;
-        // B face edges
-        b2[41] = 37; b2[43] = 41; b2[39] = 43; b2[37] = 39;
-        // Corner cycles
-        b2[8] = 6;   b2[29] = 9;
-        b2[53] = 8;  b2[35] = 29;
-        b2[51] = 53; b2[17] = 35;
-        b2[6] = 51;  b2[9] = 17;
-        // Edge cycles (adjacent facelets only)
-        b2[32] = 7;
-        b2[52] = 32;
-        b2[14] = 52;
-        b2[7] = 14;
-        p[B] = b2;
-
-        // ─── D CW ───
-        // D face (45-53) rotates CW
-        //   corners: 45→47→53→51→45  edges: 46→50→52→48→46
-        // Adjacent: F(24,25,26) → R(33,34,35) [bottom of F → bottom of R]
-        //           R(33,34,35) → B(42,43,44) [bottom of R → bottom of B]
-        //           B(42,43,44) → L(15,16,17) [bottom of B → bottom of L]
-        //           L(15,16,17) → F(24,25,26) [bottom of L → bottom of F]
-        int[] d = fresh();
-        d[47] = 45; d[50] = 46; d[53] = 47;
-        d[46] = 48; d[49] = 49; d[52] = 50;
-        d[45] = 51; d[48] = 52; d[51] = 53;
-
-        d[33] = 24; d[34] = 25; d[35] = 26;
-        d[42] = 33; d[43] = 34; d[44] = 35;
-        d[15] = 42; d[16] = 43; d[17] = 44;
-        d[24] = 15; d[25] = 16; d[26] = 17;
-        p[D] = d;
-
+        // CubeState face order: U=0, L=1, F=2, R=3, B=4, D=5.  (axis 0=x,1=y,2=z; layer; spin sign)
+        p[U] = faceTurn(pos, nrm, lookup, 1,  1, -1);
+        p[L] = faceTurn(pos, nrm, lookup, 0, -1,  1);
+        p[F] = faceTurn(pos, nrm, lookup, 2,  1, -1);
+        p[R] = faceTurn(pos, nrm, lookup, 0,  1, -1);
+        p[B] = faceTurn(pos, nrm, lookup, 2, -1,  1);
+        p[D] = faceTurn(pos, nrm, lookup, 1, -1,  1);
         return p;
     }
 
-    private static int[] fresh() {
-        int[] a = new int[54];
-        for (int i = 0; i < 54; i++) a[i] = i;
-        return a;
+    private interface GeomPosFn { int[] at(int r, int c); }
+
+    private static void fillGeom(int[][] pos, int[][] nrm, int base, int[] n, GeomPosFn fn) {
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++) {
+                int idx = base + 3 * r + c;
+                pos[idx] = fn.at(r, c);
+                nrm[idx] = n;
+            }
+    }
+
+    private static String geomKey(int[] p, int[] n) {
+        return p[0] + "," + p[1] + "," + p[2] + "|" + n[0] + "," + n[1] + "," + n[2];
+    }
+
+    // Rotates an integer (position or normal) vector 90° about the given axis with spin sign s.
+    private static int[] geomRot(int[] v, int axis, int s) {
+        int x = v[0], y = v[1], z = v[2];
+        switch (axis) {
+            case 0:  return new int[]{x, -s * z, s * y};
+            case 1:  return new int[]{s * z, y, -s * x};
+            default: return new int[]{-s * y, s * x, z};
+        }
+    }
+
+    // Builds the facelet permutation for a single layer turn (the layer at pos[axis]==layer),
+    // in the same convention as applyMove: new[i] = old[perm[i]].
+    private static int[] faceTurn(int[][] pos, int[][] nrm, java.util.HashMap<String, Integer> lookup,
+                                  int axis, int layer, int s) {
+        int[] perm = new int[54];
+        for (int i = 0; i < 54; i++) perm[i] = i;
+        for (int j = 0; j < 54; j++) {
+            if (pos[j][axis] != layer) continue;
+            int k = lookup.get(geomKey(geomRot(pos[j], axis, s), geomRot(nrm[j], axis, s)));
+            perm[k] = j;
+        }
+        return perm;
     }
 }

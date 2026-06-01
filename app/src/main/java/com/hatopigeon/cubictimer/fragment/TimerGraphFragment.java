@@ -30,13 +30,11 @@ import com.hatopigeon.cubictimer.stats.Statistics;
 import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.stats.StatisticsCache;
 
-import android.graphics.Typeface;
 import android.widget.LinearLayout;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -721,6 +719,9 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
                     CubicTimer.getDBHandler().getStepStatistics(type, subtype);
             if (!isAdded() || getActivity() == null) return;
             getActivity().runOnUiThread(() -> {
+                // The fragment's view may have been torn down between the isAdded() check above
+                // and this runnable executing; bail out if so to avoid touching unbound views.
+                if (!isAdded() || getView() == null || stepStatsStepTabs == null) return;
                 stepStatistics = s;
                 buildStepSelector();
                 refreshMainTable();

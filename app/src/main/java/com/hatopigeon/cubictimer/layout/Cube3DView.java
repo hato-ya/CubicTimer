@@ -87,7 +87,7 @@ public class Cube3DView extends View {
     private final float[][][] pStick = new float[156][4][2];
     private final float[] depth = new float[156];
     private final boolean[] vis = new boolean[156];
-    private final Integer[] order = new Integer[156];
+    private final int[] order = new int[156];
 
     public Cube3DView(Context context) { this(context, null); }
 
@@ -245,7 +245,7 @@ public class Cube3DView extends View {
             depth[i] = zSum / 4f;
         }
 
-        java.util.Arrays.sort(order, (a, b) -> Float.compare(depth[a], depth[b]));
+        sortOrderByDepth();
 
         for (int oi = 0; oi < order.length; oi++) {
             int i = order[oi];
@@ -260,6 +260,31 @@ public class Cube3DView extends View {
         }
 
         if (animating || !quatSettled) postInvalidateOnAnimation();
+    }
+
+    // Painter's-algorithm sort of the tile indices by ascending depth (farthest first). An
+    // insertion sort over the primitive int[] avoids the per-frame autoboxing/garbage a
+    // Comparator-based Arrays.sort(Integer[]) would create in this 60fps draw path.
+    private void sortOrderByDepth() {
+        for (int i = 1; i < order.length; i++) {
+            int idx = order[i];
+            float d = depth[idx];
+            int j = i - 1;
+            while (j >= 0 && depth[order[j]] > d) {
+                order[j + 1] = order[j];
+                j--;
+            }
+            order[j + 1] = idx;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // Stop the self-perpetuating invalidate loop and drop any queued moves so a detached view
+        // (e.g. after the dialog/fragment is gone) doesn't keep posting frames.
+        pending.clear();
+        animating = false;
     }
 
     private void drawQuad(Canvas canvas, float[][] q, boolean withStroke) {

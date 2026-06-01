@@ -157,7 +157,6 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_bg_image_portrait,
                         R.string.pk_bg_image_landscape,
                         R.string.pk_bg_image_opacity,
-                        R.string.pk_smart_cube_reset_state,
                         R.string.pk_smart_cube_reset_gyro,
                         R.string.pk_smart_cube_orientation,
                         R.string.pk_smart_cube_cross_face)) {
@@ -185,20 +184,6 @@ public class SettingsActivity extends AppCompatActivity {
                                     "cube_gyro_reset_dialog");
                         }
                         break;
-
-                    case R.string.pk_smart_cube_reset_state: {
-                        GanCubeManager mgr = CubicTimer.getCubeBleManager();
-                        if (mgr != null && mgr.isConnected()) {
-                            mgr.requestReset();
-                            Toast.makeText(mContext, R.string.smart_cube_reset_state_done,
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(mContext, R.string.smart_cube_reset_state_not_connected,
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-                    }
-
 
                     case R.string.pk_inspection_time:
                         createNumberDialog(R.string.inspection_time, R.string.pk_inspection_time);

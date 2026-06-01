@@ -1027,12 +1027,18 @@ public class MainActivity extends AppCompatActivity
                             Solve solve = new Solve(
                                 Long.parseLong(line[2]), line[0], line[1], Long.parseLong(line[3]),
                                 line[4], Integer.parseInt(line[5]), line[6], mIsToArchive);
-                            if (line.length >= 9) {
-                                solve.setMoveCount(Integer.parseInt(line[7]));
-                                solve.setTps(Double.parseDouble(line[8]));
-                            }
                             if (line.length >= 10) {
                                 solve.setStepSplits(line[9]);
+                            }
+                            // Optional smart-cube metrics: a malformed value here must not discard
+                            // the whole solve (its time/scramble/penalty are still valid), so parse
+                            // them in their own try and fall back to defaults on failure.
+                            if (line.length >= 9) {
+                                try {
+                                    solve.setMoveCount(Integer.parseInt(line[7]));
+                                    solve.setTps(Double.parseDouble(line[8]));
+                                } catch (NumberFormatException ignored) {
+                                }
                             }
                             solveList.add(solve);
                         } catch (Exception e) {

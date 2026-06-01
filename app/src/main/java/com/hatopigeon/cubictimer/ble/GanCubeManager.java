@@ -32,6 +32,10 @@ public class GanCubeManager extends BleManager {
     private static final String CUBE_COMMAND_CHAR_UUID = "28be4a4a-cd67-11e9-a32f-2a2ae2dbcce4";
     private static final String CUBE_STATE_CHAR_UUID = "28be4cb6-cd67-11e9-a32f-2a2ae2dbcce4";
 
+    // GAN Gen2 state-event types (first 4 bits of a decrypted packet).
+    private static final int EVENT_GYRO = 1, EVENT_MOVE = 2, EVENT_FACELETS = 4,
+            EVENT_HARDWARE = 5, EVENT_BATTERY = 9, EVENT_DISCONNECT = 13;
+
     private static final byte[] KEY = {
         (byte)0x01, (byte)0x02, (byte)0x42, (byte)0x28,
         (byte)0x31, (byte)0x91, (byte)0x16, (byte)0x07,
@@ -106,6 +110,9 @@ public class GanCubeManager extends BleManager {
             derivedKey[i] = KEY[i];
             derivedIv[i] = IV[i];
         }
+        // Mix the MAC-derived salt into the first 6 key/IV bytes. The modulo is 255 (NOT 256) to
+        // match the GAN Gen2 reference implementation (afedotov/gan-web-bluetooth); changing it to
+        // 256 would derive a different key and make the cube's data undecryptable.
         for (int i = 0; i < 6; i++) {
             int sk = (derivedKey[i] & 0xFF) + (salt[i] & 0xFF);
             int siv = (derivedIv[i] & 0xFF) + (salt[i] & 0xFF);
@@ -154,11 +161,16 @@ public class GanCubeManager extends BleManager {
                         onStateData(value);
                     }
                 });
-        enableNotifications(cubeStateCharacteristic).enqueue();
-
-        if (callback != null) {
-            callback.onCubeConnected();
-        }
+        // Notify the callback only once notifications are actually enabled, otherwise the
+        // commands it issues (requestFacelets/requestBattery) can be sent before the cube's
+        // replies can be received and the responses are lost.
+        enableNotifications(cubeStateCharacteristic)
+                .done(device -> {
+                    if (callback != null) {
+                        callback.onCubeConnected();
+                    }
+                })
+                .enqueue();
     }
 
     private void onStateData(byte[] encrypted) {
@@ -171,21 +183,30 @@ public class GanCubeManager extends BleManager {
         }
     }
 
+    // Single AES/CBC cipher reused for every packet (re-initialised per chunk). Cube notifications
+    // are delivered on the main thread, so no synchronisation is needed; avoids the per-packet
+    // Cipher.getInstance() provider lookup in this hot path.
+    private Cipher aesCipher;
+
+    private byte[] cipherChunk(int mode, byte[] src, int offset) throws GeneralSecurityException {
+        if (aesCipher == null) {
+            aesCipher = Cipher.getInstance("AES/CBC/NoPadding");
+        }
+        aesCipher.init(mode, keySpec, ivSpec);
+        return aesCipher.doFinal(src, offset, 16);
+    }
+
     private byte[] decryptData(byte[] data) {
         if (data.length < 16 || keySpec == null || ivSpec == null) return null;
         try {
             byte[] result = data.clone();
             // Decrypt last 16-byte chunk first (aligned to end), then first (aligned to start).
-            // Each chunk uses a fresh cipher with the same IV, matching Gen2 protocol (no CBC chaining between chunks).
+            // Each chunk uses the same IV, matching Gen2 protocol (no CBC chaining between chunks).
             if (result.length > 16) {
-                Cipher tailCipher = Cipher.getInstance("AES/CBC/NoPadding");
-                tailCipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-                byte[] tail = tailCipher.doFinal(result, result.length - 16, 16);
+                byte[] tail = cipherChunk(Cipher.DECRYPT_MODE, result, result.length - 16);
                 System.arraycopy(tail, 0, result, result.length - 16, 16);
             }
-            Cipher headCipher = Cipher.getInstance("AES/CBC/NoPadding");
-            headCipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-            byte[] head = headCipher.doFinal(result, 0, 16);
+            byte[] head = cipherChunk(Cipher.DECRYPT_MODE, result, 0);
             System.arraycopy(head, 0, result, 0, 16);
             return result;
         } catch (GeneralSecurityException e) {
@@ -199,15 +220,10 @@ public class GanCubeManager extends BleManager {
         try {
             byte[] result = data.clone();
             // Encrypt first 16-byte chunk (aligned to start), then last (aligned to end).
-            // Each chunk uses a fresh cipher with the same IV, matching Gen2 protocol.
-            Cipher headCipher = Cipher.getInstance("AES/CBC/NoPadding");
-            headCipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-            byte[] head = headCipher.doFinal(result, 0, 16);
+            byte[] head = cipherChunk(Cipher.ENCRYPT_MODE, result, 0);
             System.arraycopy(head, 0, result, 0, 16);
             if (result.length > 16) {
-                Cipher tailCipher = Cipher.getInstance("AES/CBC/NoPadding");
-                tailCipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-                byte[] tail = tailCipher.doFinal(result, result.length - 16, 16);
+                byte[] tail = cipherChunk(Cipher.ENCRYPT_MODE, result, result.length - 16);
                 System.arraycopy(tail, 0, result, result.length - 16, 16);
             }
             return result;
@@ -223,22 +239,22 @@ public class GanCubeManager extends BleManager {
         int eventType = getBitWord(plain, 0, 4);
 
         switch (eventType) {
-            case 1:
+            case EVENT_GYRO:
                 handleGyroEvent(plain, timestamp);
                 break;
-            case 2:
+            case EVENT_MOVE:
                 handleMoveEvent(plain, timestamp);
                 break;
-            case 4:
+            case EVENT_FACELETS:
                 handleFaceletsEvent(plain, timestamp);
                 break;
-            case 5:
+            case EVENT_HARDWARE:
                 handleHardwareEvent(plain, timestamp);
                 break;
-            case 9:
+            case EVENT_BATTERY:
                 handleBatteryEvent(plain, timestamp);
                 break;
-            case 13:
+            case EVENT_DISCONNECT:
                 disconnect().enqueue();
                 break;
             default:
@@ -269,8 +285,15 @@ public class GanCubeManager extends BleManager {
             lastSerial = serial - 1;
         }
 
-        int diff = Math.min((serial - lastSerial) & 0xFF, 7);
+        // A move event carries at most the last 7 moves. If more than 7 happened since the last
+        // event (a notification gap), the moves beyond 7 are unrecoverable and the tracked state
+        // desyncs from the physical cube, so request a fresh facelet snapshot to resync.
+        int rawDiff = (serial - lastSerial) & 0xFF;
+        int diff = Math.min(rawDiff, 7);
         lastSerial = serial;
+        if (rawDiff > 7) {
+            requestFacelets();
+        }
 
         if (diff > 0) {
             List<CubeMove> moves = new ArrayList<>();

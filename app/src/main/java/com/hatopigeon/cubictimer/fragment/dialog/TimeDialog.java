@@ -313,7 +313,6 @@ public class TimeDialog extends DialogFragment {
 
     /** Renders a generic per-step breakdown ("name:timeMs:moves;...") as rows in the stats layout. */
     private void showStepSplits(String splits, Solve solve) {
-        statsLayout.setVisibility(View.VISIBLE);
         for (String part : splits.split(";")) {
             String[] f = part.split(":");
             if (f.length < 3) continue;
@@ -326,6 +325,7 @@ public class TimeDialog extends DialogFragment {
                 continue;
             }
             if (t < 0) continue; // step was not detected
+            statsLayout.setVisibility(View.VISIBLE);
             String tf = PuzzleUtils.convertTimeToString(
                     t, PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
             String text = StepNames.localized(getContext(), f[0]) + ": " + tf

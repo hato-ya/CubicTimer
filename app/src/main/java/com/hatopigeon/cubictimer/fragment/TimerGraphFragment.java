@@ -33,6 +33,7 @@ import com.hatopigeon.cubictimer.stats.StatisticsCache;
 import android.widget.LinearLayout;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
 import com.github.mikephil.charting.charts.LineChart;
@@ -744,7 +745,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         }
         stepStatsScroll.setVisibility(View.VISIBLE);
         addStepSelectorTab(null, getString(R.string.step_stats_overall));
-        for (String name : stepStatistics.keySet()) addStepSelectorTab(name, name);
+        for (String name : stepStatistics.keySet()) addStepSelectorTab(name, StepNames.localized(mContext, name));
     }
 
     private void addStepSelectorTab(final String stepKey, String label) {

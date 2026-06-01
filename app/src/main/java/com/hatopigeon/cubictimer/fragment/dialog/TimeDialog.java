@@ -43,6 +43,7 @@ import com.hatopigeon.cubictimer.utils.AnimUtils;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ScrambleGenerator;
 import com.hatopigeon.cubictimer.utils.TTIntent;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
 import java.text.DateFormat;
@@ -327,7 +328,8 @@ public class TimeDialog extends DialogFragment {
             if (t < 0) continue; // step was not detected
             String tf = PuzzleUtils.convertTimeToString(
                     t, PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
-            String text = f[0] + ": " + tf + (mv > 0 ? " (" + mv + ")" : "");
+            String text = StepNames.localized(getContext(), f[0]) + ": " + tf
+                    + (mv > 0 ? " (" + mv + ")" : "");
             TextView tv = new TextView(getContext());
             tv.setText(text);
             tv.setTextColor(moveCountText.getTextColors());

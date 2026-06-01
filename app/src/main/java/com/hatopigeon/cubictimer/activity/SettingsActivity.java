@@ -19,6 +19,7 @@ import androidx.annotation.StringRes;
 import androidx.core.view.WindowCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
 import androidx.appcompat.widget.AppCompatSeekBar;
@@ -46,6 +47,7 @@ import com.hatopigeon.cubictimer.fragment.dialog.CubeCrossFaceSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CubeGyroResetDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.CubeOrientationSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -392,6 +394,26 @@ public class SettingsActivity extends AppCompatActivity {
                 });
             }
             refreshSmartCubeDependents(Prefs.getBoolean(R.string.pk_smart_cube_enabled, true));
+
+            ListPreference detectionMethod = findPreference(getString(R.string.pk_smart_cube_detection_method));
+            if (detectionMethod != null) {
+                Context ctx = getContext();
+                String cross = StepNames.localized(ctx, "Cross");
+                String firstLayer = StepNames.localized(ctx, "First layer");
+                String secondLayer = StepNames.localized(ctx, "Second layer");
+                String lastLayer = getString(R.string.step_name_last_layer);
+                String f2l = StepNames.localized(ctx, "F2L");
+                String oll = StepNames.localized(ctx, "OLL");
+                String pll = StepNames.localized(ctx, "PLL");
+
+                CharSequence[] entries = {
+                        getString(R.string.smart_cube_detection_none),
+                        getString(R.string.smart_cube_detection_beginner, cross, firstLayer, secondLayer, lastLayer),
+                        getString(R.string.smart_cube_detection_intermediate, cross, f2l, lastLayer),
+                        getString(R.string.smart_cube_detection_advanced, cross, f2l, oll, pll)
+                };
+                detectionMethod.setEntries(entries);
+            }
 
             mainScreen = getPreferenceScreen();
         }

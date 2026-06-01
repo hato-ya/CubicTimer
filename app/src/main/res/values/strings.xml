@@ -460,6 +460,18 @@
     <string name="smart_cube_reset_gyro_not_connected">Connect a smart cube first</string>
     <string name="smart_cube_show_model_title">Show 3D model</string>
     <string name="smart_cube_show_model_summary">Display the live 3D cube below the timer</string>
+    <!-- Solve-step display labels (stored canonically; localized only for display). -->
+    <string name="step_name_cross">Cross</string>
+    <string name="step_name_f2l" translatable="false">F2L</string>
+    <string name="step_name_oll" translatable="false">OLL</string>
+    <string name="step_name_pll" translatable="false">PLL</string>
+    <string name="step_name_first_layer">First layer</string>
+    <string name="step_name_second_layer">Second layer</string>
+    <string name="step_name_opposite_cross">Opposite cross</string>
+    <string name="step_name_opposite_edges">Opposite edges</string>
+    <string name="step_name_corners_position">Corners position</string>
+    <string name="step_name_corners_orient">Corners orient</string>
+    <string name="step_name_last_layer">last layer</string>
     <string name="step_stats_title">Step statistics</string>
     <string name="step_stats_overall">Overall</string>
     <string name="step_stats_session">Session</string>
@@ -472,9 +484,9 @@
     <string name="smart_cube_detection_method_title">Method Split Timer Detection</string>
     <string name="smart_cube_detection_method_summary">How a solve is split into steps</string>
     <string name="smart_cube_detection_none">None</string>
-    <string name="smart_cube_detection_advanced">CFOP Advanced (4 steps)\n<small>Cross / F2L / OLL / PLL</small></string>
-    <string name="smart_cube_detection_intermediate">CFOP Intermediate (6 steps)\n<small>Cross / F2L / last layer</small></string>
-    <string name="smart_cube_detection_beginner">CFOP Beginner (7 steps)\n<small>Cross / 1st layer / 2nd layer / last layer</small></string>
+    <string name="smart_cube_detection_advanced">CFOP Advanced (4 steps)\n<small>%1$s / %2$s / %3$s / %4$s</small></string>
+    <string name="smart_cube_detection_intermediate">CFOP Intermediate (6 steps)\n<small>%1$s / %2$s / %3$s</small></string>
+    <string name="smart_cube_detection_beginner">CFOP Beginner (7 steps)\n<small>%1$s / %2$s / %3$s / %4$s</small></string>
     <string name="smart_cube_orientation_title">Holding orientation</string>
     <string name="smart_cube_orientation_summary">Set which faces you hold on top and in front, for correct scramble highlighting</string>
     <string name="smart_cube_orientation_instruction">Tap the top face, then the front face</string>

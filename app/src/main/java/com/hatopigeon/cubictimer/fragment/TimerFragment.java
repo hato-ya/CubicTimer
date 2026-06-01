@@ -472,6 +472,8 @@ public class TimerFragment extends BaseFragment
     // (including advanced) is detected through this generic path; methodSteps == null means "none".
     private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
             STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6, STEP_OLL = 7;
+    // NAMES_* are canonical identifiers: they are persisted into step_splits and used as map keys
+    // for aggregation/ordering, so they must NOT change. Localize for display via StepNames only.
     private static final int[] STEPS_ADVANCED = {STEP_CROSS, STEP_SECOND, STEP_OLL, STEP_SOLVED};
     private static final String[] NAMES_ADVANCED = {"Cross", "F2L", "OLL", "PLL"};
     private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,

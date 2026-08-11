@@ -1061,6 +1061,7 @@ public class TimerFragment extends BaseFragment
          *  it detects if it's clipping and automatically compensates for that by creating a button.
          */
         scrambleText.setTextSize(TypedValue.COMPLEX_UNIT_PX, scrambleText.getTextSize() * scrambleTextSize);
+        configureScrambleHighlightSpacing();
 
         if (advancedEnabled) {
             chronometer.setAutoSizeTextTypeUniformWithConfiguration(
@@ -1528,6 +1529,21 @@ public class TimerFragment extends BaseFragment
                         setEnabled(true);
                     }
                 });
+    }
+
+    private void configureScrambleHighlightSpacing() {
+        boolean smartCubeAvailable = PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
+
+        int padV = smartCubeAvailable ? ThemeUtils.dpToPix(mContext, 6) : 0;
+        float lineSpacingExtra = smartCubeAvailable ? ThemeUtils.dpToPix(mContext, 4) : 0f;
+
+        scrambleText.setPadding(
+                scrambleText.getPaddingLeft(),
+                padV,
+                scrambleText.getPaddingRight(),
+                padV
+        );
+        scrambleText.setLineSpacing(lineSpacingExtra, 1.0f);
     }
 
     @Override

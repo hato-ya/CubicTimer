@@ -418,15 +418,9 @@ public class SettingsActivity extends AppCompatActivity {
             mainScreen = getPreferenceScreen();
         }
 
-        // Smart-cube preferences disabled unless the feature is on and a cube is connected.
-        // "show cube status" and the master toggle itself stay enabled.
+        // Reset cube state disabled unless the feature is on and a cube is connected
         private static final int[] SMART_CUBE_DEPENDENT_KEYS = {
-                R.string.pk_show_cube_move_details,
-                R.string.pk_smart_cube_cross_face,
-                R.string.pk_smart_cube_orientation,
                 R.string.pk_smart_cube_reset_gyro,
-                R.string.pk_smart_cube_show_model,
-                R.string.pk_smart_cube_detection_method,
         };
 
         private void refreshSmartCubeDependents(boolean smartCubeOn) {

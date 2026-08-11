@@ -98,6 +98,7 @@ THESE KEYS MUST NOT BE LOCALIZED!
     <string translatable="false" name="pk_open_timer_behavior_settings">timerBehavior</string>
     <string translatable="false" name="pk_open_inspection_behavior_settings">inspectionBehavior</string>
     <string translatable="false" name="pk_open_stack_timer_settings">stackTimerBehavior</string>
+    <string translatable="false" name="pk_open_smart_cube_settings">smartCubeBehavior</string>
 
     <string translatable="false" name="pk_timer_bg_enabled">backgroundEnabled</string>
     <string translatable="false" name="pk_enable_thousandth">enableThousandth</string>

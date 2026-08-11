@@ -357,6 +357,21 @@
                     android:title="@string/bleStatusEnabledTitle" />
             </PreferenceCategory>
 
+            <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_inspectionByResetEnabled"
+                    android:key="@string/pk_inspection_by_reset_enabled"
+                    android:summary="@string/inspectionByResetEnabledSummary"
+                    android:title="@string/inspectionByResetEnabledTitle" />
+            </PreferenceCategory>
+
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_cube_outline_pref_24px"
+            android:key="@string/pk_open_smart_cube_settings"
+            android:title="@string/pref_screen_title_smart_cube">
+
             <PreferenceCategory android:title="@string/pref_category_title_smart_cube">
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_smartCubeEnabled"
@@ -364,6 +379,13 @@
                     android:summary="@string/smart_cube_enabled_summary"
                     android:title="@string/smart_cube_enabled_title" />
 
+                <Preference
+                    android:key="@string/pk_smart_cube_reset_gyro"
+                    android:summary="@string/smart_cube_reset_gyro_summary"
+                    android:title="@string/smart_cube_reset_gyro_title" />
+            </PreferenceCategory>
+
+            <PreferenceCategory android:title="@string/pref_category_title_smart_cube_appearance">
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_cubeStatusEnabled"
                     android:key="@string/pk_show_cube_status"
@@ -372,9 +394,25 @@
 
                 <SwitchPreferenceCompat
                     android:defaultValue="@bool/default_cubeMoveDetailsEnabled"
+                    android:dependency="@string/pk_show_cube_status"
                     android:key="@string/pk_show_cube_move_details"
                     android:summary="@string/cubeMoveDetailsEnabledSummary"
                     android:title="@string/cubeMoveDetailsEnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeShowModelEnabled"
+                    android:key="@string/pk_smart_cube_show_model"
+                    android:summary="@string/smart_cube_show_model_summary"
+                    android:title="@string/smart_cube_show_model_title" />
+
+            </PreferenceCategory>
+
+            <PreferenceCategory android:title="@string/pref_category_title_smart_cube_behavior">
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeAutoStartStopEnabled"
+                    android:key="@string/pk_smart_cube_auto_start_stop"
+                    android:summary="@string/smart_cube_auto_start_stop_summary"
+                    android:title="@string/smart_cube_auto_start_stop_title" />
 
                 <ListPreference
                     android:defaultValue="advanced"
@@ -383,18 +421,6 @@
                     android:key="@string/pk_smart_cube_detection_method"
                     android:summary="@string/smart_cube_detection_method_summary"
                     android:title="@string/smart_cube_detection_method_title" />
-
-                <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_smartCubeShowModelEnabled"
-                    android:key="@string/pk_smart_cube_show_model"
-                    android:summary="@string/smart_cube_show_model_summary"
-                    android:title="@string/smart_cube_show_model_title" />
-
-                <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_smartCubeAutoStartStopEnabled"
-                    android:key="@string/pk_smart_cube_auto_start_stop"
-                    android:summary="@string/smart_cube_auto_start_stop_summary"
-                    android:title="@string/smart_cube_auto_start_stop_title" />
 
                 <Preference
                     android:key="@string/pk_smart_cube_cross_face"
@@ -405,19 +431,6 @@
                     android:key="@string/pk_smart_cube_orientation"
                     android:summary="@string/smart_cube_orientation_summary"
                     android:title="@string/smart_cube_orientation_title" />
-
-                <Preference
-                    android:key="@string/pk_smart_cube_reset_gyro"
-                    android:summary="@string/smart_cube_reset_gyro_summary"
-                    android:title="@string/smart_cube_reset_gyro_title" />
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">
-                <SwitchPreferenceCompat
-                    android:defaultValue="@bool/default_inspectionByResetEnabled"
-                    android:key="@string/pk_inspection_by_reset_enabled"
-                    android:summary="@string/inspectionByResetEnabledSummary"
-                    android:title="@string/inspectionByResetEnabledTitle" />
             </PreferenceCategory>
 
         </PreferenceScreen>

@@ -242,7 +242,7 @@
         android:id="@+id/multi_phase_status_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/ble_status_message"
+        android:layout_above="@id/serial_status_message"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="4dp"
         android:layout_marginBottom="0dp"
@@ -257,10 +257,10 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/cube_state_message"
+        android:id="@+id/serial_status_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/serial_status_message"
+        android:layout_above="@id/ble_status_message"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="4dp"
         android:layout_marginBottom="0dp"
@@ -269,7 +269,7 @@
         android:paddingTop="0dp"
         android:paddingRight="6dp"
         android:paddingBottom="4dp"
-        android:text="@string/smart_cube_status_message"
+        android:text="@string/timer_serial_status_message"
         android:textColor="?colorTimerText"
         android:textSize="12sp"
         android:textStyle="bold" />
@@ -293,7 +293,7 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/serial_status_message"
+        android:id="@+id/cube_state_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/sessionDetailTextOther"
@@ -305,7 +305,7 @@
         android:paddingTop="0dp"
         android:paddingRight="6dp"
         android:paddingBottom="4dp"
-        android:text="@string/timer_serial_status_message"
+        android:text="@string/smart_cube_status_message"
         android:textColor="?colorTimerText"
         android:textSize="12sp"
         android:textStyle="bold" />

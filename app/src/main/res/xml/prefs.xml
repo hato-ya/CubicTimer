@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/pref_category_title_locale">
 
@@ -354,6 +355,61 @@
                     android:key="@string/pk_show_ble_status"
                     android:summary="@string/bleStatusEnabledSummary"
                     android:title="@string/bleStatusEnabledTitle" />
+            </PreferenceCategory>
+
+            <PreferenceCategory android:title="@string/pref_category_title_smart_cube">
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeEnabled"
+                    android:key="@string/pk_smart_cube_enabled"
+                    android:summary="@string/smart_cube_enabled_summary"
+                    android:title="@string/smart_cube_enabled_title" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_cubeStatusEnabled"
+                    android:key="@string/pk_show_cube_status"
+                    android:summary="@string/cubeStatusEnabledSummary"
+                    android:title="@string/cubeStatusEnabledTitle" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_cubeMoveDetailsEnabled"
+                    android:key="@string/pk_show_cube_move_details"
+                    android:summary="@string/cubeMoveDetailsEnabledSummary"
+                    android:title="@string/cubeMoveDetailsEnabledTitle" />
+
+                <ListPreference
+                    android:defaultValue="advanced"
+                    android:entries="@array/pref_array_detection_method"
+                    android:entryValues="@array/pk_pref_array_detection_method"
+                    android:key="@string/pk_smart_cube_detection_method"
+                    android:summary="@string/smart_cube_detection_method_summary"
+                    android:title="@string/smart_cube_detection_method_title" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeShowModelEnabled"
+                    android:key="@string/pk_smart_cube_show_model"
+                    android:summary="@string/smart_cube_show_model_summary"
+                    android:title="@string/smart_cube_show_model_title" />
+
+                <SwitchPreferenceCompat
+                    android:defaultValue="@bool/default_smartCubeAutoStartStopEnabled"
+                    android:key="@string/pk_smart_cube_auto_start_stop"
+                    android:summary="@string/smart_cube_auto_start_stop_summary"
+                    android:title="@string/smart_cube_auto_start_stop_title" />
+
+                <Preference
+                    android:key="@string/pk_smart_cube_cross_face"
+                    android:summary="@string/smart_cube_cross_face_summary"
+                    android:title="@string/smart_cube_cross_face_title" />
+
+                <Preference
+                    android:key="@string/pk_smart_cube_orientation"
+                    android:summary="@string/smart_cube_orientation_summary"
+                    android:title="@string/smart_cube_orientation_title" />
+
+                <Preference
+                    android:key="@string/pk_smart_cube_reset_gyro"
+                    android:summary="@string/smart_cube_reset_gyro_summary"
+                    android:title="@string/smart_cube_reset_gyro_title" />
             </PreferenceCategory>
 
             <PreferenceCategory android:title="@string/pref_category_title_stack_timer_behavior">

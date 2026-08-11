@@ -716,7 +716,7 @@ public class PuzzleUtils {
                 timeMillis += Long.valueOf(strMillis);
             }
         } catch (NumberFormatException ignore) {
-            timeMillis = 0; // Invalid time format.
+            timeMillis = -1; // Invalid time format.
         }
 
         return timeMillis;
@@ -1027,6 +1027,10 @@ public class PuzzleUtils {
      */
     public static boolean isTimeDisabled (String puzzleType) {
         return puzzleType.equals(TYPE_333FMC) || puzzleType.equals(TYPE_333MBLD);
+    }
+
+    public static boolean isSmartCubeAvailable(String puzzleType) {
+        return puzzleType.equals(TYPE_333) || puzzleType.equals(TYPE_333OH) || puzzleType.equals(TYPE_333BLD);
     }
 
     /**

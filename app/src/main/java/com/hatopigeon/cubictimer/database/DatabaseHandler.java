@@ -41,7 +41,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String KEY_PENALTY  = "penalty";
     public static final String KEY_COMMENT  = "comment";
     public static final String KEY_HISTORY  = "history";
-
+    public static final String KEY_MOVE_COUNT = "move_count";
+    public static final String KEY_TPS        = "tps";
+    // Generic per-step breakdown for all detection methods (advanced/intermediate/beginner),
+    // serialized as "name:timeMs:moves;name:timeMs:moves;...". Empty when no step detection ran.
+    public static final String KEY_STEP_SPLITS = "step_splits";
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
@@ -55,6 +59,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final int IDX_PENALTY  = 6;
     public static final int IDX_COMMENT  = 7;
     public static final int IDX_HISTORY  = 8;
+    public static final int IDX_MOVE_COUNT = 9;
+    public static final int IDX_TPS        = 10;
+    public static final int IDX_STEP_SPLITS = 11;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -67,15 +74,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_OLL = "OLL";
     public static final String SUBSET_PLL = "PLL";
 
-    private static final String RED                = "R";
-    private static final String GRE                = "G";
-    private static final String BLU                = "B";
-    private static final String ORA                = "O";
-    private static final String WHI                = "W";
-    private static final String YEL                = "Y";
-    private static final String NUL                = "N";
     // Database Version
-    private static final int    DATABASE_VERSION   = 10;
+    private static final int    DATABASE_VERSION   = 11;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -88,7 +88,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_SCRAMBLE + " TEXT,"
             + KEY_PENALTY + " INTEGER,"
             + KEY_COMMENT + " TEXT,"
-            + KEY_HISTORY + " BOOLEAN"
+            + KEY_HISTORY + " BOOLEAN,"
+            + KEY_MOVE_COUNT + " INTEGER DEFAULT 0,"
+            + KEY_TPS + " REAL DEFAULT 0.0,"
+            + KEY_STEP_SPLITS + " TEXT DEFAULT ''"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -139,11 +142,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             case 6:
                 db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_HISTORY + " BOOLEAN DEFAULT 0");
                 // Fall through to the next upgrade step.
+            case 7:
             case 8:
                 Prefs.edit()
                         .putInt(R.string.pk_timer_text_size,
                                 Prefs.getInt(R.string.pk_timer_text_size, 10) * 10)
                         .apply();
+                // Fall through to add new columns for existing users.
+            case 9:
+            case 10:
+                // Smart-cube columns: move count, TPS, and the generic per-step breakdown.
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_MOVE_COUNT + " INTEGER DEFAULT 0");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
+                } catch (Exception ignored) {}
+                try {
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_STEP_SPLITS + " TEXT DEFAULT ''");
+                } catch (Exception ignored) {}
         }
     }
 
@@ -311,6 +328,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private long addSolveInternal(SQLiteDatabase db, Solve solve) {
         // Cutting off last digit to fix rounding errors
         long time = solve.getTime();
+        if (time <= 0L && solve.getRawPenalty() != PuzzleUtils.PENALTY_DNF) {
+            Log.w("DatabaseHandler", "Rejecting solve with invalid time: " + time
+                    + ", penalty=" + solve.getRawPenalty());
+            return -1;
+        }
 
         ContentValues values = new ContentValues();
 
@@ -322,6 +344,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_PENALTY, solve.getRawPenalty());
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
+        values.put(KEY_MOVE_COUNT, solve.getMoveCount());
+        values.put(KEY_TPS, solve.getTps());
+        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Inserting Row
         return db.insert(TABLE_TIMES, null, values);
@@ -403,6 +428,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_PENALTY, solve.getRawPenalty());
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
+        values.put(KEY_MOVE_COUNT, solve.getMoveCount());
+        values.put(KEY_TPS, solve.getTps());
+        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
@@ -424,12 +452,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         final Cursor cursor = getReadableDatabase().query(TABLE_TIMES,
                 new String[] {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
-                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY },
+                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
+                        KEY_STEP_SPLITS },
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
             if (cursor.moveToFirst()) {
-                return new Solve(
+                Solve solve = new Solve(
                         cursor.getLong(0),
                         cursor.getLong(1),
                         cursor.getString(2),
@@ -439,6 +468,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getInt(6),
                         cursor.getString(7),
                         getBoolean(cursor, 8));
+                solve.setMoveCount(cursor.getInt(9));
+                solve.setTps(cursor.getDouble(10));
+                solve.setStepSplits(cursor.getString(11));
+                return solve;
             }
 
             // No solve matched the given ID.
@@ -446,6 +479,73 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } finally {
             cursor.close();
         }
+    }
+
+    // Preferred order for detected steps; unknown names are appended in first-seen order. These are
+    // canonical step keys (matching TimerFragment.NAMES_*), not display text — localized via
+    // StepNames at render time.
+    private static final String[] STEP_ORDER = {
+        "Cross", "F2L", "OLL", "PLL",
+        "First layer", "Second layer", "Opposite cross", "Opposite edges",
+        "Corners position", "Corners orient",
+    };
+
+    /**
+     * Builds a full {@link Statistics} object per solve step (cross, F2L, … or the beginner steps),
+     * fed with each step's per-solve times in chronological order, so the timer-graph table can be
+     * rendered for each step exactly like the overall stats. Reads the generic step breakdown,
+     * which every detection method (advanced/intermediate/beginner) writes.
+     */
+    public java.util.LinkedHashMap<String, Statistics> getStepStatistics(String type, String subtype) {
+        java.util.LinkedHashMap<String, Statistics> map = new java.util.LinkedHashMap<>();
+        final String sql = "SELECT " + KEY_STEP_SPLITS + ", " + KEY_PENALTY + ", "
+                + KEY_HISTORY + ", " + KEY_DATE + " FROM " + TABLE_TIMES
+                + " WHERE " + KEY_TYPE + "=? AND " + KEY_SUBTYPE + "=? ORDER BY " + KEY_DATE + " ASC";
+        final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
+
+        org.joda.time.DateTime dtNow = new org.joda.time.DateTime();
+        org.joda.time.DateTime dtFrom, dtTo;
+        if (dtNow.getHourOfDay() < 5) {
+            dtTo = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            dtNow = dtNow.minusDays(1);
+            dtFrom = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+        } else {
+            dtFrom = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+            dtNow = dtNow.plusDays(1);
+            dtTo = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
+        }
+        try {
+            while (cursor.moveToNext()) {
+                if (Solve.getPenalty(cursor.getInt(1)) == PuzzleUtils.PENALTY_DNF) continue;
+                boolean session = cursor.getInt(2) == 0; // current session = not archived
+                long date = cursor.getLong(3);
+                boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
+                String splits = cursor.getString(0);
+                if (splits == null || splits.isEmpty()) continue;
+                for (String part : splits.split(";")) {
+                    String[] f = part.split(":");
+                    if (f.length < 2) continue;
+                    long t;
+                    try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
+                    if (t > 0) addStepTime(map, f[0], t, session, today, type);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+
+        // Re-order canonically.
+        java.util.LinkedHashMap<String, Statistics> ordered = new java.util.LinkedHashMap<>();
+        for (String name : STEP_ORDER) if (map.containsKey(name)) ordered.put(name, map.remove(name));
+        ordered.putAll(map);
+        return ordered;
+    }
+
+    private static void addStepTime(java.util.LinkedHashMap<String, Statistics> map, String name,
+                                    long time, boolean session, boolean today, String puzzleType) {
+        Statistics st = map.get(name);
+        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(name, st); }
+        st.addTime(time, session, today);
     }
 
     public boolean getBoolean(Cursor cursor, int columnIndex) {
@@ -539,7 +639,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(isForCurrentSession, isToday);
-                } else {
+                } else if (cursor.getLong(timeCol) > 0) {
                     statistics.addTime(cursor.getLong(timeCol), isForCurrentSession, isToday);
                 }
             }
@@ -596,7 +696,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 if (Solve.getPenalty(cursor.getInt(penaltyCol)) == PuzzleUtils.PENALTY_DNF) {
                     statistics.addDNF(cursor.getLong(dateCol));
-                } else {
+                } else if (cursor.getLong(timeCol) > 0) {
                     statistics.addTime(cursor.getLong(timeCol), cursor.getLong(dateCol));
                 }
             }

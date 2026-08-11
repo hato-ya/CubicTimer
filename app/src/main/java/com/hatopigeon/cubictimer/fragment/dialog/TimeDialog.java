@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +43,7 @@ import com.hatopigeon.cubictimer.utils.AnimUtils;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
 import com.hatopigeon.cubictimer.utils.ScrambleGenerator;
 import com.hatopigeon.cubictimer.utils.TTIntent;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 
 import java.text.DateFormat;
@@ -69,7 +71,9 @@ public class TimeDialog extends DialogFragment {
     @BindView(R.id.commentText)       TextView  commentText;
     @BindView(R.id.overflowButton)    ImageView overflowButton;
     @BindView(R.id.scramble_image)    ImageView scrambleImage;
-
+    @BindView(R.id.statsLayout)       LinearLayout statsLayout;
+    @BindView(R.id.moveCountText)     TextView     moveCountText;
+    @BindView(R.id.tpsText)           TextView     tpsText;
     private long            mId;
     private Solve           solve;
     private DialogListener  dialogListener;
@@ -280,6 +284,17 @@ public class TimeDialog extends DialogFragment {
                 }
             }
 
+            if (solve.getMoveCount() > 0) {
+                statsLayout.setVisibility(View.VISIBLE);
+                moveCountText.setText(getString(R.string.smart_cube_move_count, solve.getMoveCount()));
+                tpsText.setText(getString(R.string.smart_cube_tps, solve.getTps()));
+            }
+
+            String stepSplits = solve.getStepSplits();
+            if (stepSplits != null && !stepSplits.isEmpty()) {
+                showStepSplits(stepSplits, solve);
+            }
+
             if (solve.getScramble() != null) {
                 if (solve.getScramble().equals(""))
                     scrambleText.setVisibility(View.GONE);
@@ -294,6 +309,34 @@ public class TimeDialog extends DialogFragment {
         }
 
         return dialogView;
+    }
+
+    /** Renders a generic per-step breakdown ("name:timeMs:moves;...") as rows in the stats layout. */
+    private void showStepSplits(String splits, Solve solve) {
+        for (String part : splits.split(";")) {
+            String[] f = part.split(":");
+            if (f.length < 3) continue;
+            long t;
+            int mv;
+            try {
+                t = Long.parseLong(f[1]);
+                mv = Integer.parseInt(f[2]);
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            if (t < 0) continue; // step was not detected
+            statsLayout.setVisibility(View.VISIBLE);
+            String tf = PuzzleUtils.convertTimeToString(
+                    t, PuzzleUtils.FORMAT_SINGLE, solve.getPuzzle(), true);
+            String text = StepNames.localized(getContext(), f[0]) + ": " + tf
+                    + (mv > 0 ? " (" + mv + ")" : "");
+            TextView tv = new TextView(getContext());
+            tv.setText(text);
+            tv.setTextColor(moveCountText.getTextColors());
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, moveCountText.getTextSize());
+            tv.setGravity(moveCountText.getGravity());
+            statsLayout.addView(tv);
+        }
     }
 
     @Override

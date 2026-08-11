@@ -27,12 +27,15 @@ import com.hatopigeon.cubictimer.stats.ChartStatistics;
 import com.hatopigeon.cubictimer.stats.ChartStatisticsLoader;
 import com.hatopigeon.cubictimer.stats.ChartStyle;
 import com.hatopigeon.cubictimer.stats.Statistics;
+import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.stats.StatisticsCache;
+
+import android.widget.LinearLayout;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -125,6 +128,12 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
     @BindView(R.id.stats_card)
         CardView statsCard;
+
+    @BindView(R.id.stats_step_scroll) View         stepStatsScroll;
+    @BindView(R.id.stats_step_tabs)   LinearLayout stepStatsStepTabs;
+    private Statistics overallStats;          // the full-solve statistics
+    private String stepStatsSelected;         // selected step name, or null for "Overall"
+    private java.util.LinkedHashMap<String, Statistics> stepStatistics;
 
     private boolean sessionStatsEnabled;
     private boolean todaysStatsEnabled;
@@ -229,38 +238,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         // However, this may lead to the whole chart being squeezed into a few vertical pixels.
         // Therefore, set a fixed height for the chart that will force the statistics table to be
         // scrolled down to allow the chart to fit.
-        statsCard.post(() -> {
-            if (lineChartView != null) {
-                final ViewGroup.LayoutParams chartParams = lineChartView.getLayoutParams();
-                final int cardHeight = statsCard.getHeight();
-                // ATTENTION: 134dp is the sum of the actionBarPadding and tabBarPadding attributes,
-                // plus 16 dp for the view padding! Keep these in sync.
-                final int viewHeight = view.getHeight()
-                                       - ThemeUtils.dpToPix(mContext, 134);
-                if (chartParams != null) {
-                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        chartParams.height = viewHeight;
-                        lineChartView.setLayoutParams(chartParams);
-                        lineChartView.requestLayout();
-                        statsContainerPager.requestLayout();
-                    } else {
-                        // On portrait mode, if the stats card occupies less than 40% of the view,
-                        // the graph should fill all remaining space.
-                        // If the stats card is bigger than 40%, the graph should occupy 70% of the view,
-                        // and the user will have to scroll down to see the card
-                        Log.d(TAG, "card: " + cardHeight + " | view: " + viewHeight + " | div: " + ((float) cardHeight / (float) viewHeight));
-                        if (((float) cardHeight / (float) viewHeight) <= 0.4f)
-                            chartParams.height = viewHeight - cardHeight;
-                        else
-                            chartParams.height = (int) (viewHeight * 0.7f);
-
-                        lineChartView.setLayoutParams(chartParams);
-                        lineChartView.requestLayout();
-                        statsContainerPager.requestLayout();
-                    }
-                }
-            }
-        });
+        statsCard.post(this::adjustChartHeight);
 
         // Preferences //
         sessionStatsEnabled = Prefs.getBoolean(R.string.pk_stat_session_enabled, true);
@@ -681,17 +659,113 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
 
         // "tr()" converts from "AverageCalculatorSuper.UNKNOWN" and "AverageCalculatorSuper.DNF" to
         // the values needed by "convertTimeToString".
-
-        ArrayList<Stat> averageList = buildAverageList(stats);
-        ArrayList<Stat> otherList = buildOtherStatList(stats);
-        ArrayList<Stat> improvementList = buildImprovementStatList(stats);
-        statsAverageGridView.setAdapter(new StatGridAdapter(mContext, averageList));
-        statsOtherGridView.setAdapter(new StatGridAdapter(mContext, otherList));
-        statsImprovementGridView.setAdapter(new StatGridAdapter(mContext, improvementList));
-
+        overallStats = stats;
+        refreshMainTable();
 
         // Display the statistics and hide the progress bar.
         setStatsTableVisibility(View.VISIBLE);
+
+        loadStepStats();
+    }
+
+    /** Populates the main stats grids with the overall stats or the selected step's stats. */
+    private void refreshMainTable() {
+        Statistics stats = overallStats;
+        if (stepStatsSelected != null && stepStatistics != null
+                && stepStatistics.containsKey(stepStatsSelected)) {
+            stats = stepStatistics.get(stepStatsSelected);
+        }
+        if (stats == null) return;
+        statsAverageGridView.setAdapter(new StatGridAdapter(mContext, buildAverageList(stats)));
+        statsOtherGridView.setAdapter(new StatGridAdapter(mContext, buildOtherStatList(stats)));
+        statsImprovementGridView.setAdapter(new StatGridAdapter(mContext, buildImprovementStatList(stats)));
+        // The card's height changes once the grids/step row are populated, so re-fit the chart
+        // afterwards (post() runs after the next layout pass when the card has its final height).
+        if (statsCard != null) statsCard.post(this::adjustChartHeight);
+    }
+
+    /**
+     * Resizes the chart so the whole stats card (including its last row) fits without scrolling.
+     * Must run after the card has its final height (i.e. after the grids are populated).
+     */
+    private void adjustChartHeight() {
+        final View view = getView();
+        if (view == null || lineChartView == null) return;
+        final ViewGroup.LayoutParams chartParams = lineChartView.getLayoutParams();
+        if (chartParams == null) return;
+        final int cardHeight = statsCard.getHeight();
+        // ATTENTION: 134dp is the sum of the actionBarPadding and tabBarPadding attributes,
+        // plus 16 dp for the view padding! Keep these in sync.
+        final int viewHeight = view.getHeight() - ThemeUtils.dpToPix(mContext, 134);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            chartParams.height = viewHeight;
+        } else {
+            // On portrait, give the chart the space left after the stats card so the whole card
+            // (including its last row) is visible without scrolling, but keep a minimum chart
+            // height so it is never squeezed away.
+            Log.d(TAG, "card: " + cardHeight + " | view: " + viewHeight + " | div: " + ((float) cardHeight / (float) viewHeight));
+            int minChartHeight = ThemeUtils.dpToPix(mContext, 80);
+            chartParams.height = Math.max(viewHeight - cardHeight, minChartHeight);
+        }
+        lineChartView.setLayoutParams(chartParams);
+        lineChartView.requestLayout();
+        statsContainerPager.requestLayout();
+    }
+
+    /** Loads per-step statistics off the UI thread, then builds the step selector row. */
+    private void loadStepStats() {
+        final String type = currentPuzzle, subtype = currentPuzzleSubtype;
+        new Thread(() -> {
+            final java.util.LinkedHashMap<String, Statistics> s =
+                    CubicTimer.getDBHandler().getStepStatistics(type, subtype);
+            if (!isAdded() || getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                // The fragment's view may have been torn down between the isAdded() check above
+                // and this runnable executing; bail out if so to avoid touching unbound views.
+                if (!isAdded() || getView() == null || stepStatsStepTabs == null) return;
+                stepStatistics = s;
+                buildStepSelector();
+                refreshMainTable();
+            });
+        }).start();
+    }
+
+    /** Builds the step selector row inside the main stats card ("Overall" + one tab per step). */
+    private void buildStepSelector() {
+        if (stepStatsStepTabs == null || stepStatsScroll == null) return;
+        stepStatsStepTabs.removeAllViews();
+        if (stepStatistics == null || stepStatistics.isEmpty()) {
+            stepStatsScroll.setVisibility(View.GONE);
+            stepStatsSelected = null;
+            return;
+        }
+        // Drop a stale selection.
+        if (stepStatsSelected != null && !stepStatistics.containsKey(stepStatsSelected)) {
+            stepStatsSelected = null;
+        }
+        stepStatsScroll.setVisibility(View.VISIBLE);
+        addStepSelectorTab(null, getString(R.string.step_stats_overall));
+        for (String name : stepStatistics.keySet()) addStepSelectorTab(name, StepNames.localized(mContext, name));
+    }
+
+    private void addStepSelectorTab(final String stepKey, String label) {
+        TextView tab = new TextView(mContext, null, R.attr.statTextStyle);
+        tab.setText(label);
+        tab.setGravity(android.view.Gravity.CENTER);
+        tab.setPadding(ThemeUtils.dpToPix(mContext, 10), ThemeUtils.dpToPix(mContext, 6),
+                ThemeUtils.dpToPix(mContext, 10), ThemeUtils.dpToPix(mContext, 6));
+        boolean selected = (stepKey == null) ? stepStatsSelected == null : stepKey.equals(stepStatsSelected);
+        tab.setBackground(selected ? buttonDrawable.getConstantState().newDrawable()
+                : buttonDrawableFaded.getConstantState().newDrawable());
+        tab.setTextColor(ThemeUtils.fetchAttrColor(mContext, selected
+                ? R.attr.graph_stats_card_text_color : R.attr.graph_stats_card_text_color_faded));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        lp.setMargins(ThemeUtils.dpToPix(mContext, 4), ThemeUtils.dpToPix(mContext, 4),
+                ThemeUtils.dpToPix(mContext, 4), ThemeUtils.dpToPix(mContext, 4));
+        tab.setLayoutParams(lp);
+        tab.setOnClickListener(v -> { stepStatsSelected = stepKey; buildStepSelector(); refreshMainTable(); });
+        stepStatsStepTabs.addView(tab);
     }
 
     private ArrayList<Stat> buildImprovementStatList(Statistics stats) {

@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import androidx.multidex.MultiDexApplication;
 
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 
@@ -24,6 +25,17 @@ public class CubicTimer extends MultiDexApplication {
      * The cached reference to the application context.
      */
     private static Context sAppContext;
+
+    /**
+     * The smart cube BLE manager. Stored at Application level so it survives
+     * fragment replacement and activity recreation.
+     */
+    private static GanCubeManager sCubeBleManager;
+
+    /**
+     * The MAC address of the connected smart cube.
+     */
+    private static String sCubeMacAddress;
 
     @Override
     public void onCreate() {
@@ -91,5 +103,39 @@ public class CubicTimer extends MultiDexApplication {
      */
     public static Context getAppContext() {
         return sAppContext;
+    }
+
+    /**
+     * Stores the smart cube BLE manager and its MAC address in the Application singleton.
+     * The manager survives fragment replacement and activity recreation.
+     */
+    public static void setCubeBleManager(GanCubeManager manager, String macAddress) {
+        sCubeBleManager = manager;
+        sCubeMacAddress = macAddress;
+    }
+
+    /**
+     * Returns the smart cube BLE manager if one has been created, null otherwise.
+     */
+    public static GanCubeManager getCubeBleManager() {
+        return sCubeBleManager;
+    }
+
+    /**
+     * Returns the MAC address of the connected smart cube, or null.
+     */
+    public static String getCubeMacAddress() {
+        return sCubeMacAddress;
+    }
+
+    /**
+     * Disconnects and closes the smart cube BLE manager, clearing the singleton.
+     */
+    public static void clearCubeBleManager() {
+        if (sCubeBleManager != null) {
+            sCubeBleManager.close();
+            sCubeBleManager = null;
+        }
+        sCubeMacAddress = null;
     }
 }

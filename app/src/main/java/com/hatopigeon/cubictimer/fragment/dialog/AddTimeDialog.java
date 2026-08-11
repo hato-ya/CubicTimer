@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
@@ -144,6 +145,10 @@ public class AddTimeDialog extends DialogFragment {
                             }
                         } else {
                             time = PuzzleUtils.parseAddedTime(timeEditText.getText().toString());
+                            if (time <= 0) {
+                                Toast.makeText(getActivity(), R.string.add_time_invalid, Toast.LENGTH_SHORT).show();
+                                return;
+                            }
                             time = mCurrentPenalty == PuzzleUtils.PENALTY_PLUSTWO ? time + 2_000 : time;
                         }
 

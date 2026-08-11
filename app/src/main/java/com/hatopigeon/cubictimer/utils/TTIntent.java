@@ -215,6 +215,15 @@ public final class TTIntent {
     public static final String ACTION_BLUETOOTH_DISCONNECTED = ACTION_PREFIX + "BLUETOOTH_DISCONNECTED";
 
     /**
+     * Smart Cube connection
+     */
+    public static final String ACTION_CUBE_CONNECT = ACTION_PREFIX + "CUBE_CONNECT";
+    public static final String ACTION_CUBE_CONNECTED = ACTION_PREFIX + "CUBE_CONNECTED";
+    public static final String ACTION_CUBE_DISCONNECTED = ACTION_PREFIX + "CUBE_DISCONNECTED";
+    public static final String ACTION_SCRAMBLE_HIGHLIGHT_CHANGED = ACTION_PREFIX + "SCRAMBLE_HIGHLIGHT_CHANGED";
+
+
+    /**
      * The name of an intent extra that can hold the name of the puzzle type.
      */
     public static final String EXTRA_PUZZLE_TYPE = EXTRA_PREFIX + "PUZZLE_TYPE";
@@ -286,7 +295,11 @@ public final class TTIntent {
                 ACTION_TIME_ADDED_MANUALLY,
                 ACTION_BLUETOOTH_CONNECT,
                 ACTION_BLUETOOTH_CONNECTED,
-                ACTION_BLUETOOTH_DISCONNECTED
+                ACTION_BLUETOOTH_DISCONNECTED,
+                ACTION_CUBE_CONNECT,
+                ACTION_CUBE_CONNECTED,
+                ACTION_CUBE_DISCONNECTED,
+                ACTION_SCRAMBLE_HIGHLIGHT_CHANGED
         });
     }};
 

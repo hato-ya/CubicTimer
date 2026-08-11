@@ -71,6 +71,20 @@
         android:textColorHighlight="?colorAccent"
         android:textIsSelectable="false" />
 
+    <ImageView
+        android:id="@+id/cancelReadyButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignTop="@id/chronometer"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="16dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:src="@drawable/ic_outline_close_24px"
+        android:tint="?colorTimerText"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/wrapTimeSize"
         android:layout_width="480dp"
@@ -232,10 +246,28 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/ble_status_message"
+        android:id="@+id/cube_state_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/serial_status_message"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center"
+        android:paddingLeft="6dp"
+        android:paddingTop="0dp"
+        android:paddingRight="6dp"
+        android:paddingBottom="4dp"
+        android:text="@string/smart_cube_status_message"
+        android:textColor="?colorTimerText"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/ble_status_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/cube_state_message"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="4dp"
         android:layout_marginBottom="0dp"

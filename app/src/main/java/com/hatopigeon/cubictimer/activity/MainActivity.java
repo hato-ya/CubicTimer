@@ -85,6 +85,9 @@ import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_SCRAMBLE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_SUBTYPE;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TIME;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TYPE;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_MOVE_COUNT;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_TPS;
+import static com.hatopigeon.cubictimer.database.DatabaseHandler.IDX_STEP_SPLITS;
 import static com.hatopigeon.cubictimer.database.DatabaseHandler.ProgressListener;
 import static com.hatopigeon.cubictimer.fragment.TimerFragmentMain.TIMER_PAGE;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SINGLE;
@@ -817,7 +820,8 @@ public class MainActivity extends AppCompatActivity
                     try {
                         publishProgress(0, cursor.getCount());
                         csvWriter.writeNext(new String[] {"Puzzle", "Category", "Time(millis)",
-                                "Date(millis)", "Scramble", "Penalty", "Comment"});
+                                "Date(millis)", "Scramble", "Penalty", "Comment",
+                                "MoveCount", "TPS", "StepSplits"});
 
                         while (cursor.moveToNext()) {
                             csvWriter.writeNext(new String[] {
@@ -827,7 +831,10 @@ public class MainActivity extends AppCompatActivity
                                     String.valueOf(cursor.getLong(IDX_DATE)),
                                     cursor.getString(IDX_SCRAMBLE),
                                     String.valueOf(cursor.getInt(IDX_PENALTY)),
-                                    cursor.getString(IDX_COMMENT)
+                                    cursor.getString(IDX_COMMENT),
+                                    String.valueOf(cursor.getInt(IDX_MOVE_COUNT)),
+                                    String.valueOf(cursor.getDouble(IDX_TPS)),
+                                    cursor.getString(IDX_STEP_SPLITS)
                             });
                             exports++;
                             if (exports % 1000 == 0 || exports == cursor.getCount()) {
@@ -1017,9 +1024,23 @@ public class MainActivity extends AppCompatActivity
 
                     while ((line = csvReader.readNext()) != null) {
                         try {
-                            solveList.add(new Solve(
+                            Solve solve = new Solve(
                                 Long.parseLong(line[2]), line[0], line[1], Long.parseLong(line[3]),
-                                line[4], Integer.parseInt(line[5]), line[6], mIsToArchive));
+                                line[4], Integer.parseInt(line[5]), line[6], mIsToArchive);
+                            if (line.length >= 10) {
+                                solve.setStepSplits(line[9]);
+                            }
+                            // Optional smart-cube metrics: a malformed value here must not discard
+                            // the whole solve (its time/scramble/penalty are still valid), so parse
+                            // them in their own try and fall back to defaults on failure.
+                            if (line.length >= 9) {
+                                try {
+                                    solve.setMoveCount(Integer.parseInt(line[7]));
+                                    solve.setTps(Double.parseDouble(line[8]));
+                                } catch (NumberFormatException ignored) {
+                                }
+                            }
+                            solveList.add(solve);
                         } catch (Exception e) {
                             parseErrors++;
                         }

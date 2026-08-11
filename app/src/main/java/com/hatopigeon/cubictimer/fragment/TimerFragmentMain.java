@@ -84,6 +84,9 @@ import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_CATEGORY;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CHANGED_THEME;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_DELETE_SELECTED_TIMES;
@@ -158,6 +161,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
 
     @BindView(R.id.nav_button_settings) View      navButtonSettings;
     @BindView(R.id.nav_button_bluetooth) ImageView navButtonBluetooth;
+    @BindView(R.id.nav_button_cube) ImageView navButtonCube;
     @BindView(R.id.nav_button_category) View      navButtonCategory;
     @BindView(R.id.nav_button_history) ImageView navButtonHistory;
 
@@ -187,6 +191,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
     int currentPage = TIMER_PAGE;
     private boolean pagerEnabled;
     private boolean smartTimerEnabled;
+    private boolean smartCubeEnabled;
 
     private boolean bgImageEnabled;
     private int colorOverlayOpacity;
@@ -217,6 +222,9 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                     break;
                 case R.id.nav_button_bluetooth:
                     broadcast(CATEGORY_UI_INTERACTIONS, ACTION_BLUETOOTH_CONNECT);
+                    break;
+                case R.id.nav_button_cube:
+                    broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECT);
                     break;
                 case R.id.puzzleNumber:
                     MaterialDialog dialog = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
@@ -386,6 +394,14 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                     navButtonBluetooth.setImageResource(R.drawable.ic_outline_bluetooth_24px);
                     break;
 
+                case ACTION_CUBE_CONNECTED:
+                    navButtonCube.setImageResource(R.drawable.ic_cube_filled_24px);
+                    break;
+
+                case ACTION_CUBE_DISCONNECTED:
+                    navButtonCube.setImageResource(R.drawable.ic_cube_outline_24px);
+                    break;
+
             }
         }
     };
@@ -531,6 +547,7 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
         navButtonHistory.setOnClickListener(clickListener);
         navButtonSettings.setOnClickListener(clickListener);
         navButtonBluetooth.setOnClickListener(clickListener);
+        navButtonCube.setOnClickListener(clickListener);
         puzzleNumber.setOnClickListener(clickListener);
 
         if (savedInstanceState == null) {
@@ -559,6 +576,11 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
         smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
         if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
             navButtonBluetooth.setVisibility(View.GONE);
+        }
+
+        smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true);
+        if (!smartCubeEnabled || !PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
+            navButtonCube.setVisibility(View.GONE);
         }
 
         if (currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
@@ -797,6 +819,16 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                             .start();
                 }
 
+                if (navButtonCube != null && smartCubeEnabled
+                        && PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
+                    navButtonCube.setVisibility(View.VISIBLE);
+                    navButtonCube.animate()
+                            .withStartAction(() -> navButtonCube.setEnabled(true))
+                            .alpha(1)
+                            .setDuration(200)
+                            .start();
+                }
+
                 if (puzzleNumber != null && currentPuzzle.equals(PuzzleUtils.TYPE_333MBLD)) {
                     puzzleNumber.setVisibility(View.VISIBLE);
                     puzzleNumber.animate()
@@ -892,8 +924,6 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                         .alpha(0)
                         .setDuration(200)
                         .withEndAction(() -> {
-                            // navButtonBluetooth may already be destroyed by the time we get
-                            // to the end action, so we have to check if it still exists
                             if (navButtonBluetooth != null) navButtonBluetooth.setVisibility(View.GONE);
                         })
                         .start();
@@ -901,6 +931,24 @@ public class TimerFragmentMain extends BaseFragment implements DialogListenerMes
                 navButtonBluetooth.setVisibility(View.VISIBLE);
                 navButtonBluetooth.animate()
                         .withStartAction(() -> navButtonBluetooth.setEnabled(true))
+                        .alpha(1)
+                        .setDuration(200)
+                        .start();
+            }
+
+            if (!smartCubeEnabled || !PuzzleUtils.isSmartCubeAvailable(currentPuzzle)) {
+                navButtonCube.animate()
+                        .withStartAction(() -> navButtonCube.setEnabled(false))
+                        .alpha(0)
+                        .setDuration(200)
+                        .withEndAction(() -> {
+                            if (navButtonCube != null) navButtonCube.setVisibility(View.GONE);
+                        })
+                        .start();
+            } else {
+                navButtonCube.setVisibility(View.VISIBLE);
+                navButtonCube.animate()
+                        .withStartAction(() -> navButtonCube.setEnabled(true))
                         .alpha(1)
                         .setDuration(200)
                         .start();

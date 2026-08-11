@@ -47,6 +47,10 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.cardview.widget.CardView;
 
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import com.hatopigeon.cubictimer.view.ScrambleTextView;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -66,6 +70,10 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubicify.BuildConfig;
 import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.ble.CubeBleHelper;
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
+import com.hatopigeon.cubictimer.cube.CubeMove;
+import com.hatopigeon.cubictimer.cube.CubeSolver;
 import com.hatopigeon.cubictimer.database.DatabaseHandler;
 import com.hatopigeon.cubictimer.fragment.dialog.AddTimeDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.BottomSheetDetailDialog;
@@ -97,7 +105,6 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -135,6 +142,10 @@ import static com.hatopigeon.cubictimer.utils.PuzzleUtils.isTimeDisabled;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
+import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_HIGHLIGHT_CHANGED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -170,9 +181,10 @@ public class TimerFragment extends BaseFragment
     public static final String TIMER_MODE_TRAINER = "TIMER_MODE_TRAINER";
 
     /**
-     * Flag to enable debug logging for this class.
+     * Flag to enable debug logging for this class. Off by default; flip to {@code true} (or tie to
+     * {@code BuildConfig.DEBUG}) when diagnosing timer/smart-cube behaviour.
      */
-    private static final boolean DEBUG_ME = true;
+    private static final boolean DEBUG_ME = false;
 
     /**
      * A "tag" to identify this class in log messages.
@@ -332,7 +344,7 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.scramble_box)
     CardView scrambleBox;
     @BindView(R.id.scramble_text)
-    AppCompatTextView scrambleText;
+    ScrambleTextView scrambleText;
     @BindView(R.id.scramble_img)
     ImageView scrambleImg;
     @BindView(R.id.expanded_image)
@@ -384,6 +396,14 @@ public class TimerFragment extends BaseFragment
     @BindView(R.id.ble_status_message)
     TextView bleStatusMessage;
 
+    @BindView(R.id.cube_state_message)
+    TextView cubeStateMessage;
+    @BindView(R.id.cancelReadyButton)
+    ImageView cancelReadyButton;
+
+    @BindView(R.id.cube_3d_view)
+    com.hatopigeon.cubictimer.layout.Cube3DView cube3DView;
+
     @BindView(R.id.multi_phase_status_message)
     TextView multiPhaseStatusMessage;
 
@@ -407,6 +427,10 @@ public class TimerFragment extends BaseFragment
     private boolean stackTimerEnabled;
     private boolean serialStatusEnabled;
     private boolean smartTimerEnabled;
+    private boolean smartCubeEnabled;
+    private boolean cubeStatusEnabled;
+    private boolean cubeMoveDetailsEnabled;
+    private boolean smartCubeAutoStartStop;
     private boolean bleStatusEnabled;
     private boolean inspectionByResetEnabled;
 
@@ -427,6 +451,267 @@ public class TimerFragment extends BaseFragment
 
     // multi phase
     private boolean mShowHiRes;
+
+    // Smart cube integration
+    private CubeSolver cubeSolver;
+    private boolean isCubeConnected;
+    private boolean cubeStartedSolve;
+    private boolean isCubeScanMode;
+    private boolean pendingPermissionForCubeScan;
+    private boolean isCubeReady;
+    // True once a solved cube state has been handled, to avoid re-firing onCubeSolved on every
+    // facelet poll while the cube stays solved. Reset as soon as the cube is turned again.
+    private boolean cubeSolveHandled;
+    // Last reported smart-cube battery level (%), or -1 if unknown. Shown after "Connected".
+    private int cubeBatteryLevel = -1;
+    private int movesBeforeTimerStart;
+    private int crossFace = -1;
+    private long crossTimeMs = -1;
+    private int crossMoveCount;
+    // Step detection. methodSteps lists the step kinds for the selected method; stepTime/stepMoves
+    // are sized to it (per-step time in ms since the prior step, -1 until detected). Every method
+    // (including advanced) is detected through this generic path; methodSteps == null means "none".
+    private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
+            STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6, STEP_OLL = 7;
+    // NAMES_* are canonical identifiers: they are persisted into step_splits and used as map keys
+    // for aggregation/ordering, so they must NOT change. Localize for display via StepNames only.
+    private static final int[] STEPS_ADVANCED = {STEP_CROSS, STEP_SECOND, STEP_OLL, STEP_SOLVED};
+    private static final String[] NAMES_ADVANCED = {"Cross", "F2L", "OLL", "PLL"};
+    private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,
+            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
+    private static final String[] NAMES_INTERMEDIATE = {"Cross", "F2L", "Opposite cross",
+            "Opposite edges", "Corners position", "Corners orient"};
+    private static final int[] STEPS_BEGINNER = {STEP_CROSS, STEP_FIRST, STEP_SECOND, STEP_OPP_CROSS,
+            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
+    private static final String[] NAMES_BEGINNER = {"Cross", "First layer", "Second layer",
+            "Opposite cross", "Opposite edges", "Corners position", "Corners orient"};
+    private String detectionMethod = "advanced"; // none / advanced / intermediate / beginner
+    private int[] methodSteps;          // null = none
+    private String[] methodStepNames;
+    private long[] stepTime = new long[0];
+    private int[] stepMoves = new int[0];
+    private Handler cubePollHandler;
+    private Runnable cubePollRunnable;
+    private Handler cubeReadyHandler;
+    private Runnable cubeReadyRunnable;
+
+    private final GanCubeManager.GanCubeCallback cubeCallback = new GanCubeManager.GanCubeCallback() {
+        @Override
+        public void onCubeConnected() {
+            Log.d(TAG, "Cube connected");
+            isCubeConnected = true;
+            isCubeReady = false;
+            if (cubeSolver != null) cubeSolver.reset();
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
+            updateCubeStatus(getString(R.string.smart_cube_status_check_message));
+            updateScrambleColors();
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            if (mgr != null) {
+                mgr.requestFacelets();
+                mgr.requestBattery();
+            }
+            if (cube3DView != null) {
+                cube3DView.loadColorScheme();
+                cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+            }
+            startCubeReadyPolling();
+        }
+
+        @Override
+        public void onCubeDisconnected() {
+            Log.d(TAG, "Cube disconnected");
+            isCubeConnected = false;
+            cubeStartedSolve = false;
+            isCubeReady = false;
+            cubeBatteryLevel = -1;
+            moveBuffer.clear();
+            stopCubeReadyPolling();
+            broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
+            updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
+            cancelReadyButton.setVisibility(View.GONE);
+            if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+            // Cube-initiated disconnect (e.g. powered off / out of range): close the manager so its
+            // BluetoothGatt is released instead of lingering in the app singleton. Posted to avoid
+            // closing the manager re-entrantly from within its own disconnect callback. The user
+            // re-scans to reconnect (which recreates the manager), matching the manual-disconnect flow.
+            new Handler(Looper.getMainLooper()).post(CubicTimer::clearCubeBleManager);
+        }
+
+        @Override
+        public void onGyroData(float w, float x, float y, float z) {
+            if (cube3DView != null) cube3DView.setQuaternion(w, x, y, z);
+        }
+
+        @Override
+        public void onCubeMoves(List<CubeMove> moves) {
+            if (cubeSolver == null || moves.isEmpty() || !smartCubeEnabled) return;
+
+            // A turn means the cube is no longer in its just-solved state; allow the next solve
+            // to be handled (and logged) again.
+            cubeSolveHandled = false;
+
+            // Move count before this batch is applied: if the timer starts on a move in this batch,
+            // that move must be counted, so the baseline is taken before the batch (not after).
+            int movesBeforeBatch = cubeSolver.getNumMoves();
+
+            for (CubeMove move : moves) {
+                cubeSolver.addMove(move);
+                if (cube3DView != null) cube3DView.animateMove(move);
+                if (isRunning || !isCubeReady) continue;
+
+                int dirMod4;
+                if (move.direction == CubeMove.DOUBLE) {
+                    dirMod4 = 2;
+                } else if (move.direction == CubeMove.CCW) {
+                    dirMod4 = 3;
+                } else {
+                    dirMod4 = 1;
+                }
+
+                // Remap the cube's body-frame face to the scramble-notation face for the user's
+                // holding orientation, so highlighting matches whichever way the cube is held.
+                int notationFace = (move.face >= 0 && move.face < 6)
+                        ? cubeFaceToNotation[move.face] : move.face;
+                moveBuffer.add(new int[]{notationFace, dirMod4});
+                collapseLastMoves();
+            }
+
+            if (isCubeReady && scrambleMoveTokens != null) {
+                completedScrambleMoves = 0;
+                while (completedScrambleMoves < scrambleMoveTokens.length
+                        && completedScrambleMoves < moveBuffer.size()) {
+                    int[] tok = parseScrambleToken(scrambleMoveTokens[completedScrambleMoves]);
+                    if (tok == null) break;
+                    int[] buf = moveBuffer.get(completedScrambleMoves);
+                    if (tok[0] != buf[0] || tok[1] != buf[1]) break;
+                    completedScrambleMoves++;
+                }
+            }
+
+            updateScrambleColors();
+
+            if (isCubeReady && !cubeStartedSolve && scrambleMoveTokens != null
+                    && scrambleMoveTokens.length > 0
+                    && completedScrambleMoves == scrambleMoveTokens.length
+                    && smartCubeAutoStartStop) {
+                cubeStartedSolve = true;
+                hideToolbar();
+
+                final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
+                        && PuzzleUtils.isInspectionEnabled(currentPuzzle);
+                if (inspectionEnabled) {
+                    final int inspectionTime = Prefs.getInt(R.string.pk_inspection_time, 15);
+                    startInspectionCountdown(inspectionTime);
+                } else {
+                    chronometer.holdForStart();
+                }
+
+                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_ready));
+                updateCancelReadyButtonVisibility();
+                return;
+            }
+
+            if (cubeStartedSolve && !isRunning && smartCubeAutoStartStop) {
+                if (countingDown) {
+                    stopInspectionCountdown();
+                }
+                isExternalTimer = true;
+                startChronometer();
+                // The move(s) in this batch are the first solve move(s); count them by rewinding the
+                // baseline to before the batch (startChronometer() set it to the post-batch count).
+                movesBeforeTimerStart = movesBeforeBatch;
+                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_solving));
+            }
+
+            if (!isRunning) return;
+
+            updateCubeMoveDisplay();
+
+            if (cubeSolver.isSolved()) {
+                // Move tracking only *suggests* a solve: its reference is the cube state from
+                // before the timer started, so a dropped BLE move or a cancelled prior attempt
+                // can make it reach "solved" while the cube physically is not. Don't stop here —
+                // request the real facelets and let onCubeSolved() finalize once the cube
+                // actually reports solved (this is the ground truth).
+                Log.d(TAG, "Cube solved (move tracking) — confirming via facelets. Moves: "
+                        + cubeSolver.getNumMoves() + " crossTimeMs=" + crossTimeMs);
+                GanCubeManager mgr = CubicTimer.getCubeBleManager();
+                if (mgr != null) mgr.requestFacelets();
+            }
+        }
+
+        @Override
+        public void onCubeBatteryLevel(int level) {
+            Log.d(TAG, "Cube battery: " + level + "%");
+            cubeBatteryLevel = level;
+            // Refresh the status so the new battery level shows next to "Connected" (only while
+            // idle/connected, not while solving where the move/TPS display is shown instead).
+            if (isCubeConnected && !isRunning) {
+                updateCubeStatus(cubeConnectedLabel());
+            }
+        }
+
+        @Override
+        public void onFaceletsReceived(int[] csFacelets) {
+            if (cubeSolver == null) return;
+            cubeSolver.setStateFacelets(csFacelets);
+            if (cube3DView != null) cube3DView.setFacelets(csFacelets);
+            if ("none".equals(detectionMethod)) return; // no step/phase detection
+            if (crossTimeMs < 0 && isRunning) {
+                String crossFacePref = Prefs.getString(R.string.pk_smart_cube_cross_face, "auto");
+                int detectedFace = -1;
+                if ("auto".equals(crossFacePref)) {
+                    if (cubeSolver.isCrossSolved()) {
+                        detectedFace = cubeSolver.getCrossFace();
+                    }
+                } else {
+                    try {
+                        int fixedFace = Integer.parseInt(crossFacePref);
+                        if (cubeSolver.isCrossSolved(fixedFace)) {
+                            detectedFace = fixedFace;
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+                if (detectedFace >= 0) {
+                    crossFace = detectedFace;
+                    crossTimeMs = chronometer.getElapsedTime();
+                    crossMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+                    Log.d(TAG, "Cross detected from facelets at " + crossTimeMs + "ms, face=" + crossFace);
+                }
+            }
+            if (methodSteps != null) {
+                detectSteps();
+            }
+        }
+
+        @Override
+        public void onCubeSolved() {
+            // Facelets are polled repeatedly; only handle the first solved snapshot of a streak.
+            if (cubeSolveHandled) return;
+            cubeSolveHandled = true;
+            Log.d(TAG, "Cube solved via facelets!");
+            if (isRunning && smartCubeAutoStartStop) {
+                finishCubeSolve();
+            } else if (!cubeStartedSolve) {
+                isCubeReady = true;
+                moveBuffer.clear();
+                completedScrambleMoves = 0;
+                stopCubeReadyPolling();
+                updateScrambleColors();
+            }
+            updateCubeStatus(cubeConnectedLabel());
+        }
+    };
+
+    // Scramble move tracking for smart cube visual feedback
+    private String[] scrambleMoveTokens;
+    private int completedScrambleMoves = 0;
+    private boolean isScrambleCollapsed = false;
+    private ArrayList<int[]> moveBuffer = new ArrayList<>(); // {face, dirMod4} after collapse
+    // Maps a cube-reported face (U=0,R=1,F=2,D=3,L=4,B=5) to the scramble-notation face, based on
+    // the user's holding orientation, so scramble highlighting works whichever way the cube is
+    // held. Identity by default (top=U, front=F).
+    private int[] cubeFaceToNotation = {0, 1, 2, 3, 4, 5};
 
 
     // True if the user has started (and stopped) the timer at least once. Used to trigger
@@ -497,13 +782,32 @@ public class TimerFragment extends BaseFragment
 
                 case ACTION_BLUETOOTH_CONNECT:
                     Log.d(TAG, "BLE : clicked");
-                    startBleScan();
+                    if (pendingPermissionForCubeScan) {
+                        pendingPermissionForCubeScan = false;
+                        startBleScan();
+                    } else {
+                        isCubeScanMode = false;
+                        startBleScan();
+                    }
+                    break;
+
+                case ACTION_CUBE_CONNECT:
+                    Log.d(TAG, "Cube : clicked");
+                    if (isCubeConnected) {
+                        disconnectCubeBle();
+                    } else {
+                        startCubeScan();
+                    }
                     break;
 
                 case ACTION_SET_SCRAMBLE:
                     Solve solve = TTIntent.getSolve(intent);
                     scrambleGeneratorAsync.cancel(true);
                     setScramble(solve.getScramble());
+                    break;
+
+                case ACTION_SCRAMBLE_HIGHLIGHT_CHANGED:
+                    updateScrambleColors();
                     break;
             }
         }
@@ -696,7 +1000,24 @@ public class TimerFragment extends BaseFragment
         View root = inflater.inflate(R.layout.fragment_timer, container, false);
         mUnbinder = ButterKnife.bind(this, root);
 
+        // Tapping the 3D cube re-homes the gyroscope to the default orientation.
+        if (cube3DView != null) cube3DView.setOnClickListener(v -> resetCubeGyro());
+
         return root;
+    }
+
+    /** Whether the live 3D cube model should be shown below the timer (user preference). */
+    private boolean showCubeModelEnabled() {
+        return Prefs.getBoolean(R.string.pk_smart_cube_show_model, true);
+    }
+
+    /** Re-homes the smart cube gyroscope so the 3D model returns to its default orientation. */
+    private void resetCubeGyro() {
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.isConnected()) {
+            mgr.resetGyro();
+            if (cube3DView != null) cube3DView.setQuaternion(1f, 0f, 0f, 0f);
+        }
     }
 
     @SuppressLint({"ClickableViewAccessibility", "RestrictedApi"})
@@ -721,6 +1042,7 @@ public class TimerFragment extends BaseFragment
         undoButton.setOnClickListener(buttonClickListener);
         scrambleButtonReset.setOnClickListener(buttonClickListener);
         scrambleButtonEdit.setOnClickListener(buttonClickListener);
+        cancelReadyButton.setOnClickListener(v -> cancelReadyState());
 
         // Preferences //
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
@@ -782,6 +1104,12 @@ public class TimerFragment extends BaseFragment
         serialStatusEnabled = Prefs.getBoolean(R.string.pk_show_serial_status, true);
         smartTimerEnabled = Prefs.getBoolean(R.string.pk_smart_timer_enabled, true);
         bleStatusEnabled = Prefs.getBoolean(R.string.pk_show_ble_status, true);
+        cubeStatusEnabled = Prefs.getBoolean(R.string.pk_show_cube_status, true);
+        smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
+                && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        smartCubeAutoStartStop = Prefs.getBoolean(R.string.pk_smart_cube_auto_start_stop, true);
+        configureDetectionMethod();
         inspectionByResetEnabled = Prefs.getBoolean(R.string.pk_inspection_by_reset_enabled, true);
 
         inspectionAlertEnabled = Prefs.getBoolean(R.string.pk_inspection_alert_enabled, false);
@@ -837,14 +1165,6 @@ public class TimerFragment extends BaseFragment
             congratsText.requestLayout();
         }
 
-        if (!scrambleEnabled) {
-            // CongratsText is by default aligned to below the scramble box. If it's missing, we have
-            // to add an extra margin to account for the title header
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) congratsText.getLayoutParams();
-            params.topMargin = ThemeUtils.dpToPix(mContext, 70); // WARNING: this has to be the same as attr/actionBarPadding
-            congratsText.requestLayout();
-        }
-
         if (!scrambleBackgroundEnabled) {
             scrambleBox.setBackgroundColor(Color.TRANSPARENT);
             scrambleBox.setCardElevation(0);
@@ -890,6 +1210,15 @@ public class TimerFragment extends BaseFragment
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disabled_message));
         } else {
             bleStatusMessage.setText(getString(R.string.timer_ble_status_message) + getString(R.string.timer_ble_status_disconnect_message));
+        }
+
+        if (!cubeStatusEnabled || !smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+            if (cubeStateMessage != null) cubeStateMessage.setVisibility(View.GONE);
+        } else {
+            if (cubeStateMessage != null) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+                cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + getString(R.string.smart_cube_status_disconnect_message));
+            }
         }
 
         // Preferences //
@@ -1087,6 +1416,9 @@ public class TimerFragment extends BaseFragment
                             return false;
                     }
                 } else if (!isRunning) { // Not running and not counting down.
+                    if (isCubeConnected && cubeStartedSolve && smartCubeAutoStartStop) {
+                        return false; // Wait for cube move before starting timer
+                    }
                     switch (motionEvent.getAction()) {
                         case MotionEvent.ACTION_DOWN:
 
@@ -1115,6 +1447,17 @@ public class TimerFragment extends BaseFragment
                                 // Checks if the user was holding the screen when the inspection
                                 // timed out and saved a DNF
                                 holdingDNF = false;
+                            } else if (isCubeConnected && !cubeStartedSolve && smartCubeAutoStartStop) {
+                                // Cube connected but not armed: arm it on tap, don't start timer
+                                // No cubeSolver.reset() here — all moves since connection are tracked from SOLVED,
+                                // so scramble (post-connect) + solve cancel out correctly. Only a full solve
+                                // returns CubeSolver to SOLVED; false positives from short reversal sequences
+                                // are eliminated.
+                                cubeStartedSolve = true;
+                                hideToolbar();
+                                chronometer.holdForStart();
+                                updateCubeStatus(cubeConnectedLabel() + " | " + getString(R.string.smart_cube_status_ready));
+                                updateCancelReadyButtonVisibility();
                             } else if (inspectionEnabled) {
                                 hideToolbar();
                                 startInspectionCountdown(inspectionTime);
@@ -1210,6 +1553,45 @@ public class TimerFragment extends BaseFragment
         }
         mainLooper.post(this::connect);
         bleClientManager = new BleClientManager(mContext);
+
+        cubeSolver = new CubeSolver();
+        smartCubeEnabled = Prefs.getBoolean(R.string.pk_smart_cube_enabled, true)
+                && PuzzleUtils.isSmartCubeAvailable(currentPuzzle);
+        cubeMoveDetailsEnabled = Prefs.getBoolean(R.string.pk_show_cube_move_details, false);
+        smartCubeAutoStartStop = Prefs.getBoolean(R.string.pk_smart_cube_auto_start_stop, true);
+        configureDetectionMethod();
+        updateScrambleOrientationMapping();
+
+        if (!smartCubeEnabled) {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            if (mgr != null && mgr.isConnected()) {
+                mgr.disconnect();
+                CubicTimer.clearCubeBleManager();
+            }
+            isCubeConnected = false;
+            cubeStartedSolve = false;
+        } else {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            if (mgr != null && mgr.isConnected()) {
+                mgr.setCallback(cubeCallback);
+                isCubeConnected = true;
+                isCubeReady = false;
+                updateScrambleColors();
+                updateCubeStatus(getString(R.string.smart_cube_status_check_message));
+                mgr.requestFacelets();
+                mgr.requestBattery();
+                if (cube3DView != null) {
+                    cube3DView.loadColorScheme();
+                    cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+                }
+                startCubeReadyPolling();
+                broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
+            } else {
+                isCubeConnected = false;
+                cubeStartedSolve = false;
+                if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
@@ -1230,6 +1612,17 @@ public class TimerFragment extends BaseFragment
             bleClientManager.close();
             bleClientManager = null;
         }
+
+        // Smart cube: detach our callback so the app-scoped BLE manager (which outlives this
+        // fragment) doesn't retain it, and stop the polling loops that would otherwise keep
+        // firing BLE requests and touching paused/destroyed views. Re-attached in onResume.
+        GanCubeManager cubeMgr = CubicTimer.getCubeBleManager();
+        if (cubeMgr != null && cubeMgr.getCallback() == cubeCallback) {
+            cubeMgr.setCallback(null);
+        }
+        stopCubeReadyPolling();
+        stopCubePolling();
+        CubeBleHelper.cancelScan();
     }
 
     @Override
@@ -1238,6 +1631,9 @@ public class TimerFragment extends BaseFragment
         if (requestCode == TimerFragment.REQUEST_ENABLE_BT) {
             Log.d(TAG,"BLE : onActivityResult " + resultCode);
             if (resultCode == RESULT_OK) {
+                // isCubeScanMode (set during the cube-scan permission round-trip) already
+                // routes startBleScan() to the correct mode; just clear the pending flag.
+                pendingPermissionForCubeScan = false;
                 startBleScan();
             }
         }
@@ -1335,10 +1731,28 @@ public class TimerFragment extends BaseFragment
     }
 
     private void addNewSolve() {
+        int moveCount = 0;
+        double tps = 0.0;
+
+        if (cubeSolver != null) {
+            moveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+            cubeSolver.setElapsedTime(chronometer.getElapsedTime());
+            tps = cubeSolver.getTps();
+            cubeSolver.reset();
+            movesBeforeTimerStart = 0;
+        }
+        if (cubeStartedSolve) {
+            cubeStartedSolve = false;
+        }
+
         currentSolve = new Solve(
-                chronometer.getElapsedTime(), // Includes any "+2" penalty. Is zero for "DNF".
+                chronometer.getElapsedTime(),
                 currentPuzzle, currentPuzzleCategory,
-                System.currentTimeMillis(), currentScramble, currentPenalty, getLapComment(), false);
+                System.currentTimeMillis(), currentScramble, currentPenalty,
+                0, getLapComment(), false);
+        currentSolve.setMoveCount(moveCount);
+        currentSolve.setTps(tps);
+        currentSolve.setStepSplits(buildStepSplits());
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -1714,6 +2128,15 @@ public class TimerFragment extends BaseFragment
                         .setDuration(mAnimationDuration);
                 }
         }
+        if (cubeStatusEnabled) {
+            if (cubeStateMessage != null) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+                cubeStateMessage.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(mAnimationDuration);
+            }
+        }
     }
 
     private void showImage() {
@@ -1749,7 +2172,8 @@ public class TimerFragment extends BaseFragment
                 scrambleButtonEdit == null || scrambleButtonReset == null || detailTextAvg == null ||
                 detailTextOther == null || recentResultText == null || undoButton == null ||
                 quickActionButtons == null || detailAverageRecordMesssage == null ||
-                serialStatusMessage == null || bleStatusMessage == null) {
+                serialStatusMessage == null || bleStatusMessage == null ||
+                cubeStateMessage == null) {
             return;
         }
 
@@ -1847,6 +2271,13 @@ public class TimerFragment extends BaseFragment
                     .setDuration(mAnimationDuration)
                     .withEndAction(() -> {if(bleStatusMessage!=null) bleStatusMessage.setVisibility(View.INVISIBLE);});
         }
+        if (cubeStatusEnabled && (!cubeMoveDetailsEnabled || !isCubeConnected)) {
+            cubeStateMessage
+                    .animate()
+                    .alpha(0)
+                    .setDuration(mAnimationDuration)
+                    .withEndAction(() -> {if(cubeStateMessage!=null) cubeStateMessage.setVisibility(View.INVISIBLE);});
+        }
     }
 
     /**
@@ -1866,11 +2297,20 @@ public class TimerFragment extends BaseFragment
         // during a solve, since generateNewScramble checks if isRunning is false before setting
         // the spinner to visible.
         isRunning = true;
+        if (cubeSolver != null) movesBeforeTimerStart = cubeSolver.getNumMoves();
+        crossFace = -1;
+        crossTimeMs = -1;
+        crossMoveCount = 0;
+        for (int s = 0; s < stepTime.length; s++) { stepTime[s] = -1; stepMoves[s] = 0; }
+        cubeSolveHandled = false;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
             currentScramble = realScramble;
             generateNewScramble();
         }
+
+        cancelReadyButton.setVisibility(View.GONE);
+        if (isCubeConnected) startCubePolling();
     }
 
     /**
@@ -1889,6 +2329,17 @@ public class TimerFragment extends BaseFragment
         hasStoppedTimerOnce = true;
         setLapTimeText();
         showToolbar();
+        stopCubePolling();
+
+        // Reset the smart-cube tracking state on every stop (not just cube-detected solves, which
+        // go through finishCubeSolve). Scramble tracking must only run once the cube is actually
+        // solved again: clear "ready" / "started" and re-poll for a solved state, so a scrambled
+        // (unsolved) cube can't follow the scramble, and a manual stop won't leave a stale state
+        // that re-matches the next scramble or restarts the timer.
+        cubeStartedSolve = false;
+        isCubeReady = false;
+        cubeSolveHandled = false;
+        if (isCubeConnected) startCubeReadyPolling();
     }
 
     /**
@@ -2176,6 +2627,14 @@ public class TimerFragment extends BaseFragment
             Prefs.edit().putString(R.string.pk_last_used_scramble, realScramble).apply();
         }
 
+        // Parse scramble into individual move tokens for smart cube progress tracking
+        scrambleMoveTokens = (scramble != null && !scramble.trim().isEmpty())
+                ? scramble.trim().split("\\s+")
+                : new String[0];
+        completedScrambleMoves = 0;
+        isScrambleCollapsed = false;
+        moveBuffer.clear();
+
         retryButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_baseline_replay_24dp));
 
         scrambleText.setText(scramble);
@@ -2209,10 +2668,12 @@ public class TimerFragment extends BaseFragment
                             scrambleText.setText("[ " + getString(R.string.scramble_text_tap_hint) + " ]");
                             scrambleBox.setClickable(true);
                             scrambleBox.setOnClickListener(scrambleDetailClickListener);
+                            isScrambleCollapsed = true;
                         } else {
                             scrambleBox.setOnClickListener(null);
                             scrambleBox.setClickable(false);
                             scrambleBox.setFocusable(false);
+                            isScrambleCollapsed = false;
                         }
                         scrambleButtonHint.setOnClickListener(scrambleDetailClickListener);
                     }
@@ -2226,6 +2687,9 @@ public class TimerFragment extends BaseFragment
         scrambleProgress.setVisibility(View.GONE);
         scrambleButtonEdit.setVisibility(View.VISIBLE);
         scrambleButtonReset.setVisibility(View.VISIBLE);
+
+        // Initialize scramble colors (all red) for smart cube progress tracking
+        updateScrambleColors();
 
         if (scrambleImgEnabled)
             generateScrambleImage();
@@ -2677,19 +3141,32 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
-        if (isSerialConnected) {
+        if (isSerialConnected && !isCubeScanMode) {
             Log.d(TAG, "BLE Scan : " + "serial connected");
             return;
         }
 
-        if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
-            Log.d(TAG, "BLE Scan : " + "disabled");
-            return;
-        }
+        if (!isCubeScanMode) {
+            if (!smartTimerEnabled || isTimeDisabled(currentPuzzle)) {
+                Log.d(TAG, "BLE Scan : " + "disabled");
+                return;
+            }
 
-        if (bleClientManager != null && bleClientManager.isConnected()) {
-            disconnectBle();
-            return;
+            if (bleClientManager != null && bleClientManager.isConnected()) {
+                disconnectBle();
+                return;
+            }
+        } else {
+            if (!smartCubeEnabled || isTimeDisabled(currentPuzzle)) {
+                Log.d(TAG, "Cube Scan : disabled");
+                return;
+            }
+
+            GanCubeManager scanMgr = CubicTimer.getCubeBleManager();
+            if (scanMgr != null && scanMgr.isConnected()) {
+                disconnectCubeBle();
+                return;
+            }
         }
 
         if (isScanning) {
@@ -2697,6 +3174,7 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
+        pendingPermissionForCubeScan = isCubeScanMode;
         ArrayList<String> requestPermissions = new ArrayList<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -2756,26 +3234,36 @@ public class TimerFragment extends BaseFragment
         startBleScanInternal(500);
 
         dialogBleScan = ThemeUtils.roundDialog(mContext, new MaterialDialog.Builder(mContext)
-                .title(getString(R.string.ble_scan_title))
+                .title(isCubeScanMode ? getString(R.string.smart_cube_scan_title) : getString(R.string.ble_scan_title))
                 .content(getString(R.string.ble_scan_content))
                 .items(new ArrayList<CharSequence>())
                 .itemsCallback((dialog, view, which, text) -> {
                     stopBleScanInternal();
                     Log.d(TAG, "BLE Scan selected : " + which + ", " + text);
+                    boolean wasCubeMode = isCubeScanMode;
+                    isCubeScanMode = false;
 
-                    if (bleClientManager == null || bleDevices == null
+                    if (bleDevices == null
                             || which < 0 || which >= bleDevices.size()
                             || bleDevices.get(which) == null) {
                         return;
                     }
-                    bleClientManager.connect(bleDevices.get(which)).enqueue();
+                    if (wasCubeMode) {
+                        connectCubeBle(bleDevices.get(which));
+                    } else if (bleClientManager != null) {
+                        bleClientManager.connect(bleDevices.get(which)).enqueue();
+                    }
                 })
                 .negativeText(getString(R.string.ble_scan_cancel))
                 .onAny((dialog, which) -> {
                     stopBleScanInternal();
+                    isCubeScanMode = false;
                 })
                 .show());
-        dialogBleScan.setOnCancelListener(dialog -> stopBleScanInternal());
+        dialogBleScan.setOnCancelListener(dialog -> {
+            stopBleScanInternal();
+            isCubeScanMode = false;
+        });
     }
 
     private void startBleScanInternal(long reportDelayMillis) {
@@ -2796,18 +3284,20 @@ public class TimerFragment extends BaseFragment
                 .setUseHardwareBatchingIfSupported(false)   // The use of hardware batch sometimes results in larger delays
                 .build();
         List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid.fromString(QIYI_TIMER_SERVICE_UUID))
-                .build());
-        filters.add(new ScanFilter.Builder()
-                .setManufacturerData(QIYI_MANUFACTURER_ID, new byte[]{}, new byte[]{})
-                .build());
+        if (!isCubeScanMode) {
+            filters.add(new ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid.fromString(GANTIMER_TIMER_SERVICE_UUID))
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setManufacturerData(GAN_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setServiceUuid(ParcelUuid.fromString(QIYI_TIMER_SERVICE_UUID))
+                    .build());
+            filters.add(new ScanFilter.Builder()
+                    .setManufacturerData(QIYI_MANUFACTURER_ID, new byte[]{}, new byte[]{})
+                    .build());
+        }
         scanner.startScan(filters, settings, mLeScanCallback);
     }
 
@@ -2818,11 +3308,6 @@ public class TimerFragment extends BaseFragment
     }
 
     private ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-        }
-
         @SuppressLint("MissingPermission")
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
@@ -2831,17 +3316,21 @@ public class TimerFragment extends BaseFragment
 
             ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
             for (ScanResult result : results) {
-                devices.add(result.getDevice());
-                //Log.d(TAG, "BLE Scan : Name = " + result.getDevice().getName());
-                //Log.d(TAG, "BLE Scan : Name = " + result.getScanRecord().getDeviceName());
-                //Log.d(TAG, "BLE Scan : Addr = " + result.getDevice().getAddress());
+                BluetoothDevice device = result.getDevice();
+                Log.d(TAG, "BLE Scan device: name=" + device.getName()
+                        + ", address=" + device.getAddress()
+                        + ", rssi=" + result.getRssi());
+                if (isCubeScanMode) {
+                    String name = result.getDevice().getName();
+                    if (name != null && name.toUpperCase(Locale.US).startsWith("GAN")
+                            && !name.contains("Timer")) {
+                        devices.add(result.getDevice());
+                    }
+                } else {
+                    devices.add(result.getDevice());
+                }
             }
-            Collections.sort(devices, new Comparator<BluetoothDevice>() {
-                @SuppressLint("MissingPermission")
-                @Override
-                public int compare(BluetoothDevice personFirst, BluetoothDevice personSecond) {
-                    return personFirst.getAddress().compareTo(personSecond.getAddress());
-                }});
+            Collections.sort(devices, (d1, d2) -> d1.getAddress().compareTo(d2.getAddress()));
 
             bleDevices = devices;
 
@@ -2874,6 +3363,421 @@ public class TimerFragment extends BaseFragment
         if (bleClientManager != null && bleClientManager.isConnected()) {
             Log.d(TAG, "BLE disconnect");
             bleClientManager.disconnect().enqueue();
+        }
+    }
+
+    private void startCubeScan() {
+        isCubeScanMode = true;
+        pendingPermissionForCubeScan = true;
+        CubeBleHelper.startScan(getActivity(), cubeCallback);
+    }
+
+    private void connectCubeBle(BluetoothDevice device) {
+        String newMac = device.getAddress();
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+
+        if (mgr == null || !newMac.equals(CubicTimer.getCubeMacAddress())) {
+            if (mgr != null) {
+                mgr.setCallback(null);
+                mgr.disconnect().enqueue();
+                mgr.close();
+            }
+            mgr = new GanCubeManager(mContext, cubeCallback, newMac);
+            CubicTimer.setCubeBleManager(mgr, newMac);
+        } else {
+            mgr.setCallback(cubeCallback);
+        }
+
+        if (cubeSolver != null) cubeSolver.reset();
+        updateCubeStatus(getString(R.string.smart_cube_status_connecting_message));
+        mgr.connect(device).enqueue();
+    }
+
+    private void disconnectCubeBle() {
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.isConnected()) {
+            Log.d(TAG, "Cube disconnect");
+            mgr.disconnect().enqueue();
+        }
+        isCubeConnected = false;
+        cubeStartedSolve = false;
+        isCubeReady = false;
+        stopCubeReadyPolling();
+        if (cubeSolver != null) cubeSolver.reset();
+        CubicTimer.clearCubeBleManager();
+        updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
+        cancelReadyButton.setVisibility(View.GONE);
+        if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+        broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
+    }
+
+    private void cancelReadyState() {
+        cubeStartedSolve = false;
+        // No solve happened: mark as canceled so the toolbar-restored flow doesn't show the
+        // post-solve quick-action buttons (via showItems) or broadcast a new solve. The flag is
+        // reset automatically after that flow runs.
+        isCanceled = true;
+        stopInspectionCountdown();
+        chronometer.reset();
+        showToolbar();
+        updateCubeStatus(cubeConnectedLabel());
+        cancelReadyButton.setVisibility(View.GONE);
+    }
+
+    private void updateCancelReadyButtonVisibility() {
+        cancelReadyButton.setVisibility(cubeStartedSolve && !isRunning ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Finalizes a smart-cube solve: records the trailing PLL split (if OLL was already
+     * detected), stops the chronometer and persists the solve. No-op when the timer is
+     * not running. Shared by the move-event and facelets-event solved detection paths.
+     */
+    private void finishCubeSolve() {
+        if (!isRunning) return;
+        if (methodSteps != null) {
+            detectSteps(); // catch up any steps the final snapshot reached at once
+            int last = methodSteps.length - 1; // the SOLVED step
+            if (last > 0 && stepTime[last - 1] >= 0 && stepTime[last] < 0) {
+                recordStep(last, chronometer.getElapsedTime(),
+                        cubeSolver.getNumMoves() - movesBeforeTimerStart);
+            }
+        }
+        animationDone = false;
+        isExternalTimer = false;
+        stopChronometer();
+        addNewSolve();
+        cubeStartedSolve = false;
+    }
+
+    /** Reads the step-detection method preference and sizes the per-step buffers to it. */
+    private void configureDetectionMethod() {
+        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
+        if ("beginner".equals(detectionMethod)) {
+            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
+        } else if ("intermediate".equals(detectionMethod)) {
+            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
+        } else if ("none".equals(detectionMethod)) {
+            methodSteps = null; methodStepNames = null;
+        } else {
+            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
+        }
+        if (methodSteps != null) {
+            stepTime = new long[methodSteps.length];
+            stepMoves = new int[methodSteps.length];
+        }
+    }
+
+    /** True when the cube state satisfies the given step kind for the current cross face. */
+    private boolean stepDone(int kind) {
+        switch (kind) {
+            case STEP_CROSS:        return crossFace >= 0;
+            case STEP_FIRST:        return cubeSolver.isFirstLayerSolved(crossFace);
+            case STEP_SECOND:       return cubeSolver.isF2LSolved(crossFace);
+            case STEP_OLL:          return cubeSolver.isOLLSolved(crossFace);
+            case STEP_OPP_CROSS:    return cubeSolver.isLLCrossOriented(crossFace);
+            case STEP_OPP_EDGES:    return cubeSolver.isLLCrossSolved(crossFace);
+            case STEP_CORNERS_POS:  return cubeSolver.areLLCornersPositioned(crossFace);
+            case STEP_SOLVED:       return cubeSolver.isSolved();
+            default:                return false;
+        }
+    }
+
+    /** Sequentially detects the steps of the selected method from the current cube state. */
+    private void detectSteps() {
+        if (methodSteps == null || !isRunning || crossFace < 0 || chronometer == null) return;
+        long elapsed = chronometer.getElapsedTime();
+        int totalMoves = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+
+        if (stepTime[0] < 0) {        // step 0 is always the cross
+            stepTime[0] = crossTimeMs >= 0 ? crossTimeMs : elapsed;
+            stepMoves[0] = crossMoveCount;
+            Log.d(TAG, "Step 0 (" + methodStepNames[0] + "): " + stepTime[0] + "ms / " + stepMoves[0] + " moves");
+        }
+        // The last step (solved) is finalized in finishCubeSolve, not here.
+        for (int s = 1; s < methodSteps.length - 1; s++) {
+            if (stepTime[s - 1] >= 0 && stepTime[s] < 0 && stepDone(methodSteps[s])) {
+                recordStep(s, elapsed, totalMoves);
+            }
+        }
+    }
+
+    private void recordStep(int s, long elapsed, int totalMoves) {
+        long prevTime = 0;
+        int prevMoves = 0;
+        for (int i = 0; i < s; i++) {
+            if (stepTime[i] > 0) prevTime += stepTime[i];
+            prevMoves += stepMoves[i];
+        }
+        stepTime[s] = elapsed - prevTime;
+        stepMoves[s] = totalMoves - prevMoves;
+        Log.d(TAG, "Step " + s + " (" + methodStepNames[s] + "): +"
+                + stepTime[s] + "ms / " + stepMoves[s] + " moves");
+    }
+
+    /** Serializes the detected steps as "name:timeMs:moves;..." for storage (non-advanced methods). */
+    private String buildStepSplits() {
+        if (methodSteps == null || methodStepNames == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < methodSteps.length && i < methodStepNames.length; i++) {
+            if (i > 0) sb.append(';');
+            sb.append(methodStepNames[i].replace(';', ' ').replace(':', ' '))
+                    .append(':').append(stepTime[i]).append(':').append(stepMoves[i]);
+        }
+        return sb.toString();
+    }
+
+    /** "Connected" label, with the battery level appended (e.g. "Connected (85%)") when known. */
+    private String cubeConnectedLabel() {
+        String base = getString(R.string.smart_cube_status_connect_message);
+        return cubeBatteryLevel >= 0 ? base + " (" + cubeBatteryLevel + "%)" : base;
+    }
+
+    private void updateCubeStatus(String status) {
+        if (cubeStateMessage != null) {
+            cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
+            if ((cubeMoveDetailsEnabled && isCubeConnected) || !isRunning) {
+                cubeStateMessage.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private void updateCubeMoveDisplay() {
+        if (cubeSolver != null && cubeStateMessage != null) {
+            if (!cubeMoveDetailsEnabled || !isCubeConnected) {
+                cubeStateMessage.setVisibility(View.GONE);
+                updateScrambleColors();
+                return;
+            }
+            long elapsed = chronometer != null ? chronometer.getElapsedTime() : 0;
+            int displayMoveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
+            if (displayMoveCount < 0) displayMoveCount = 0;
+            double displayTps = 0.0;
+            if (elapsed > 0) {
+                displayTps = displayMoveCount / (elapsed / 1000.0);
+            }
+            String status = cubeConnectedLabel()
+                    + " | " + String.format(Locale.US, getString(R.string.smart_cube_move_count), displayMoveCount)
+                    + " " + String.format(Locale.US, getString(R.string.smart_cube_tps), displayTps);
+            cubeStateMessage.setText(getString(R.string.smart_cube_status_message) + status);
+        }
+        updateScrambleColors();
+    }
+
+    /**
+     * Collapses consecutive same-face moves at the end of moveBuffer using modulo-4 rules.
+     * This only affects adjacent same-face moves, preserving move order for other faces.
+     */
+    private void collapseLastMoves() {
+        while (moveBuffer.size() >= 2) {
+            int lastIdx = moveBuffer.size() - 1;
+            int prevIdx = moveBuffer.size() - 2;
+            int[] last = moveBuffer.get(lastIdx);
+            int[] prev = moveBuffer.get(prevIdx);
+            if (last[0] != prev[0]) break;
+
+            int face = last[0];
+            int count = 1;
+            for (int i = moveBuffer.size() - 2; i >= 0; i--) {
+                if (moveBuffer.get(i)[0] == face) count++;
+                else break;
+            }
+
+            int sum = 0;
+            int start = moveBuffer.size() - count;
+            for (int i = start; i < moveBuffer.size(); i++) {
+                sum = (sum + moveBuffer.get(i)[1]) % 4;
+            }
+
+            for (int i = 0; i < count; i++) {
+                moveBuffer.remove(moveBuffer.size() - 1);
+            }
+
+            if (sum != 0) {
+                moveBuffer.add(new int[]{face, sum});
+            }
+        }
+    }
+
+    /**
+     * Parses a scramble notation token into an int array of [face, direction].
+     * Face mapping: U=0, R=1, F=2, D=3, L=4, B=5
+     * Direction: 1=CW, 2=DOUBLE, 3=CCW (modulo-4 format)
+     */
+    // Outward normals per face (U=0,R=1,F=2,D=3,L=4,B=5) and opposite-face lookup.
+    private static final int[][] FACE_NORMALS =
+            {{0,1,0}, {1,0,0}, {0,0,1}, {0,-1,0}, {-1,0,0}, {0,0,-1}};
+    private static final int[] FACE_OPPOSITE = {3, 4, 5, 0, 1, 2};
+
+    private static int faceLetterToIndex(String letter) {
+        switch (letter) {
+            case "U": return 0;
+            case "R": return 1;
+            case "F": return 2;
+            case "D": return 3;
+            case "L": return 4;
+            case "B": return 5;
+            default:  return -1;
+        }
+    }
+
+    /**
+     * Rebuilds {@link #cubeFaceToNotation} from the holding-orientation preferences (which cube
+     * face is held on top and in front). The cube reports moves in its fixed body frame; remapping
+     * them to the orientation the user holds lets scramble highlighting work from any start face.
+     */
+    private void updateScrambleOrientationMapping() {
+        int top = faceLetterToIndex(Prefs.getString(R.string.pk_smart_cube_top_face, "U"));
+        int front = faceLetterToIndex(Prefs.getString(R.string.pk_smart_cube_front_face, "F"));
+
+        int[] identity = {0, 1, 2, 3, 4, 5};
+        // Top and front must be two different, adjacent (non-opposite) faces; otherwise no remap.
+        if (top < 0 || front < 0 || top == front || FACE_OPPOSITE[top] == front) {
+            cubeFaceToNotation = identity;
+            return;
+        }
+
+        // notationToCube[n] = the body face the user turns when the scramble says notation face n.
+        int[] notationToCube = new int[6];
+        notationToCube[0] = top;                       // U (held top)
+        notationToCube[2] = front;                     // F (held front)
+        notationToCube[3] = FACE_OPPOSITE[top];        // D
+        notationToCube[5] = FACE_OPPOSITE[front];      // B
+        int[] up = FACE_NORMALS[top], fr = FACE_NORMALS[front];
+        int[] right = {                                // Right = Up x Front
+            up[1]*fr[2] - up[2]*fr[1],
+            up[2]*fr[0] - up[0]*fr[2],
+            up[0]*fr[1] - up[1]*fr[0],
+        };
+        int rightFace = 0;
+        for (int f = 0; f < 6; f++) {
+            if (FACE_NORMALS[f][0] == right[0] && FACE_NORMALS[f][1] == right[1]
+                    && FACE_NORMALS[f][2] == right[2]) { rightFace = f; break; }
+        }
+        notationToCube[1] = rightFace;                 // R
+        notationToCube[4] = FACE_OPPOSITE[rightFace];  // L
+
+        int[] map = new int[6];
+        for (int n = 0; n < 6; n++) map[notationToCube[n]] = n;
+        cubeFaceToNotation = map;
+    }
+
+    private static int[] parseScrambleToken(String token) {
+        if (token == null || token.isEmpty()) return null;
+        String faceStr = token.substring(0, 1);
+        int face;
+        switch (faceStr) {
+            case "U": face = 0; break;
+            case "R": face = 1; break;
+            case "F": face = 2; break;
+            case "D": face = 3; break;
+            case "L": face = 4; break;
+            case "B": face = 5; break;
+            default: return null;
+        }
+        int direction;
+        if (token.length() == 1) {
+            direction = 1;
+        } else {
+            char suffix = token.charAt(1);
+            if (suffix == '\'') {
+                direction = 3;
+            } else if (suffix == '2') {
+                direction = 2;
+            } else {
+                direction = 1;
+            }
+        }
+        return new int[]{face, direction};
+    }
+
+    /**
+     * Updates the scramble text with per-move colors:
+     * - When smart cube connected: completed moves highlighted in black with white text
+     * - When no smart cube: all text is black (default)
+     * Only applies when the scramble is fully visible (not collapsed) and the timer is not running.
+     */
+    private void updateScrambleColors() {
+        if (scrambleMoveTokens == null || scrambleMoveTokens.length == 0
+                || realScramble == null || scrambleText == null) return;
+
+        if (isScrambleCollapsed) return;
+        if (isRunning) return;
+
+        if (!isCubeConnected || !isCubeReady) {
+            scrambleText.setScrambleProgress(null, 0);
+            scrambleText.setText(realScramble);
+            return;
+        }
+
+        scrambleText.setScrambleProgress(scrambleMoveTokens, completedScrambleMoves);
+
+        SpannableString spannable = new SpannableString(realScramble);
+        // Parse the highlight colour once (not per token) and fall back to white on a bad value.
+        int fgColor;
+        try {
+            fgColor = Color.parseColor("#" + Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF"));
+        } catch (IllegalArgumentException e) {
+            fgColor = Color.WHITE;
+        }
+        int searchPos = 0;
+        int i = 0;
+
+        while (i < scrambleMoveTokens.length) {
+            String token = scrambleMoveTokens[i];
+            int start = realScramble.indexOf(token, searchPos);
+            if (start < 0) break;
+            int end = start + token.length();
+            searchPos = end;
+
+            if (i < completedScrambleMoves) {
+                spannable.setSpan(
+                        new ForegroundColorSpan(fgColor),
+                        start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            i++;
+        }
+
+        scrambleText.setText(spannable);
+    }
+
+    private void startCubeReadyPolling() {
+        if (cubeReadyHandler == null) cubeReadyHandler = new Handler();
+        if (cubeReadyRunnable != null) cubeReadyHandler.removeCallbacks(cubeReadyRunnable);
+        cubeReadyRunnable = () -> {
+            GanCubeManager readyMgr = CubicTimer.getCubeBleManager();
+            if (readyMgr != null && !isCubeReady && isCubeConnected) {
+                readyMgr.requestFacelets();
+                cubeReadyHandler.postDelayed(cubeReadyRunnable, 500);
+            }
+        };
+        cubeReadyHandler.postDelayed(cubeReadyRunnable, 500);
+    }
+
+    private void stopCubeReadyPolling() {
+        if (cubeReadyHandler != null && cubeReadyRunnable != null) {
+            cubeReadyHandler.removeCallbacks(cubeReadyRunnable);
+            cubeReadyRunnable = null;
+        }
+    }
+
+    private void startCubePolling() {
+        if (cubePollHandler == null) cubePollHandler = new Handler();
+        if (cubePollRunnable != null) cubePollHandler.removeCallbacks(cubePollRunnable);
+        cubePollRunnable = () -> {
+            GanCubeManager pollMgr = CubicTimer.getCubeBleManager();
+            if (pollMgr != null && isRunning && isCubeConnected) {
+                pollMgr.requestFacelets();
+                cubePollHandler.postDelayed(cubePollRunnable, 250);
+            }
+        };
+        cubePollHandler.postDelayed(cubePollRunnable, 250);
+    }
+
+    private void stopCubePolling() {
+        if (cubePollHandler != null && cubePollRunnable != null) {
+            cubePollHandler.removeCallbacks(cubePollRunnable);
+            cubePollRunnable = null;
         }
     }
 

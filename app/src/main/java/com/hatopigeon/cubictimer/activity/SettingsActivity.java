@@ -19,6 +19,7 @@ import androidx.annotation.StringRes;
 import androidx.core.view.WindowCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceScreen;
 import androidx.appcompat.widget.AppCompatSeekBar;
@@ -39,8 +40,14 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.hatopigeon.cubicify.R;
+import com.hatopigeon.cubictimer.CubicTimer;
+import com.hatopigeon.cubictimer.ble.GanCubeManager;
 import com.hatopigeon.cubictimer.fragment.dialog.CrossHintFaceSelectDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeCrossFaceSelectDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeGyroResetDialog;
+import com.hatopigeon.cubictimer.fragment.dialog.CubeOrientationSelectDialog;
 import com.hatopigeon.cubictimer.fragment.dialog.LocaleSelectDialog;
+import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.InsetsUtils;
 import com.hatopigeon.cubictimer.utils.LocaleUtils;
 import com.hatopigeon.cubictimer.utils.Prefs;
@@ -151,7 +158,34 @@ public class SettingsActivity extends AppCompatActivity {
                         R.string.pk_timer_animation_duration,
                         R.string.pk_bg_image_portrait,
                         R.string.pk_bg_image_landscape,
-                        R.string.pk_bg_image_opacity)) {
+                        R.string.pk_bg_image_opacity,
+                        R.string.pk_smart_cube_reset_gyro,
+                        R.string.pk_smart_cube_orientation,
+                        R.string.pk_smart_cube_cross_face)) {
+
+                    case R.string.pk_smart_cube_cross_face:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeCrossFaceSelectDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_cross_face_dialog");
+                        }
+                        break;
+
+                    case R.string.pk_smart_cube_orientation:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeOrientationSelectDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_orientation_dialog");
+                        }
+                        break;
+
+                    case R.string.pk_smart_cube_reset_gyro:
+                        if (getActivity() instanceof AppCompatActivity) {
+                            CubeGyroResetDialog.newInstance().show(
+                                    ((AppCompatActivity) getActivity()).getSupportFragmentManager(),
+                                    "cube_gyro_reset_dialog");
+                        }
+                        break;
 
                     case R.string.pk_inspection_time:
                         createNumberDialog(R.string.inspection_time, R.string.pk_inspection_time);
@@ -337,7 +371,10 @@ public class SettingsActivity extends AppCompatActivity {
                     R.string.pk_timer_animation_duration,
                     R.string.pk_bg_image_portrait,
                     R.string.pk_bg_image_landscape,
-                    R.string.pk_bg_image_opacity};
+                    R.string.pk_bg_image_opacity,
+                    R.string.pk_smart_cube_reset_gyro,
+                    R.string.pk_smart_cube_orientation,
+                    R.string.pk_smart_cube_cross_face};
 
             for (int prefId : listenerPrefIds) {
                 Preference p = findPreference(getString(prefId));
@@ -348,7 +385,58 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
+            // Smart-cube settings that only make sense with the feature on AND a cube connected.
+            Preference smartCubeToggle = findPreference(getString(R.string.pk_smart_cube_enabled));
+            if (smartCubeToggle != null) {
+                smartCubeToggle.setOnPreferenceChangeListener((pref, newValue) -> {
+                    refreshSmartCubeDependents(Boolean.TRUE.equals(newValue));
+                    return true;
+                });
+            }
+            refreshSmartCubeDependents(Prefs.getBoolean(R.string.pk_smart_cube_enabled, true));
+
+            ListPreference detectionMethod = findPreference(getString(R.string.pk_smart_cube_detection_method));
+            if (detectionMethod != null) {
+                Context ctx = getContext();
+                String cross = StepNames.localized(ctx, "Cross");
+                String firstLayer = StepNames.localized(ctx, "First layer");
+                String secondLayer = StepNames.localized(ctx, "Second layer");
+                String lastLayer = getString(R.string.step_name_last_layer);
+                String f2l = StepNames.localized(ctx, "F2L");
+                String oll = StepNames.localized(ctx, "OLL");
+                String pll = StepNames.localized(ctx, "PLL");
+
+                CharSequence[] entries = {
+                        getString(R.string.smart_cube_detection_none),
+                        getString(R.string.smart_cube_detection_beginner, cross, firstLayer, secondLayer, lastLayer),
+                        getString(R.string.smart_cube_detection_intermediate, cross, f2l, lastLayer),
+                        getString(R.string.smart_cube_detection_advanced, cross, f2l, oll, pll)
+                };
+                detectionMethod.setEntries(entries);
+            }
+
             mainScreen = getPreferenceScreen();
+        }
+
+        // Smart-cube preferences disabled unless the feature is on and a cube is connected.
+        // "show cube status" and the master toggle itself stay enabled.
+        private static final int[] SMART_CUBE_DEPENDENT_KEYS = {
+                R.string.pk_show_cube_move_details,
+                R.string.pk_smart_cube_cross_face,
+                R.string.pk_smart_cube_orientation,
+                R.string.pk_smart_cube_reset_gyro,
+                R.string.pk_smart_cube_show_model,
+                R.string.pk_smart_cube_detection_method,
+        };
+
+        private void refreshSmartCubeDependents(boolean smartCubeOn) {
+            GanCubeManager mgr = CubicTimer.getCubeBleManager();
+            boolean connected = mgr != null && mgr.isConnected();
+            boolean enabled = smartCubeOn && connected;
+            for (int key : SMART_CUBE_DEPENDENT_KEYS) {
+                Preference p = findPreference(getString(key));
+                if (p != null) p.setEnabled(enabled);
+            }
         }
 
         @Override
@@ -382,6 +470,8 @@ public class SettingsActivity extends AppCompatActivity {
             // about time elapsed depending on user's current inspection duration
             updateInspectionAlertText();
             updatePhaseNumText();
+            // Re-evaluate smart-cube prefs in case the cube connection changed while away.
+            refreshSmartCubeDependents(Prefs.getBoolean(R.string.pk_smart_cube_enabled, true));
         }
 
         private void updateInspectionAlertText() {

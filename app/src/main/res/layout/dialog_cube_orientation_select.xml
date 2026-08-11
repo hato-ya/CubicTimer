@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/outline_background_card_smoother"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:text="@string/smart_cube_orientation_instruction" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/top"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_toRightOf="@+id/left"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+        <TextView
+            android:id="@id/left"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_below="@id/top"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+        <TextView
+            android:id="@+id/front"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_toRightOf="@id/left"
+            android:layout_below="@id/top"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+        <TextView
+            android:id="@+id/down"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_toRightOf="@+id/left"
+            android:layout_below="@id/front"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+        <TextView
+            android:id="@+id/right"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_below="@id/top"
+            android:layout_toRightOf="@id/front"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+        <TextView
+            android:id="@+id/back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_below="@id/top"
+            android:layout_toRightOf="@id/right"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            tools:background="@drawable/square" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/legend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:textSize="13sp" />
+
+    <ImageView
+        android:id="@+id/button_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="8dp"
+        android:alpha="0.70"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:padding="8dp"
+        app:srcCompat="@drawable/ic_outline_done_outline_16px" />
+
+</LinearLayout>

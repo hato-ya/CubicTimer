@@ -17,7 +17,12 @@ import com.hatopigeon.cubictimer.items.Theme;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.TTIntent;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
+import com.kunzisoft.androidclearchroma.ChromaDialog;
+import com.kunzisoft.androidclearchroma.colormode.ColorMode;
+import com.kunzisoft.androidclearchroma.IndicatorMode;
+import com.kunzisoft.androidclearchroma.listener.OnColorSelectedListener;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.StyleRes;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -43,6 +48,12 @@ public class ThemeSelectDialog extends DialogFragment {
 
     @BindView(R.id.list2)
     RecyclerView textStyleRecycler;
+
+    @BindView(R.id.highlight_bg_preview)
+    View highlightBgPreview;
+
+    @BindView(R.id.highlight_fg_preview)
+    View highlightFgPreview;
 
     public static ThemeSelectDialog newInstance() {
         return new ThemeSelectDialog();
@@ -81,7 +92,49 @@ public class ThemeSelectDialog extends DialogFragment {
 
         textStyleRecycler.setBackground(gradientDrawable);
 
+        // Scramble highlight color pickers
+        updateHighlightPreview(highlightBgPreview, Prefs.getString(R.string.pk_scramble_highlight_bg, "000000"));
+        updateHighlightPreview(highlightFgPreview, Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF"));
+
+        dialogView.findViewById(R.id.highlight_bg_row).setOnClickListener(v -> openColorPicker(
+                R.string.pk_scramble_highlight_bg, "000000", highlightBgPreview));
+
+        dialogView.findViewById(R.id.highlight_fg_row).setOnClickListener(v -> openColorPicker(
+                R.string.pk_scramble_highlight_fg, "FFFFFF", highlightFgPreview));
+
         return dialogView;
+    }
+
+    private void updateHighlightPreview(View preview, String hex) {
+        GradientDrawable circle = new GradientDrawable();
+        circle.setShape(GradientDrawable.OVAL);
+        circle.setColor(Color.parseColor("#" + hex));
+        preview.setBackground(circle);
+    }
+
+    private void openColorPicker(int prefKeyResId, String defaultHex, View preview) {
+        String currentHex = Prefs.getString(prefKeyResId, defaultHex);
+        ChromaDialog dialog = new ChromaDialog.Builder()
+                .initialColor(Color.parseColor("#" + currentHex))
+                .colorMode(ColorMode.RGB)
+                .indicatorMode(IndicatorMode.HEX)
+                .create();
+
+        dialog.setOnColorSelectedListener(new OnColorSelectedListener() {
+            @Override
+            public void onPositiveButtonClick(@ColorInt int color) {
+                String hexColor = Integer.toHexString(color).toUpperCase().substring(2);
+                Prefs.edit().putString(prefKeyResId, hexColor).apply();
+                updateHighlightPreview(preview, hexColor);
+                TTIntent.broadcast(TTIntent.CATEGORY_UI_INTERACTIONS, TTIntent.ACTION_SCRAMBLE_HIGHLIGHT_CHANGED);
+            }
+
+            @Override
+            public void onNegativeButtonClick(@ColorInt int color) {
+            }
+        });
+
+        dialog.show(getChildFragmentManager(), "ChromaDialog");
     }
 
     @Override

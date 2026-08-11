@@ -39,4 +39,7 @@
 
     <color name="materialGray">#EEEEEE</color>
 
+    <!-- Pale green highlight for the OLL case detected during the last smart-cube solve -->
+    <color name="oll_detected_highlight">#A5D6A7</color>
+
 </resources>

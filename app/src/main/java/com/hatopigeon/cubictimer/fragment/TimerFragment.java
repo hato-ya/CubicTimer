@@ -145,7 +145,6 @@ import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_BLUETOOTH_DISCONNE
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECT;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_CONNECTED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_CUBE_DISCONNECTED;
-import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_HIGHLIGHT_CHANGED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_COMMENT_ADDED;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_GENERATE_SCRAMBLE;
 import static com.hatopigeon.cubictimer.utils.TTIntent.ACTION_SCRAMBLE_GENERATING;
@@ -810,10 +809,6 @@ public class TimerFragment extends BaseFragment
                     Solve solve = TTIntent.getSolve(intent);
                     scrambleGeneratorAsync.cancel(true);
                     setScramble(solve.getScramble());
-                    break;
-
-                case ACTION_SCRAMBLE_HIGHLIGHT_CHANGED:
-                    updateScrambleColors();
                     break;
             }
         }
@@ -3737,16 +3732,12 @@ public class TimerFragment extends BaseFragment
             return;
         }
 
+        int highlightBgColor = ThemeUtils.fetchAttrColor(mContext, R.attr.colorTimerText);
+        scrambleText.setHighlightBackgroundColor(highlightBgColor);
         scrambleText.setScrambleProgress(scrambleMoveTokens, completedScrambleMoves);
 
         SpannableString spannable = new SpannableString(realScramble);
-        // Parse the highlight colour once (not per token) and fall back to white on a bad value.
-        int fgColor;
-        try {
-            fgColor = Color.parseColor("#" + Prefs.getString(R.string.pk_scramble_highlight_fg, "FFFFFF"));
-        } catch (IllegalArgumentException e) {
-            fgColor = Color.WHITE;
-        }
+        int fgColor = ThemeUtils.fetchAttrColor(mContext, R.attr.colorMainGradientStart);
         int searchPos = 0;
         int i = 0;
 

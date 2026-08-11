@@ -220,7 +220,6 @@ public final class TTIntent {
     public static final String ACTION_CUBE_CONNECT = ACTION_PREFIX + "CUBE_CONNECT";
     public static final String ACTION_CUBE_CONNECTED = ACTION_PREFIX + "CUBE_CONNECTED";
     public static final String ACTION_CUBE_DISCONNECTED = ACTION_PREFIX + "CUBE_DISCONNECTED";
-    public static final String ACTION_SCRAMBLE_HIGHLIGHT_CHANGED = ACTION_PREFIX + "SCRAMBLE_HIGHLIGHT_CHANGED";
 
 
     /**
@@ -298,8 +297,7 @@ public final class TTIntent {
                 ACTION_BLUETOOTH_DISCONNECTED,
                 ACTION_CUBE_CONNECT,
                 ACTION_CUBE_CONNECTED,
-                ACTION_CUBE_DISCONNECTED,
-                ACTION_SCRAMBLE_HIGHLIGHT_CHANGED
+                ACTION_CUBE_DISCONNECTED
         });
     }};
 

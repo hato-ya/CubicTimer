@@ -2,15 +2,12 @@ package com.hatopigeon.cubictimer.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.Layout;
 import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatTextView;
-
-import com.hatopigeon.cubictimer.utils.Prefs;
 
 public class ScrambleTextView extends AppCompatTextView {
 
@@ -26,35 +23,26 @@ public class ScrambleTextView extends AppCompatTextView {
     public ScrambleTextView(Context context) {
         super(context);
         bgPaint.setStyle(Paint.Style.FILL);
-        refreshHighlightColor();
     }
 
     public ScrambleTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         bgPaint.setStyle(Paint.Style.FILL);
-        refreshHighlightColor();
     }
 
     public ScrambleTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         bgPaint.setStyle(Paint.Style.FILL);
-        refreshHighlightColor();
     }
 
-    /** Re-reads the highlight colour from preferences. Call when the setting may have changed. */
-    public void refreshHighlightColor() {
-        String bgHex = Prefs.getString(com.hatopigeon.cubicify.R.string.pk_scramble_highlight_bg, "000000");
-        try {
-            bgPaint.setColor(Color.parseColor("#" + bgHex));
-        } catch (IllegalArgumentException e) {
-            bgPaint.setColor(Color.BLACK);
-        }
+    public void setHighlightBackgroundColor(int color) {
+        bgPaint.setColor(color);
+        invalidate();
     }
 
     public void setScrambleProgress(String[] tokens, int completed) {
         this.scrambleTokens = tokens;
         this.completedMoves = completed;
-        refreshHighlightColor();
         invalidate();
     }
 

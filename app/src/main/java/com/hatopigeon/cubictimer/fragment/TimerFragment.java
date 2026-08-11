@@ -1736,8 +1736,9 @@ public class TimerFragment extends BaseFragment
 
         if (cubeSolver != null) {
             moveCount = cubeSolver.getNumMoves() - movesBeforeTimerStart;
-            cubeSolver.setElapsedTime(chronometer.getElapsedTime());
-            tps = cubeSolver.getTps();
+            if (chronometer.getElapsedTime() > 0) {
+                tps = moveCount / (chronometer.getElapsedTime() / 1000.0);
+            }
             cubeSolver.reset();
             movesBeforeTimerStart = 0;
         }

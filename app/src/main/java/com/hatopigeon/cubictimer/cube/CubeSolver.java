@@ -3,13 +3,11 @@ package com.hatopigeon.cubictimer.cube;
 public class CubeSolver {
     private final CubeState state = new CubeState();
     private int moveCount = 0;
-    private long elapsedTime = 0;
     private boolean solved = false;
 
     public void reset() {
         state.reset();
         moveCount = 0;
-        elapsedTime = 0;
         solved = false;
     }
 
@@ -67,14 +65,5 @@ public class CubeSolver {
 
     public int getNumMoves() {
         return moveCount;
-    }
-
-    public void setElapsedTime(long ms) {
-        elapsedTime = ms;
-    }
-
-    public double getTps() {
-        if (elapsedTime <= 0) return 0;
-        return moveCount / (elapsedTime / 1000.0);
     }
 }

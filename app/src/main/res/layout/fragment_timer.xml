@@ -74,21 +74,6 @@
         android:textColorHighlight="?colorAccent"
         android:textIsSelectable="false" />
 
-    <ImageView
-        android:id="@+id/cancelReadyButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignTop="@id/chronometer"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="16dp"
-        android:background="?selectableItemBackgroundBorderless"
-        android:padding="12dp"
-        android:src="@drawable/ic_outline_close_24px"
-        android:tint="?colorTimerText"
-        tools:visibility="visible"
-        android:visibility="gone" />
-
     <TextView
         android:id="@+id/lapTimeText"
         android:layout_width="wrap_content"
@@ -161,6 +146,34 @@
         android:layout_marginTop="30dp"
         tools:visibility="visible"
         android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/cancelReadyButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/cube_3d_view"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-8dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:src="@drawable/ic_outline_arrow_back_24dp"
+        android:tint="?colorTimerText"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/resetCubeButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/cube_3d_view"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-8dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:src="@drawable/ic_outline_reset_24dp"
+        android:tint="?colorTimerText"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/scramble_img"

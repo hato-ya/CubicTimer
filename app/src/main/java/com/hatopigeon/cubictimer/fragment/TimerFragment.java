@@ -400,6 +400,8 @@ public class TimerFragment extends BaseFragment
     TextView cubeStateMessage;
     @BindView(R.id.cancelReadyButton)
     ImageView cancelReadyButton;
+    @BindView(R.id.resetCubeButton)
+    ImageView resetCubeButton;
 
     @BindView(R.id.cube_3d_view)
     com.hatopigeon.cubictimer.layout.Cube3DView cube3DView;
@@ -514,6 +516,9 @@ public class TimerFragment extends BaseFragment
                 cube3DView.loadColorScheme();
                 cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
             }
+            if (resetCubeButton != null) {
+                resetCubeButton.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+            }
             startCubeReadyPolling();
         }
 
@@ -528,7 +533,8 @@ public class TimerFragment extends BaseFragment
             stopCubeReadyPolling();
             broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
             updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
-            cancelReadyButton.setVisibility(View.GONE);
+            if (cancelReadyButton != null) cancelReadyButton.setVisibility(View.GONE);
+            if (resetCubeButton != null) resetCubeButton.setVisibility(View.GONE);
             if (cube3DView != null) cube3DView.setVisibility(View.GONE);
             // Cube-initiated disconnect (e.g. powered off / out of range): close the manager so its
             // BluetoothGatt is released instead of lingering in the app singleton. Posted to avoid
@@ -1000,9 +1006,6 @@ public class TimerFragment extends BaseFragment
         View root = inflater.inflate(R.layout.fragment_timer, container, false);
         mUnbinder = ButterKnife.bind(this, root);
 
-        // Tapping the 3D cube re-homes the gyroscope to the default orientation.
-        if (cube3DView != null) cube3DView.setOnClickListener(v -> resetCubeGyro());
-
         return root;
     }
 
@@ -1043,6 +1046,10 @@ public class TimerFragment extends BaseFragment
         scrambleButtonReset.setOnClickListener(buttonClickListener);
         scrambleButtonEdit.setOnClickListener(buttonClickListener);
         cancelReadyButton.setOnClickListener(v -> cancelReadyState());
+        resetCubeButton.setOnClickListener(v -> resetCubeState());
+
+        // Tapping the 3D cube re-homes the gyroscope to the default orientation.
+        cube3DView.setOnClickListener(v -> resetCubeGyro());
 
         // Preferences //
         final boolean inspectionEnabled = Prefs.getBoolean(R.string.pk_inspection_enabled, false)
@@ -1580,16 +1587,16 @@ public class TimerFragment extends BaseFragment
                 updateCubeStatus(getString(R.string.smart_cube_status_check_message));
                 mgr.requestFacelets();
                 mgr.requestBattery();
-                if (cube3DView != null) {
-                    cube3DView.loadColorScheme();
-                    cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
-                }
+                cube3DView.loadColorScheme();
+                cube3DView.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
+                resetCubeButton.setVisibility(showCubeModelEnabled() ? View.VISIBLE : View.GONE);
                 startCubeReadyPolling();
                 broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_CONNECTED);
             } else {
                 isCubeConnected = false;
                 cubeStartedSolve = false;
-                if (cube3DView != null) cube3DView.setVisibility(View.GONE);
+                cube3DView.setVisibility(View.GONE);
+                resetCubeButton.setVisibility(View.GONE);
             }
         }
     }
@@ -2081,6 +2088,9 @@ public class TimerFragment extends BaseFragment
                     .alpha(.9f)
                     .setDuration(mAnimationDuration);
         }
+        if (smartCubeEnabled && isCubeConnected && showCubeModelEnabled()) {
+            resetCubeButton.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showDetailStats() {
@@ -2278,6 +2288,9 @@ public class TimerFragment extends BaseFragment
                     .alpha(0)
                     .setDuration(mAnimationDuration)
                     .withEndAction(() -> {if(cubeStateMessage!=null) cubeStateMessage.setVisibility(View.INVISIBLE);});
+        }
+        if (smartCubeEnabled && isCubeConnected && showCubeModelEnabled()) {
+            resetCubeButton.setVisibility(View.GONE);
         }
     }
 
@@ -3407,7 +3420,8 @@ public class TimerFragment extends BaseFragment
         if (cubeSolver != null) cubeSolver.reset();
         CubicTimer.clearCubeBleManager();
         updateCubeStatus(getString(R.string.smart_cube_status_disconnect_message));
-        cancelReadyButton.setVisibility(View.GONE);
+        if (cancelReadyButton != null) cancelReadyButton.setVisibility(View.GONE);
+        if (resetCubeButton != null) resetCubeButton.setVisibility(View.GONE);
         if (cube3DView != null) cube3DView.setVisibility(View.GONE);
         broadcast(CATEGORY_UI_INTERACTIONS, ACTION_CUBE_DISCONNECTED);
     }
@@ -3423,6 +3437,18 @@ public class TimerFragment extends BaseFragment
         showToolbar();
         updateCubeStatus(cubeConnectedLabel());
         cancelReadyButton.setVisibility(View.GONE);
+    }
+
+    private void resetCubeState() {
+        GanCubeManager mgr = CubicTimer.getCubeBleManager();
+        if (mgr != null && mgr.isConnected()) {
+            mgr.requestReset();
+            Toast.makeText(getContext(), R.string.smart_cube_reset_state_done,
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), R.string.smart_cube_reset_state_not_connected,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateCancelReadyButtonVisibility() {

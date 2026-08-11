@@ -83,6 +83,7 @@
         android:padding="12dp"
         android:src="@drawable/ic_outline_close_24px"
         android:tint="?colorTimerText"
+        tools:visibility="visible"
         android:visibility="gone" />
 
     <TextView
@@ -150,6 +151,16 @@
         android:paddingRight="8dp"
         tools:visibility="visible"
         android:visibility="gone"/>
+
+    <com.hatopigeon.cubictimer.layout.Cube3DView
+        android:id="@+id/cube_3d_view"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerVertical="true"
+        android:layout_alignRight="@id/wrapTimeSize"
+        android:layout_marginRight="-60dp"
+        tools:visibility="visible"
+        android:visibility="gone" />
 
     <ImageView
         android:id="@+id/scramble_img"

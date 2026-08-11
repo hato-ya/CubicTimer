@@ -86,6 +86,7 @@
         android:padding="12dp"
         android:src="@drawable/ic_outline_close_24px"
         android:tint="?colorTimerText"
+        tools:visibility="visible"
         android:visibility="gone" />
 
     <TextView
@@ -157,7 +158,8 @@
         android:layout_height="150dp"
         android:layout_below="@id/chronometer"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="30dp"
+        tools:visibility="visible"
         android:visibility="gone" />
 
     <ImageView

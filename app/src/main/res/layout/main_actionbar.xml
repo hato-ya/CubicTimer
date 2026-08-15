@@ -155,7 +155,7 @@
             android:focusable="true"
             android:padding="8dp"
             android:tint="?colorActionBarText"
-            app:srcCompat="@drawable/ic_outline_bluetooth_24px" />
+            app:srcCompat="@drawable/ic_outline_back_hand_24" />
 
         <ImageView
             android:id="@+id/nav_button_cube"

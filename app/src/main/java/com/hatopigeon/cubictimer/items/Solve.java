@@ -3,6 +3,9 @@ package com.hatopigeon.cubictimer.items;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Stores a solve. Solves can be converted to parcels, allowing their state to be saved and
  * restored in the context of managing the user-interface elements.
@@ -24,9 +27,10 @@ public class Solve implements Parcelable {
     boolean history;
 
     int    moveCount;
-    double tps;
-    // Generic per-step breakdown ("name:timeMs:moves;...") for every detection method.
-    String stepSplits = "";
+    long   tps;    // Store 1,000 times the TPS as a long
+    // Splits are intentionally not parceled; load persisted split rows via
+    // DatabaseHandler#getSolveSplits(solveId) when needed.
+    List<SolveSplit> splits = new ArrayList<>();
 
     private static final int PLACE_MBLD_PENALTY_NUM = 100;
 
@@ -77,8 +81,7 @@ public class Solve implements Parcelable {
         comment = in.readString();
         history = in.readByte() != 0;
         moveCount = in.readInt();
-        tps = in.readDouble();
-        stepSplits = in.readString();
+        tps = in.readLong();
     }
 
     public void setId(long id) {
@@ -170,19 +173,27 @@ public class Solve implements Parcelable {
     }
 
     public double getTps() {
-        return tps;
+        return tps / 1000.0;
     }
 
     public void setTps(double tps) {
+        this.tps = Math.round(tps * 1000.0);
+    }
+
+    public long getTpsAsLong() {
+        return tps;
+    }
+
+    public void setTpsAsLong(long tps) {
         this.tps = tps;
     }
 
-    public String getStepSplits() {
-        return stepSplits == null ? "" : stepSplits;
+    public List<SolveSplit> getSplits() {
+        return splits;
     }
 
-    public void setStepSplits(String stepSplits) {
-        this.stepSplits = stepSplits == null ? "" : stepSplits;
+    public void setSplits(List<SolveSplit> splits) {
+        this.splits = splits == null ? new ArrayList<>() : splits;
     }
 
     public int getRawPenalty() {
@@ -214,8 +225,7 @@ public class Solve implements Parcelable {
         dest.writeString(comment);
         dest.writeByte((byte) (history ? 1 : 0));
         dest.writeInt(moveCount);
-        dest.writeDouble(tps);
-        dest.writeString(stepSplits);
+        dest.writeLong(tps);
     }
 
     /**

@@ -50,6 +50,8 @@ import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+
+import com.hatopigeon.cubictimer.items.SolveSplit;
 import com.hatopigeon.cubictimer.view.ScrambleTextView;
 import android.util.Log;
 import android.util.TypedValue;
@@ -474,8 +476,7 @@ public class TimerFragment extends BaseFragment
     // (including advanced) is detected through this generic path; methodSteps == null means "none".
     private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
             STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6, STEP_OLL = 7;
-    // NAMES_* are canonical identifiers: they are persisted into step_splits and used as map keys
-    // for aggregation/ordering, so they must NOT change. Localize for display via StepNames only.
+    // NAMES_* are stable step labels used to map detected steps to SolveSplit step IDs.
     private static final int[] STEPS_ADVANCED = {STEP_CROSS, STEP_SECOND, STEP_OLL, STEP_SOLVED};
     private static final String[] NAMES_ADVANCED = {"Cross", "F2L", "OLL", "PLL"};
     private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,
@@ -1771,7 +1772,7 @@ public class TimerFragment extends BaseFragment
                 0, getLapComment(), false);
         currentSolve.setMoveCount(moveCount);
         currentSolve.setTps(tps);
-        currentSolve.setStepSplits(buildStepSplits());
+        currentSolve.setSplits(buildStepSplits());
 
         if (currentPenalty != PENALTY_DNF) {
             declareRecordTimes(currentSolve);
@@ -3553,16 +3554,44 @@ public class TimerFragment extends BaseFragment
                 + stepTime[s] + "ms / " + stepMoves[s] + " moves");
     }
 
-    /** Serializes the detected steps as "name:timeMs:moves;..." for storage (non-advanced methods). */
-    private String buildStepSplits() {
-        if (methodSteps == null || methodStepNames == null) return "";
-        StringBuilder sb = new StringBuilder();
+    private List<SolveSplit> buildStepSplits() {
+        List<SolveSplit> splits = new ArrayList<>();
+        if (methodSteps == null || methodStepNames == null) return splits;
+
         for (int i = 0; i < methodSteps.length && i < methodStepNames.length; i++) {
-            if (i > 0) sb.append(';');
-            sb.append(methodStepNames[i].replace(';', ' ').replace(':', ' '))
-                    .append(':').append(stepTime[i]).append(':').append(stepMoves[i]);
+            SolveSplit split = new SolveSplit();
+            split.setSourceId(SolveSplit.SOURCE_SMART_CUBE);
+            split.setMethodId(getSolveSplitMethodId());
+            split.setSplitOrder(i);
+            split.setStepId(getSolveSplitStepId(methodStepNames[i]));
+            split.setCaseId(SolveSplit.CASE_NONE);
+            split.setRecogTimeMs(0);
+            split.setExecTimeMs(stepTime[i]);
+            split.setMoveCount(stepMoves[i]);
+            splits.add(split);
         }
-        return sb.toString();
+
+        return splits;
+    }
+
+    private int getSolveSplitMethodId() {
+        if ("intermediate".equals(detectionMethod)) return SolveSplit.METHOD_INTERMEDIATE;
+        if ("beginner".equals(detectionMethod)) return SolveSplit.METHOD_BEGINNER;
+        if ("none".equals(detectionMethod)) return SolveSplit.METHOD_NONE;
+        return SolveSplit.METHOD_ADVANCED;
+    }
+
+    private int getSolveSplitStepId(String stepName) {
+        if ("F2L".equals(stepName)) return SolveSplit.STEP_F2L;
+        if ("OLL".equals(stepName)) return SolveSplit.STEP_OLL;
+        if ("PLL".equals(stepName)) return SolveSplit.STEP_PLL;
+        if ("First layer".equals(stepName)) return SolveSplit.STEP_FIRST_LAYER;
+        if ("Second layer".equals(stepName)) return SolveSplit.STEP_SECOND_LAYER;
+        if ("Opposite cross".equals(stepName)) return SolveSplit.STEP_OPPOSITE_CROSS;
+        if ("Opposite edges".equals(stepName)) return SolveSplit.STEP_OPPOSITE_EDGES;
+        if ("Corners position".equals(stepName)) return SolveSplit.STEP_CORNERS_POSITION;
+        if ("Corners orient".equals(stepName)) return SolveSplit.STEP_CORNERS_ORIENT;
+        return SolveSplit.STEP_CROSS;
     }
 
     /** "Connected" label, with the battery level appended (e.g. "Connected (85%)") when known. */

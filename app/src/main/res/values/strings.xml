@@ -653,5 +653,23 @@
     <string name="list_sort_date">Date</string>
     <string name="list_sort_ascending">Ascending</string>
     <string name="list_sort_descending">Descending</string>
+    <string name="solve_split_unknown">Unknown</string>
+    <string name="solve_split_source_multi_phase">Multi-phase</string>
+    <string name="solve_split_source_smart_cube">Smart cube</string>
+    <string name="solve_split_method_advanced">Advanced</string>
+    <string name="solve_split_method_intermediate">Intermediate</string>
+    <string name="solve_split_method_beginner">Beginner</string>
+    <string name="solve_split_method_none">None</string>
+    <string name="solve_split_step_cross">Cross</string>
+    <string name="solve_split_step_f2l">F2L</string>
+    <string name="solve_split_step_oll">OLL</string>
+    <string name="solve_split_step_pll">PLL</string>
+    <string name="solve_split_step_first_layer">First layer</string>
+    <string name="solve_split_step_second_layer">Second layer</string>
+    <string name="solve_split_step_opposite_cross">Opposite cross</string>
+    <string name="solve_split_step_opposite_edges">Opposite edges</string>
+    <string name="solve_split_step_corners_position">Corners position</string>
+    <string name="solve_split_step_corners_orient">Corners orient</string>
+    <string name="solve_split_case_none">None</string>
 
 </resources>

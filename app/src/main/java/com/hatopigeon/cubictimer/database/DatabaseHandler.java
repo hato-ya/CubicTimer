@@ -12,6 +12,7 @@ import com.hatopigeon.cubictimer.CubicTimer;
 import com.hatopigeon.cubictimer.fragment.dialog.ExportImportDialog;
 import com.hatopigeon.cubictimer.items.Algorithm;
 import com.hatopigeon.cubictimer.items.Solve;
+import com.hatopigeon.cubictimer.items.SolveSplit;
 import com.hatopigeon.cubictimer.stats.ChartStatistics;
 import com.hatopigeon.cubictimer.stats.Statistics;
 import com.hatopigeon.cubictimer.utils.AlgUtils;
@@ -29,39 +30,36 @@ import java.util.List;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-    public static final String TABLE_TIMES = "times";
+    public static final String TABLE_TIMES    = "times";
 
     // Times table
-    public static final String KEY_ID       = "_id";
-    public static final String KEY_TYPE     = "type";
-    public static final String KEY_SUBTYPE  = "subtype";
-    public static final String KEY_TIME     = "time";
-    public static final String KEY_DATE     = "date";
-    public static final String KEY_SCRAMBLE = "scramble";
-    public static final String KEY_PENALTY  = "penalty";
-    public static final String KEY_COMMENT  = "comment";
-    public static final String KEY_HISTORY  = "history";
+    public static final String KEY_ID         = "_id";
+    public static final String KEY_TYPE       = "type";
+    public static final String KEY_SUBTYPE    = "subtype";
+    public static final String KEY_TIME       = "time";
+    public static final String KEY_DATE       = "date";
+    public static final String KEY_SCRAMBLE   = "scramble";
+    public static final String KEY_PENALTY    = "penalty";
+    public static final String KEY_COMMENT    = "comment";
+    public static final String KEY_HISTORY    = "history";
     public static final String KEY_MOVE_COUNT = "move_count";
     public static final String KEY_TPS        = "tps";
-    // Generic per-step breakdown for all detection methods (advanced/intermediate/beginner),
-    // serialized as "name:timeMs:moves;name:timeMs:moves;...". Empty when no step detection ran.
-    public static final String KEY_STEP_SPLITS = "step_splits";
+
     // Index value of the keys of the "times" table *only* for a full "SELECT * FROM times".
     // Added these to make code in places like "MainActivity" (export/import) a bit more readable,
     // as it was using "magic numbers". However, it would be better if such ad hoc reads were moved
     // back into this class.
-    public static final int IDX_ID       = 0;
-    public static final int IDX_TYPE     = 1;
-    public static final int IDX_SUBTYPE  = 2;
-    public static final int IDX_TIME     = 3;
-    public static final int IDX_DATE     = 4;
-    public static final int IDX_SCRAMBLE = 5;
-    public static final int IDX_PENALTY  = 6;
-    public static final int IDX_COMMENT  = 7;
-    public static final int IDX_HISTORY  = 8;
+    public static final int IDX_ID         = 0;
+    public static final int IDX_TYPE       = 1;
+    public static final int IDX_SUBTYPE    = 2;
+    public static final int IDX_TIME       = 3;
+    public static final int IDX_DATE       = 4;
+    public static final int IDX_SCRAMBLE   = 5;
+    public static final int IDX_PENALTY    = 6;
+    public static final int IDX_COMMENT    = 7;
+    public static final int IDX_HISTORY    = 8;
     public static final int IDX_MOVE_COUNT = 9;
     public static final int IDX_TPS        = 10;
-    public static final int IDX_STEP_SPLITS = 11;
 
     // Algs table
     public static final String TABLE_ALGS   = "algs";
@@ -74,8 +72,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SUBSET_OLL = "OLL";
     public static final String SUBSET_PLL = "PLL";
 
+    // Splits table
+    public static final String TABLE_SPLITS      = "splits";
+
+    public static final String KEY_SOLVE_ID      = "solve_id";
+    public static final String KEY_SOURCE_ID     = "source_id";
+    public static final String KEY_METHOD_ID     = "method_id";
+    public static final String KEY_SPLIT_ORDER   = "split_order";
+    public static final String KEY_STEP_ID       = "step_id";
+    public static final String KEY_CASE_ID       = "case_id";
+    public static final String KEY_RECOG_TIME_MS = "recog_time_ms";
+    public static final String KEY_EXEC_TIME_MS  = "exec_time_ms";
+
     // Database Version
-    private static final int    DATABASE_VERSION   = 11;
+    private static final int    DATABASE_VERSION   = 12;
     // Database Name
     private static final String DATABASE_NAME      = "databaseManager";
     private static final String CREATE_TABLE_TIMES =
@@ -90,8 +100,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_COMMENT + " TEXT,"
             + KEY_HISTORY + " BOOLEAN,"
             + KEY_MOVE_COUNT + " INTEGER DEFAULT 0,"
-            + KEY_TPS + " REAL DEFAULT 0.0,"
-            + KEY_STEP_SPLITS + " TEXT DEFAULT ''"
+            + KEY_TPS + " INTEGER DEFAULT 0"
             + ")";
     private static final String CREATE_TABLE_ALGS  =
         "CREATE TABLE " + TABLE_ALGS + "("
@@ -102,6 +111,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + KEY_ALGS + " TEXT,"
             + KEY_PROGRESS + " INTEGER"
             + ")";
+    private static final String CREATE_TABLE_SPLITS =
+        "CREATE TABLE " + TABLE_SPLITS + "("
+            + KEY_ID + " INTEGER PRIMARY KEY,"
+            + KEY_SOLVE_ID + " INTEGER,"
+            + KEY_SOURCE_ID + " INTEGER,"
+            + KEY_METHOD_ID + " INTEGER,"
+            + KEY_SPLIT_ORDER + " INTEGER,"
+            + KEY_STEP_ID + " INTEGER,"
+            + KEY_CASE_ID + " INTEGER,"
+            + KEY_RECOG_TIME_MS + " INTEGER,"
+            + KEY_EXEC_TIME_MS + " INTEGER,"
+            + KEY_MOVE_COUNT + " INTEGER,"
+            + "FOREIGN KEY(" + KEY_SOLVE_ID + ") REFERENCES "
+            + TABLE_TIMES + "(" + KEY_ID + ") ON DELETE CASCADE"
+            + ")";
+    private static final String CREATE_INDEX_SPLITS_SOLVE_ID =
+        "CREATE INDEX IF NOT EXISTS idx_solve_splits_solve_id ON "
+            + TABLE_SPLITS + "(" + KEY_SOLVE_ID + ")";
 
     /**
      * An interface for notification of the progress of bulk database operations.
@@ -124,11 +151,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(CubicTimer.getAppContext(), DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
+    }
+
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_TIMES);
         db.execSQL(CREATE_TABLE_ALGS);
+        db.execSQL(CREATE_TABLE_SPLITS);
+        db.execSQL(CREATE_INDEX_SPLITS_SOLVE_ID);
         createInitialAlgs(db);
     }
 
@@ -156,11 +191,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_MOVE_COUNT + " INTEGER DEFAULT 0");
                 } catch (Exception ignored) {}
                 try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " REAL DEFAULT 0.0");
+                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_TPS + " INTEGER DEFAULT 0");
                 } catch (Exception ignored) {}
-                try {
-                    db.execSQL("ALTER TABLE times ADD COLUMN " + KEY_STEP_SPLITS + " TEXT DEFAULT ''");
-                } catch (Exception ignored) {}
+            case 11:
+                db.execSQL(CREATE_TABLE_SPLITS);
+                db.execSQL(CREATE_INDEX_SPLITS_SOLVE_ID);
         }
     }
 
@@ -315,7 +350,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return The new ID of the stored solve record.
      */
     public long addSolve(Solve solve) {
-        return addSolveInternal(getWritableDatabase(), solve);
+        final SQLiteDatabase db = getWritableDatabase();
+        long solveId;
+
+        try {
+            db.beginTransaction();
+            solveId = addSolveInternal(db, solve);
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+
+        return solveId;
     }
 
     /**
@@ -345,11 +391,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
-        values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
+        values.put(KEY_TPS, solve.getTpsAsLong());
 
         // Inserting Row
-        return db.insert(TABLE_TIMES, null, values);
+        long solveId = db.insert(TABLE_TIMES, null, values);
+        if (solveId < 0) return solveId;
+
+        insertSolveSplits(db, solveId, solve.getSplits());
+        return solveId;
     }
 
     /**
@@ -429,12 +478,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_COMMENT, solve.getComment());
         values.put(KEY_HISTORY, solve.isHistory());
         values.put(KEY_MOVE_COUNT, solve.getMoveCount());
-        values.put(KEY_TPS, solve.getTps());
-        values.put(KEY_STEP_SPLITS, solve.getStepSplits());
+        values.put(KEY_TPS, solve.getTpsAsLong());
 
         // Updating row
         return db.update(TABLE_TIMES, values, KEY_ID + " = ?",
             new String[] { String.valueOf(solve.getId()) });
+    }
+
+    private void insertSolveSplits(SQLiteDatabase db, long solveId, List<SolveSplit> splits) {
+        for (SolveSplit split : splits) {
+            ContentValues values = new ContentValues();
+
+            values.put(KEY_SOLVE_ID, solveId);
+            values.put(KEY_SOURCE_ID, split.getSourceId());
+            values.put(KEY_METHOD_ID, split.getMethodId());
+            values.put(KEY_SPLIT_ORDER, split.getSplitOrder());
+            values.put(KEY_STEP_ID, split.getStepId());
+            values.put(KEY_CASE_ID, split.getCaseId());
+            values.put(KEY_RECOG_TIME_MS, split.getRecogTimeMs());
+            values.put(KEY_EXEC_TIME_MS, split.getExecTimeMs());
+            values.put(KEY_MOVE_COUNT, split.getMoveCount());
+
+            db.insertOrThrow(TABLE_SPLITS, null, values);
+        }
     }
 
     /**
@@ -452,8 +518,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         final Cursor cursor = getReadableDatabase().query(TABLE_TIMES,
                 new String[] {
                         KEY_ID, KEY_TIME, KEY_TYPE, KEY_SUBTYPE, KEY_DATE, KEY_SCRAMBLE,
-                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS,
-                        KEY_STEP_SPLITS },
+                        KEY_PENALTY, KEY_COMMENT, KEY_HISTORY, KEY_MOVE_COUNT, KEY_TPS},
                 KEY_ID + "=?", new String[] { String.valueOf(solveID) }, null, null, null, null);
 
         try {
@@ -469,8 +534,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getString(7),
                         getBoolean(cursor, 8));
                 solve.setMoveCount(cursor.getInt(9));
-                solve.setTps(cursor.getDouble(10));
-                solve.setStepSplits(cursor.getString(11));
+                solve.setTpsAsLong(cursor.getLong(10));
                 return solve;
             }
 
@@ -481,13 +545,50 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    public List<SolveSplit> getSolveSplits(long solveId) {
+        final Cursor cursor = getReadableDatabase().query(TABLE_SPLITS,
+                new String[] {
+                        KEY_ID, KEY_SOLVE_ID, KEY_SOURCE_ID, KEY_METHOD_ID, KEY_SPLIT_ORDER,
+                        KEY_STEP_ID, KEY_CASE_ID, KEY_RECOG_TIME_MS, KEY_EXEC_TIME_MS,
+                        KEY_MOVE_COUNT },
+                KEY_SOLVE_ID + "=?", new String[] { String.valueOf(solveId) },
+                null, null, KEY_SPLIT_ORDER + " ASC, " + KEY_ID + " ASC", null);
+
+        List<SolveSplit> splits = new ArrayList<>();
+        try {
+            while (cursor.moveToNext()) {
+                SolveSplit split = new SolveSplit();
+                split.setId(cursor.getLong(0));
+                split.setSolveId(cursor.getLong(1));
+                split.setSourceId(cursor.getInt(2));
+                split.setMethodId(cursor.getInt(3));
+                split.setSplitOrder(cursor.getInt(4));
+                split.setStepId(cursor.getInt(5));
+                split.setCaseId(cursor.getInt(6));
+                split.setRecogTimeMs(cursor.getLong(7));
+                split.setExecTimeMs(cursor.getLong(8));
+                split.setMoveCount(cursor.getInt(9));
+                splits.add(split);
+            }
+        } finally {
+            cursor.close();
+        }
+        return splits;
+    }
+
+    public int deleteSolveSplits(long solveId) {
+        return getWritableDatabase().delete(TABLE_SPLITS, KEY_SOLVE_ID + "=?",
+                new String[] { String.valueOf(solveId) });
+    }
+
     // Preferred order for detected steps; unknown names are appended in first-seen order. These are
     // canonical step keys (matching TimerFragment.NAMES_*), not display text — localized via
     // StepNames at render time.
-    private static final String[] STEP_ORDER = {
-        "Cross", "F2L", "OLL", "PLL",
-        "First layer", "Second layer", "Opposite cross", "Opposite edges",
-        "Corners position", "Corners orient",
+    private static final int[] STEP_ORDER = {
+        SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L, SolveSplit.STEP_OLL, SolveSplit.STEP_PLL,
+        SolveSplit.STEP_FIRST_LAYER, SolveSplit.STEP_SECOND_LAYER,
+        SolveSplit.STEP_OPPOSITE_CROSS, SolveSplit.STEP_OPPOSITE_EDGES,
+        SolveSplit.STEP_CORNERS_POSITION, SolveSplit.STEP_CORNERS_ORIENT,
     };
 
     /**
@@ -498,9 +599,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public java.util.LinkedHashMap<String, Statistics> getStepStatistics(String type, String subtype) {
         java.util.LinkedHashMap<String, Statistics> map = new java.util.LinkedHashMap<>();
-        final String sql = "SELECT " + KEY_STEP_SPLITS + ", " + KEY_PENALTY + ", "
-                + KEY_HISTORY + ", " + KEY_DATE + " FROM " + TABLE_TIMES
-                + " WHERE " + KEY_TYPE + "=? AND " + KEY_SUBTYPE + "=? ORDER BY " + KEY_DATE + " ASC";
+        final String sql = "SELECT s." + KEY_STEP_ID + ", s." + KEY_EXEC_TIME_MS
+                + ", t." + KEY_PENALTY + ", t." + KEY_HISTORY + ", t." + KEY_DATE
+                + " FROM " + TABLE_SPLITS + " s"
+                + " JOIN " + TABLE_TIMES + " t ON t." + KEY_ID + "=s." + KEY_SOLVE_ID
+                + " WHERE t." + KEY_TYPE + "=? AND t." + KEY_SUBTYPE + "=?"
+                + " ORDER BY t." + KEY_DATE + " ASC, s." + KEY_SPLIT_ORDER + " ASC";
         final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
 
         org.joda.time.DateTime dtNow = new org.joda.time.DateTime();
@@ -516,19 +620,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         try {
             while (cursor.moveToNext()) {
-                if (Solve.getPenalty(cursor.getInt(1)) == PuzzleUtils.PENALTY_DNF) continue;
-                boolean session = cursor.getInt(2) == 0; // current session = not archived
-                long date = cursor.getLong(3);
+                if (Solve.getPenalty(cursor.getInt(2)) == PuzzleUtils.PENALTY_DNF) continue;
+                if (cursor.isNull(1)) continue;
+                boolean session = cursor.getInt(3) == 0; // current session = not archived
+                long date = cursor.getLong(4);
                 boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
-                String splits = cursor.getString(0);
-                if (splits == null || splits.isEmpty()) continue;
-                for (String part : splits.split(";")) {
-                    String[] f = part.split(":");
-                    if (f.length < 2) continue;
-                    long t;
-                    try { t = Long.parseLong(f[1]); } catch (NumberFormatException e) { continue; }
-                    if (t > 0) addStepTime(map, f[0], t, session, today, type);
-                }
+                long stepTime = cursor.getLong(1);
+                if (stepTime > 0) addStepTime(map, cursor.getInt(0), stepTime, session, today, type);
             }
         } finally {
             cursor.close();
@@ -536,16 +634,47 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // Re-order canonically.
         java.util.LinkedHashMap<String, Statistics> ordered = new java.util.LinkedHashMap<>();
-        for (String name : STEP_ORDER) if (map.containsKey(name)) ordered.put(name, map.remove(name));
+        for (int name : STEP_ORDER) {
+            String key = stepNameToKey(name);
+            if (map.containsKey(key)) ordered.put(key, map.remove(key));
+        }
         ordered.putAll(map);
         return ordered;
     }
 
-    private static void addStepTime(java.util.LinkedHashMap<String, Statistics> map, String name,
+    private static void addStepTime(java.util.LinkedHashMap<String, Statistics> map, int name,
                                     long time, boolean session, boolean today, String puzzleType) {
-        Statistics st = map.get(name);
-        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(name, st); }
+        String key = stepNameToKey(name);
+        Statistics st = map.get(key);
+        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(key, st); }
         st.addTime(time, session, today);
+    }
+
+    private static String stepNameToKey(int name) {
+        switch (name) {
+            case SolveSplit.STEP_CROSS:
+                return "Cross";
+            case SolveSplit.STEP_F2L:
+                return "F2L";
+            case SolveSplit.STEP_OLL:
+                return "OLL";
+            case SolveSplit.STEP_PLL:
+                return "PLL";
+            case SolveSplit.STEP_FIRST_LAYER:
+                return "First layer";
+            case SolveSplit.STEP_SECOND_LAYER:
+                return "Second layer";
+            case SolveSplit.STEP_OPPOSITE_CROSS:
+                return "Opposite cross";
+            case SolveSplit.STEP_OPPOSITE_EDGES:
+                return "Opposite edges";
+            case SolveSplit.STEP_CORNERS_POSITION:
+                return "Corners position";
+            case SolveSplit.STEP_CORNERS_ORIENT:
+                return "Corners orient";
+            default:
+                return "Unknown";
+        }
     }
 
     public boolean getBoolean(Cursor cursor, int columnIndex) {

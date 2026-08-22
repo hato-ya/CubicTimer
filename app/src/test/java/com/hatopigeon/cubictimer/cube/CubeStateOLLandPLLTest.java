@@ -85,9 +85,9 @@ public class CubeStateOLLandPLLTest {
                 state.setFacelets(Model.facelets());
                 int crossFace = opposite[lastFace];
                 int detected = state.getOllCase(crossFace, references);
-                if (detected != oll || !state.isF2LSolved(crossFace)) {
+                if (detected != oll || !state.isF2lSolved(crossFace)) {
                     failures.add("OLL " + oll + " lastFace=" + lastFace + " cross=" + crossFace
-                            + " f2l=" + state.isF2LSolved(crossFace) + " -> " + detected);
+                            + " f2l=" + state.isF2lSolved(crossFace) + " -> " + detected);
                 }
             }
         }
@@ -99,7 +99,7 @@ public class CubeStateOLLandPLLTest {
         CubeState solved = new CubeState();
         for (int f = 0; f <= 5; f++) {
             assertTrue("cross " + f, solved.isCrossSolved(f));
-            assertTrue("f2l " + f, solved.isF2LSolved(f));
+            assertTrue("f2l " + f, solved.isF2lSolved(f));
         }
     }
 

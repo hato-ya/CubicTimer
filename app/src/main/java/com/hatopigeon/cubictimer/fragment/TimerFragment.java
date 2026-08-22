@@ -43,7 +43,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
-import androidx.appcompat.widget.AppCompatTextView;
 import androidx.cardview.widget.CardView;
 
 import android.text.Html;
@@ -128,6 +127,7 @@ import no.nordicsemi.android.support.v18.scanner.ScanFilter;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
+import static com.hatopigeon.cubictimer.items.SolveSplitNames.getStepCanonicalName;
 import static com.hatopigeon.cubictimer.stats.AverageCalculatorSuper.tr;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_NO_MILLI_TIMER;
 import static com.hatopigeon.cubictimer.utils.PuzzleUtils.FORMAT_SECOND;
@@ -471,26 +471,18 @@ public class TimerFragment extends BaseFragment
     private int crossFace = -1;
     private long crossTimeMs = -1;
     private int crossMoveCount;
-    // Step detection. methodSteps lists the step kinds for the selected method; stepTime/stepMoves
-    // are sized to it (per-step time in ms since the prior step, -1 until detected). Every method
-    // (including advanced) is detected through this generic path; methodSteps == null means "none".
-    private static final int STEP_CROSS = 0, STEP_FIRST = 1, STEP_SECOND = 2, STEP_OPP_CROSS = 3,
-            STEP_OPP_EDGES = 4, STEP_CORNERS_POS = 5, STEP_SOLVED = 6, STEP_OLL = 7;
-    // NAMES_* are stable step labels used to map detected steps to SolveSplit step IDs.
-    private static final int[] STEPS_ADVANCED = {STEP_CROSS, STEP_SECOND, STEP_OLL, STEP_SOLVED};
-    private static final String[] NAMES_ADVANCED = {"Cross", "F2L", "OLL", "PLL"};
-    private static final int[] STEPS_INTERMEDIATE = {STEP_CROSS, STEP_SECOND, STEP_OPP_CROSS,
-            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
-    private static final String[] NAMES_INTERMEDIATE = {"Cross", "F2L", "Opposite cross",
-            "Opposite edges", "Corners position", "Corners orient"};
-    private static final int[] STEPS_BEGINNER = {STEP_CROSS, STEP_FIRST, STEP_SECOND, STEP_OPP_CROSS,
-            STEP_OPP_EDGES, STEP_CORNERS_POS, STEP_SOLVED};
-    private static final String[] NAMES_BEGINNER = {"Cross", "First layer", "Second layer",
-            "Opposite cross", "Opposite edges", "Corners position", "Corners orient"};
-    private String detectionMethod = "advanced"; // none / advanced / intermediate / beginner
+
+    private static final int[] STEPS_BEGINNER = {SolveSplit.STEP_CROSS, SolveSplit.STEP_FIRST_LAYER,
+            SolveSplit.STEP_SECOND_LAYER, SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL,
+            SolveSplit.STEP_CORNER_PLL, SolveSplit.STEP_EDGE_PLL, SolveSplit.STEP_AUF};
+    private static final int[] STEPS_INTERMEDIATE = {SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
+            SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL, SolveSplit.STEP_CORNER_PLL,
+            SolveSplit.STEP_EDGE_PLL, SolveSplit.STEP_AUF};
+    private static final int[] STEPS_ADVANCED = {SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
+            SolveSplit.STEP_OLL, SolveSplit.STEP_PLL, SolveSplit.STEP_AUF};
+    private String detectionMethod = "cfop_advanced"; // none / cfop_beginner / cfop_intermediate / cfop_advanced
     private int[] methodSteps;          // null = none
-    private String[] methodStepNames;
-    private long[] stepTime = new long[0];
+    private long[] stepExecTime = new long[0];
     private int[] stepMoves = new int[0];
     private Handler cubePollHandler;
     private Runnable cubePollRunnable;
@@ -2327,7 +2319,7 @@ public class TimerFragment extends BaseFragment
         crossFace = -1;
         crossTimeMs = -1;
         crossMoveCount = 0;
-        for (int s = 0; s < stepTime.length; s++) { stepTime[s] = -1; stepMoves[s] = 0; }
+        for (int s = 0; s < stepExecTime.length; s++) { stepExecTime[s] = -1; stepMoves[s] = 0; }
         cubeSolveHandled = false;
 
         if (scrambleEnabled && !isTimeDisabled(currentPuzzle)) {
@@ -3477,7 +3469,7 @@ public class TimerFragment extends BaseFragment
         if (methodSteps != null) {
             detectSteps(); // catch up any steps the final snapshot reached at once
             int last = methodSteps.length - 1; // the SOLVED step
-            if (last > 0 && stepTime[last - 1] >= 0 && stepTime[last] < 0) {
+            if (last > 0 && stepExecTime[last - 1] >= 0 && stepExecTime[last] < 0) {
                 recordStep(last, chronometer.getElapsedTime(),
                         cubeSolver.getNumMoves() - movesBeforeTimerStart);
             }
@@ -3491,18 +3483,18 @@ public class TimerFragment extends BaseFragment
 
     /** Reads the step-detection method preference and sizes the per-step buffers to it. */
     private void configureDetectionMethod() {
-        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "advanced");
-        if ("beginner".equals(detectionMethod)) {
-            methodSteps = STEPS_BEGINNER; methodStepNames = NAMES_BEGINNER;
-        } else if ("intermediate".equals(detectionMethod)) {
-            methodSteps = STEPS_INTERMEDIATE; methodStepNames = NAMES_INTERMEDIATE;
-        } else if ("none".equals(detectionMethod)) {
-            methodSteps = null; methodStepNames = null;
+        detectionMethod = Prefs.getString(R.string.pk_smart_cube_detection_method, "cfop_advanced");
+        if ("cfop_beginner".equals(detectionMethod)) {
+            methodSteps = STEPS_BEGINNER;
+        } else if ("cfop_intermediate".equals(detectionMethod)) {
+            methodSteps = STEPS_INTERMEDIATE;
+        } else if ("cfop_advanced".equals(detectionMethod)) {
+            methodSteps = STEPS_ADVANCED;
         } else {
-            methodSteps = STEPS_ADVANCED; methodStepNames = NAMES_ADVANCED; // advanced
+            methodSteps = null;
         }
         if (methodSteps != null) {
-            stepTime = new long[methodSteps.length];
+            stepExecTime = new long[methodSteps.length];
             stepMoves = new int[methodSteps.length];
         }
     }
@@ -3510,15 +3502,18 @@ public class TimerFragment extends BaseFragment
     /** True when the cube state satisfies the given step kind for the current cross face. */
     private boolean stepDone(int kind) {
         switch (kind) {
-            case STEP_CROSS:        return crossFace >= 0;
-            case STEP_FIRST:        return cubeSolver.isFirstLayerSolved(crossFace);
-            case STEP_SECOND:       return cubeSolver.isF2LSolved(crossFace);
-            case STEP_OLL:          return cubeSolver.isOLLSolved(crossFace);
-            case STEP_OPP_CROSS:    return cubeSolver.isLLCrossOriented(crossFace);
-            case STEP_OPP_EDGES:    return cubeSolver.isLLCrossSolved(crossFace);
-            case STEP_CORNERS_POS:  return cubeSolver.areLLCornersPositioned(crossFace);
-            case STEP_SOLVED:       return cubeSolver.isSolved();
-            default:                return false;
+            case SolveSplit.STEP_CROSS:         return crossFace >= 0;
+            case SolveSplit.STEP_F2L:           return cubeSolver.isF2lSolved(crossFace);
+            case SolveSplit.STEP_OLL:           return cubeSolver.isOllSolved(crossFace);
+            case SolveSplit.STEP_PLL:           return cubeSolver.isPllSolved(crossFace);
+            case SolveSplit.STEP_AUF:           return cubeSolver.isSolved();
+            case SolveSplit.STEP_FIRST_LAYER:   return cubeSolver.isFirstLayerSolved(crossFace);
+            case SolveSplit.STEP_SECOND_LAYER:  return cubeSolver.isF2lSolved(crossFace);
+            case SolveSplit.STEP_EDGE_OLL:      return cubeSolver.isEdgeOllSolved(crossFace);
+            case SolveSplit.STEP_CORNER_OLL:    return cubeSolver.isOllSolved(crossFace);
+            case SolveSplit.STEP_CORNER_PLL:    return cubeSolver.isCornerPllSolved(crossFace);
+            case SolveSplit.STEP_EDGE_PLL:      return cubeSolver.isPllSolved(crossFace);
+            default:                            return false;
         }
     }
 
@@ -3528,14 +3523,14 @@ public class TimerFragment extends BaseFragment
         long elapsed = chronometer.getElapsedTime();
         int totalMoves = cubeSolver.getNumMoves() - movesBeforeTimerStart;
 
-        if (stepTime[0] < 0) {        // step 0 is always the cross
-            stepTime[0] = crossTimeMs >= 0 ? crossTimeMs : elapsed;
+        if (stepExecTime[0] < 0) {        // step 0 is always the cross
+            stepExecTime[0] = crossTimeMs >= 0 ? crossTimeMs : elapsed;
             stepMoves[0] = crossMoveCount;
-            Log.d(TAG, "Step 0 (" + methodStepNames[0] + "): " + stepTime[0] + "ms / " + stepMoves[0] + " moves");
+            Log.d(TAG, "Step 0 (" + getStepCanonicalName(methodSteps[0]) + "): " + stepExecTime[0] + "ms / " + stepMoves[0] + " moves");
         }
         // The last step (solved) is finalized in finishCubeSolve, not here.
         for (int s = 1; s < methodSteps.length - 1; s++) {
-            if (stepTime[s - 1] >= 0 && stepTime[s] < 0 && stepDone(methodSteps[s])) {
+            if (stepExecTime[s - 1] >= 0 && stepExecTime[s] < 0 && stepDone(methodSteps[s])) {
                 recordStep(s, elapsed, totalMoves);
             }
         }
@@ -3545,28 +3540,28 @@ public class TimerFragment extends BaseFragment
         long prevTime = 0;
         int prevMoves = 0;
         for (int i = 0; i < s; i++) {
-            if (stepTime[i] > 0) prevTime += stepTime[i];
+            if (stepExecTime[i] > 0) prevTime += stepExecTime[i];
             prevMoves += stepMoves[i];
         }
-        stepTime[s] = elapsed - prevTime;
+        stepExecTime[s] = elapsed - prevTime;
         stepMoves[s] = totalMoves - prevMoves;
-        Log.d(TAG, "Step " + s + " (" + methodStepNames[s] + "): +"
-                + stepTime[s] + "ms / " + stepMoves[s] + " moves");
+        Log.d(TAG, "Step " + s + " (" + getStepCanonicalName(methodSteps[s]) + "): +"
+                + stepExecTime[s] + "ms / " + stepMoves[s] + " moves");
     }
 
     private List<SolveSplit> buildStepSplits() {
         List<SolveSplit> splits = new ArrayList<>();
-        if (methodSteps == null || methodStepNames == null) return splits;
+        if (methodSteps == null) return splits;
 
-        for (int i = 0; i < methodSteps.length && i < methodStepNames.length; i++) {
+        for (int i = 0; i < methodSteps.length; i++) {
             SolveSplit split = new SolveSplit();
             split.setSourceId(SolveSplit.SOURCE_SMART_CUBE);
             split.setMethodId(getSolveSplitMethodId());
             split.setSplitOrder(i);
-            split.setStepId(getSolveSplitStepId(methodStepNames[i]));
+            split.setStepId(methodSteps[i]);
             split.setCaseId(SolveSplit.CASE_NONE);
             split.setRecogTimeMs(0);
-            split.setExecTimeMs(stepTime[i]);
+            split.setExecTimeMs(stepExecTime[i]);
             split.setMoveCount(stepMoves[i]);
             splits.add(split);
         }
@@ -3575,23 +3570,13 @@ public class TimerFragment extends BaseFragment
     }
 
     private int getSolveSplitMethodId() {
-        if ("intermediate".equals(detectionMethod)) return SolveSplit.METHOD_INTERMEDIATE;
-        if ("beginner".equals(detectionMethod)) return SolveSplit.METHOD_BEGINNER;
-        if ("none".equals(detectionMethod)) return SolveSplit.METHOD_NONE;
-        return SolveSplit.METHOD_ADVANCED;
-    }
+        if ("cfop_beginner".equals(detectionMethod) ||
+                "cfop_intermediate".equals(detectionMethod) ||
+                "cfop_advanced".equals(detectionMethod)) {
+            return SolveSplit.METHOD_CFOP;
+        }
 
-    private int getSolveSplitStepId(String stepName) {
-        if ("F2L".equals(stepName)) return SolveSplit.STEP_F2L;
-        if ("OLL".equals(stepName)) return SolveSplit.STEP_OLL;
-        if ("PLL".equals(stepName)) return SolveSplit.STEP_PLL;
-        if ("First layer".equals(stepName)) return SolveSplit.STEP_FIRST_LAYER;
-        if ("Second layer".equals(stepName)) return SolveSplit.STEP_SECOND_LAYER;
-        if ("Opposite cross".equals(stepName)) return SolveSplit.STEP_OPPOSITE_CROSS;
-        if ("Opposite edges".equals(stepName)) return SolveSplit.STEP_OPPOSITE_EDGES;
-        if ("Corners position".equals(stepName)) return SolveSplit.STEP_CORNERS_POSITION;
-        if ("Corners orient".equals(stepName)) return SolveSplit.STEP_CORNERS_ORIENT;
-        return SolveSplit.STEP_CROSS;
+        return SolveSplit.METHOD_NONE;
     }
 
     /** "Connected" label, with the battery level appended (e.g. "Connected (85%)") when known. */

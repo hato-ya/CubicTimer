@@ -465,18 +465,6 @@
     <string name="smart_cube_show_model_summary">Display the live 3D cube below the timer</string>
     <string name="smart_cube_auto_start_stop_title">Auto start/stop</string>
     <string name="smart_cube_auto_start_stop_summary">Automatically start and stop the timer based on cube detection</string>
-    <!-- Solve-step display labels (stored canonically; localized only for display). -->
-    <string name="step_name_cross">Cross</string>
-    <string name="step_name_f2l" translatable="false">F2L</string>
-    <string name="step_name_oll" translatable="false">OLL</string>
-    <string name="step_name_pll" translatable="false">PLL</string>
-    <string name="step_name_first_layer">First layer</string>
-    <string name="step_name_second_layer">Second layer</string>
-    <string name="step_name_opposite_cross">Opposite cross</string>
-    <string name="step_name_opposite_edges">Opposite edges</string>
-    <string name="step_name_corners_position">Corners position</string>
-    <string name="step_name_corners_orient">Corners orient</string>
-    <string name="step_name_last_layer">last layer</string>
     <string name="add_time_invalid">Invalid time</string>
     <string name="step_stats_title">Step statistics</string>
     <string name="step_stats_overall">Overall</string>
@@ -490,9 +478,9 @@
     <string name="smart_cube_detection_method_title">Split detection method</string>
     <string name="smart_cube_detection_method_summary">How a solve is split into steps</string>
     <string name="smart_cube_detection_none">None</string>
-    <string name="smart_cube_detection_advanced">CFOP Advanced (4 steps)\n<small>%1$s / %2$s / %3$s / %4$s</small></string>
-    <string name="smart_cube_detection_intermediate">CFOP Intermediate (6 steps)\n<small>%1$s / %2$s / %3$s</small></string>
-    <string name="smart_cube_detection_beginner">CFOP Beginner (7 steps)\n<small>%1$s / %2$s / %3$s / %4$s</small></string>
+    <string name="smart_cube_detection_cfop_beginner">CFOP Beginner (7 steps)\n<small> Cross / First layer / Second Layer\n Edge OLL / Corner OLL\n Corner PLL / Edge PLL</small></string>
+    <string name="smart_cube_detection_cfop_intermediate">CFOP Intermediate (6 steps)\n<small> Cross / F2L\n Edge OLL / Corner OLL\n Corner PLL / Edge PLL</small></string>
+    <string name="smart_cube_detection_cfop_advanced">CFOP Advanced (4 steps)\n<small> Cross / F2L / OLL / PLL</small></string>
     <string name="smart_cube_orientation_title">Holding orientation</string>
     <string name="smart_cube_orientation_summary">Set which faces you hold on top and in front, for correct scramble highlighting</string>
     <string name="smart_cube_orientation_instruction">Tap the top face, then the front face</string>
@@ -653,23 +641,31 @@
     <string name="list_sort_date">Date</string>
     <string name="list_sort_ascending">Ascending</string>
     <string name="list_sort_descending">Descending</string>
-    <string name="solve_split_unknown">Unknown</string>
     <string name="solve_split_source_multi_phase">Multi-phase</string>
     <string name="solve_split_source_smart_cube">Smart cube</string>
-    <string name="solve_split_method_advanced">Advanced</string>
-    <string name="solve_split_method_intermediate">Intermediate</string>
-    <string name="solve_split_method_beginner">Beginner</string>
+    <string name="solve_split_source_unknown">Unknown</string>
     <string name="solve_split_method_none">None</string>
+    <string name="solve_split_method_cfop">CFOP</string>
+    <string name="solve_split_method_unknown">Unknown</string>
+    <string name="solve_split_step_pick">Pick</string>
     <string name="solve_split_step_cross">Cross</string>
     <string name="solve_split_step_f2l">F2L</string>
+    <string name="solve_split_step_f2l1">F2L #1</string>
+    <string name="solve_split_step_f2l2">F2L #2</string>
+    <string name="solve_split_step_f2l3">F2L #3</string>
+    <string name="solve_split_step_f2l4">F2L #4</string>
     <string name="solve_split_step_oll">OLL</string>
     <string name="solve_split_step_pll">PLL</string>
+    <string name="solve_split_step_auf">AUF</string>
+    <string name="solve_split_step_drop">Drop</string>
     <string name="solve_split_step_first_layer">First layer</string>
     <string name="solve_split_step_second_layer">Second layer</string>
-    <string name="solve_split_step_opposite_cross">Opposite cross</string>
-    <string name="solve_split_step_opposite_edges">Opposite edges</string>
-    <string name="solve_split_step_corners_position">Corners position</string>
-    <string name="solve_split_step_corners_orient">Corners orient</string>
+    <string name="solve_split_step_edge_oll">Edge OLL</string>
+    <string name="solve_split_step_corner_oll">Corner OLL</string>
+    <string name="solve_split_step_corner_pll">Corner PLL</string>
+    <string name="solve_split_step_edge_pll">Edge PLL</string>
+    <string name="solve_split_step_unknown">Unknown</string>
     <string name="solve_split_case_none">None</string>
+    <string name="solve_split_case_unknown">Unknown</string>
 
 </resources>

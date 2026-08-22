@@ -141,7 +141,7 @@ public class CubeState {
         return true;
     }
 
-    public boolean isF2LSolved(int crossFace) {
+    public boolean isF2lSolved(int crossFace) {
         if (crossFace < 0) return false;
 
         for (int idx : F2L_CHECK[crossFace]) {
@@ -171,7 +171,7 @@ public class CubeState {
         return -1;
     }
 
-    public boolean isOLLSolved(int crossFace) {
+    public boolean isOllSolved(int crossFace) {
         if (crossFace < 0) return false;
         int opp = OPPOSITE[crossFace];
         int oppCenter = opp * 9 + 4;
@@ -179,6 +179,23 @@ public class CubeState {
             if (facelets[i] != facelets[oppCenter]) return false;
         }
         return true;
+    }
+
+    public boolean isPllSolved(int crossFace) {
+        if (crossFace < 0) return false;
+        int opp = OPPOSITE[crossFace];
+
+        if (facelets[CORNER_SIDES[opp][0][0]] == facelets[CORNER_SIDES[opp][0][1]] &&
+                facelets[CORNER_SIDES[opp][0][0]] == facelets[CORNER_SIDES[opp][0][2]] &&
+                facelets[CORNER_SIDES[opp][1][0]] == facelets[CORNER_SIDES[opp][1][1]] &&
+                facelets[CORNER_SIDES[opp][1][0]] == facelets[CORNER_SIDES[opp][1][2]] &&
+                facelets[CORNER_SIDES[opp][2][0]] == facelets[CORNER_SIDES[opp][2][1]] &&
+                facelets[CORNER_SIDES[opp][2][0]] == facelets[CORNER_SIDES[opp][2][2]] &&
+                facelets[CORNER_SIDES[opp][3][0]] == facelets[CORNER_SIDES[opp][3][1]] &&
+                facelets[CORNER_SIDES[opp][3][0]] == facelets[CORNER_SIDES[opp][3][2]] )
+            return true;
+
+        return false;
     }
 
     /**
@@ -196,7 +213,7 @@ public class CubeState {
      */
     public int getOllCase(int crossFace, String[] references) {
         if (crossFace < 0 || references == null || references.length == 0) return -1;
-        if (!isF2LSolved(crossFace)) return -1;
+        if (!isF2lSolved(crossFace)) return -1;
 
         CubeState work = new CubeState();
         work.setFacelets(this.facelets);
@@ -287,7 +304,7 @@ public class CubeState {
      */
     public int getPllCase(int crossFace) {
         if (crossFace < 0) return -1;
-        if (!isF2LSolved(crossFace)) return -1;
+        if (!isF2lSolved(crossFace)) return -1;
 
         CubeState work = new CubeState();
         work.setFacelets(this.facelets);
@@ -403,6 +420,15 @@ public class CubeState {
         {47, 26, 33}, {45, 17, 24}, {51, 44, 15}, {53, 35, 42},
     };
 
+    private static final int[][][] CORNER_SIDES = {
+            {{ 9, 10, 11}, {18, 19, 20}, {27, 28, 29}, {36, 37, 38}},
+            {{ 0,  3,  6}, {18, 21, 24}, {38, 41, 44}, {45, 48, 51}},
+            {{ 6,  7,  8}, {11, 14, 17}, {27, 30, 33}, {45, 46, 47}},
+            {{ 2,  5,  8}, {20, 23, 26}, {36, 39, 42}, {47, 50, 53}},
+            {{ 0,  1,  2}, { 9, 12, 15}, {29, 32, 35}, {51, 52, 53}},
+            {{15, 16, 17}, {24, 25, 26}, {33, 34, 35}, {42, 43, 44}}
+    };
+
     private static int centerOf(int idx) {
         return (idx / 9) * 9 + 4;
     }
@@ -418,7 +444,7 @@ public class CubeState {
     }
 
     /** Opposite "cross": the four last-layer edges oriented (showing the LL colour), ignoring sides. */
-    public boolean isLLCrossOriented(int crossFace) {
+    public boolean isEdgeOllSolved(int crossFace) {
         if (crossFace < 0) return false;
         int opp = OPPOSITE[crossFace];
         int oc = opp * 9 + 4;
@@ -447,6 +473,19 @@ public class CubeState {
             if (!(inA && inB && inD)) return false;
         }
         return true;
+    }
+
+    public boolean isCornerPllSolved(int crossFace) {
+        if (crossFace < 0) return false;
+        int opp = OPPOSITE[crossFace];
+
+        if (facelets[CORNER_SIDES[opp][0][0]] == facelets[CORNER_SIDES[opp][0][2]] &&
+                facelets[CORNER_SIDES[opp][1][0]] == facelets[CORNER_SIDES[opp][1][2]] &&
+                facelets[CORNER_SIDES[opp][2][0]] == facelets[CORNER_SIDES[opp][2][2]] &&
+                facelets[CORNER_SIDES[opp][3][0]] == facelets[CORNER_SIDES[opp][3][2]] )
+            return true;
+
+        return false;
     }
 
     private static final int[] FACE_MAP_CUBEMOVE_TO_CUBESTATE = {0, 3, 2, 5, 1, 4};

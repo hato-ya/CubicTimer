@@ -5,21 +5,26 @@ public class SolveSplit {
     public static final int SOURCE_SMART_CUBE = 1;
 
     public static final int METHOD_NONE = 0;
-    public static final int METHOD_BEGINNER = 1;
-    public static final int METHOD_INTERMEDIATE = 2;
-    public static final int METHOD_ADVANCED = 3;
+    public static final int METHOD_CFOP = 1;
 
     public static final int STEP_NONE = 0;
-    public static final int STEP_CROSS = 1;
-    public static final int STEP_F2L = 2;
-    public static final int STEP_OLL = 3;
-    public static final int STEP_PLL = 4;
-    public static final int STEP_FIRST_LAYER = 5;
-    public static final int STEP_SECOND_LAYER = 6;
-    public static final int STEP_OPPOSITE_CROSS = 7;
-    public static final int STEP_OPPOSITE_EDGES = 8;
-    public static final int STEP_CORNERS_POSITION = 9;
-    public static final int STEP_CORNERS_ORIENT = 10;
+    public static final int STEP_PICK = 1;
+    public static final int STEP_CROSS = 2;
+    public static final int STEP_F2L = 3;
+    public static final int STEP_F2L1 = 4;
+    public static final int STEP_F2L2 = 5;
+    public static final int STEP_F2L3 = 6;
+    public static final int STEP_F2L4 = 7;
+    public static final int STEP_OLL = 8;
+    public static final int STEP_PLL = 9;
+    public static final int STEP_AUF = 10;
+    public static final int STEP_DROP = 11;
+    public static final int STEP_FIRST_LAYER = 12;
+    public static final int STEP_SECOND_LAYER = 13;
+    public static final int STEP_EDGE_OLL = 14;
+    public static final int STEP_CORNER_OLL = 15;
+    public static final int STEP_CORNER_PLL = 16;
+    public static final int STEP_EDGE_PLL = 17;
 
     public static final int CASE_NONE = 0;
 

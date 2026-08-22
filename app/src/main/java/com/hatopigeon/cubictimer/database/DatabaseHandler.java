@@ -585,10 +585,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // canonical step keys (matching TimerFragment.NAMES_*), not display text — localized via
     // StepNames at render time.
     private static final int[] STEP_ORDER = {
-        SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L, SolveSplit.STEP_OLL, SolveSplit.STEP_PLL,
+        SolveSplit.STEP_PICK, SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
+        SolveSplit.STEP_OLL, SolveSplit.STEP_PLL, SolveSplit.STEP_AUF, SolveSplit.STEP_DROP,
         SolveSplit.STEP_FIRST_LAYER, SolveSplit.STEP_SECOND_LAYER,
-        SolveSplit.STEP_OPPOSITE_CROSS, SolveSplit.STEP_OPPOSITE_EDGES,
-        SolveSplit.STEP_CORNERS_POSITION, SolveSplit.STEP_CORNERS_ORIENT,
+        SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL,
+        SolveSplit.STEP_CORNER_PLL, SolveSplit.STEP_EDGE_PLL,
     };
 
     /**
@@ -597,8 +598,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * rendered for each step exactly like the overall stats. Reads the generic step breakdown,
      * which every detection method (advanced/intermediate/beginner) writes.
      */
-    public java.util.LinkedHashMap<String, Statistics> getStepStatistics(String type, String subtype) {
-        java.util.LinkedHashMap<String, Statistics> map = new java.util.LinkedHashMap<>();
+    public java.util.LinkedHashMap<Integer, Statistics> getStepStatistics(String type, String subtype) {
+        java.util.LinkedHashMap<Integer, Statistics> map = new java.util.LinkedHashMap<>();
         final String sql = "SELECT s." + KEY_STEP_ID + ", s." + KEY_EXEC_TIME_MS
                 + ", t." + KEY_PENALTY + ", t." + KEY_HISTORY + ", t." + KEY_DATE
                 + " FROM " + TABLE_SPLITS + " s"
@@ -606,6 +607,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + " WHERE t." + KEY_TYPE + "=? AND t." + KEY_SUBTYPE + "=?"
                 + " ORDER BY t." + KEY_DATE + " ASC, s." + KEY_SPLIT_ORDER + " ASC";
         final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
+
+        // cursor
+        // 0: splits.step_id (int)
+        // 1: splits.exec_time_ms (long)
+        // 2: times.penalty (int)
+        // 3: times.history (int)
+        // 4: times.date (long)
 
         org.joda.time.DateTime dtNow = new org.joda.time.DateTime();
         org.joda.time.DateTime dtFrom, dtTo;
@@ -621,7 +629,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             while (cursor.moveToNext()) {
                 if (Solve.getPenalty(cursor.getInt(2)) == PuzzleUtils.PENALTY_DNF) continue;
-                if (cursor.isNull(1)) continue;
                 boolean session = cursor.getInt(3) == 0; // current session = not archived
                 long date = cursor.getLong(4);
                 boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
@@ -633,48 +640,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         // Re-order canonically.
-        java.util.LinkedHashMap<String, Statistics> ordered = new java.util.LinkedHashMap<>();
-        for (int name : STEP_ORDER) {
-            String key = stepNameToKey(name);
-            if (map.containsKey(key)) ordered.put(key, map.remove(key));
+        java.util.LinkedHashMap<Integer, Statistics> ordered = new java.util.LinkedHashMap<>();
+        for (int stepId : STEP_ORDER) {
+            if (map.containsKey(stepId)) ordered.put(stepId, map.remove(stepId));
         }
         ordered.putAll(map);
         return ordered;
     }
 
-    private static void addStepTime(java.util.LinkedHashMap<String, Statistics> map, int name,
+    private static void addStepTime(java.util.LinkedHashMap<Integer, Statistics> map, int stepId,
                                     long time, boolean session, boolean today, String puzzleType) {
-        String key = stepNameToKey(name);
-        Statistics st = map.get(key);
-        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(key, st); }
+        Statistics st = map.get(stepId);
+        if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(stepId, st); }
         st.addTime(time, session, today);
-    }
-
-    private static String stepNameToKey(int name) {
-        switch (name) {
-            case SolveSplit.STEP_CROSS:
-                return "Cross";
-            case SolveSplit.STEP_F2L:
-                return "F2L";
-            case SolveSplit.STEP_OLL:
-                return "OLL";
-            case SolveSplit.STEP_PLL:
-                return "PLL";
-            case SolveSplit.STEP_FIRST_LAYER:
-                return "First layer";
-            case SolveSplit.STEP_SECOND_LAYER:
-                return "Second layer";
-            case SolveSplit.STEP_OPPOSITE_CROSS:
-                return "Opposite cross";
-            case SolveSplit.STEP_OPPOSITE_EDGES:
-                return "Opposite edges";
-            case SolveSplit.STEP_CORNERS_POSITION:
-                return "Corners position";
-            case SolveSplit.STEP_CORNERS_ORIENT:
-                return "Corners orient";
-            default:
-                return "Unknown";
-        }
     }
 
     public boolean getBoolean(Cursor cursor, int columnIndex) {

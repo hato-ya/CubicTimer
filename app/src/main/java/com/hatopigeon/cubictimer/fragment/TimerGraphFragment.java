@@ -20,6 +20,7 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.hatopigeon.cubicify.R;
 import com.hatopigeon.cubictimer.activity.MainActivity;
 import com.hatopigeon.cubictimer.adapter.StatGridAdapter;
+import com.hatopigeon.cubictimer.items.SolveSplitNames;
 import com.hatopigeon.cubictimer.items.Stat;
 import com.hatopigeon.cubictimer.spans.RoundedAxisValueFormatter;
 import com.hatopigeon.cubictimer.spans.TimeFormatter;
@@ -33,7 +34,6 @@ import com.hatopigeon.cubictimer.stats.StatisticsCache;
 import android.widget.LinearLayout;
 import com.hatopigeon.cubictimer.utils.Prefs;
 import com.hatopigeon.cubictimer.utils.PuzzleUtils;
-import com.hatopigeon.cubictimer.utils.StepNames;
 import com.hatopigeon.cubictimer.utils.ThemeUtils;
 import com.hatopigeon.cubictimer.utils.Wrapper;
 import com.github.mikephil.charting.charts.LineChart;
@@ -132,8 +132,8 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
     @BindView(R.id.stats_step_scroll) View         stepStatsScroll;
     @BindView(R.id.stats_step_tabs)   LinearLayout stepStatsStepTabs;
     private Statistics overallStats;          // the full-solve statistics
-    private String stepStatsSelected;         // selected step name, or null for "Overall"
-    private java.util.LinkedHashMap<String, Statistics> stepStatistics;
+    private Integer stepStatsSelected;         // selected step id, or null for "Overall"
+    private java.util.LinkedHashMap<Integer, Statistics> stepStatistics;
 
     private boolean sessionStatsEnabled;
     private boolean todaysStatsEnabled;
@@ -716,7 +716,7 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
     private void loadStepStats() {
         final String type = currentPuzzle, subtype = currentPuzzleSubtype;
         new Thread(() -> {
-            final java.util.LinkedHashMap<String, Statistics> s =
+            final java.util.LinkedHashMap<Integer, Statistics> s =
                     CubicTimer.getDBHandler().getStepStatistics(type, subtype);
             if (!isAdded() || getActivity() == null) return;
             getActivity().runOnUiThread(() -> {
@@ -745,10 +745,12 @@ public class TimerGraphFragment extends Fragment implements StatisticsCache.Stat
         }
         stepStatsScroll.setVisibility(View.VISIBLE);
         addStepSelectorTab(null, getString(R.string.step_stats_overall));
-        for (String name : stepStatistics.keySet()) addStepSelectorTab(name, StepNames.localized(mContext, name));
+        for (int stepId : stepStatistics.keySet()) {
+            addStepSelectorTab(stepId, getString(SolveSplitNames.getStepNameResId(stepId)));
+        }
     }
 
-    private void addStepSelectorTab(final String stepKey, String label) {
+    private void addStepSelectorTab(final Integer stepKey, String label) {
         TextView tab = new TextView(mContext, null, R.attr.statTextStyle);
         tab.setText(label);
         tab.setGravity(android.view.Gravity.CENTER);

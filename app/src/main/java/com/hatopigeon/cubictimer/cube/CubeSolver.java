@@ -33,12 +33,16 @@ public class CubeSolver {
         return state.getCrossFace();
     }
 
-    public boolean isF2LSolved(int crossFace) {
-        return state.isF2LSolved(crossFace);
+    public boolean isF2lSolved(int crossFace) {
+        return state.isF2lSolved(crossFace);
     }
 
-    public boolean isOLLSolved(int crossFace) {
-        return state.isOLLSolved(crossFace);
+    public boolean isOllSolved(int crossFace) {
+        return state.isOllSolved(crossFace);
+    }
+
+    public boolean isPllSolved(int crossFace) {
+        return state.isPllSolved(crossFace);
     }
 
     // ─── Beginner (LBL) steps ───
@@ -46,8 +50,12 @@ public class CubeSolver {
         return state.isFirstLayerSolved(crossFace);
     }
 
-    public boolean isLLCrossOriented(int crossFace) {
-        return state.isLLCrossOriented(crossFace);
+    public boolean isEdgeOllSolved(int crossFace) {
+        return state.isEdgeOllSolved(crossFace);
+    }
+
+    public boolean isCornerPllSolved(int crossFace) {
+        return state.isCornerPllSolved(crossFace);
     }
 
     public boolean isLLCrossSolved(int crossFace) {

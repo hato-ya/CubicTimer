@@ -2,15 +2,15 @@
 <resources>
     <string-array name="pref_array_detection_method">
         <item>@string/smart_cube_detection_none</item>
-        <item>@string/smart_cube_detection_beginner</item>
-        <item>@string/smart_cube_detection_intermediate</item>
-        <item>@string/smart_cube_detection_advanced</item>
+        <item>@string/smart_cube_detection_cfop_beginner</item>
+        <item>@string/smart_cube_detection_cfop_intermediate</item>
+        <item>@string/smart_cube_detection_cfop_advanced</item>
     </string-array>
     <string-array name="pk_pref_array_detection_method" translatable="false">
         <item>none</item>
-        <item>beginner</item>
-        <item>intermediate</item>
-        <item>advanced</item>
+        <item>cfop_beginner</item>
+        <item>cfop_intermediate</item>
+        <item>cfop_advanced</item>
     </string-array>
 
     <string-array name="puzzles">

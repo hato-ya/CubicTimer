@@ -587,10 +587,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int[] STEP_ORDER = {
         SolveSplit.STEP_PICK, SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
         SolveSplit.STEP_OLL, SolveSplit.STEP_PLL, SolveSplit.STEP_AUF, SolveSplit.STEP_DROP,
+        SolveSplit.STEP_F2L1, SolveSplit.STEP_F2L2, SolveSplit.STEP_F2L3, SolveSplit.STEP_F2L4,
         SolveSplit.STEP_FIRST_LAYER, SolveSplit.STEP_SECOND_LAYER,
         SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL,
         SolveSplit.STEP_CORNER_PLL, SolveSplit.STEP_EDGE_PLL,
     };
+
+    /** Accumulates per-pair F2L splits into one derived F2L total for a single solve. */
+    private static class F2lAccumulator {
+        long accExecTime = 0;
+        boolean session;
+        boolean today;
+
+        void add(long execTime, boolean session, boolean today) {
+            accExecTime += execTime;
+            this.session = session;
+            this.today = today;
+        }
+    }
 
     /**
      * Builds a full {@link Statistics} object per solve step (cross, F2L, … or the beginner steps),
@@ -600,20 +614,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public java.util.LinkedHashMap<Integer, Statistics> getStepStatistics(String type, String subtype) {
         java.util.LinkedHashMap<Integer, Statistics> map = new java.util.LinkedHashMap<>();
-        final String sql = "SELECT s." + KEY_STEP_ID + ", s." + KEY_EXEC_TIME_MS
+        // Keyed by solve ID so F2L#1-F2L#4 can be summed into one derived F2L statistic.
+        // LinkedHashMap preserves the chronological solve order produced by the SQL query.
+        java.util.LinkedHashMap<Long, F2lAccumulator> mapF2l = new java.util.LinkedHashMap<>();
+
+        final String sql = "SELECT s." + KEY_SOLVE_ID + ", s." + KEY_STEP_ID + ", s." + KEY_EXEC_TIME_MS
                 + ", t." + KEY_PENALTY + ", t." + KEY_HISTORY + ", t." + KEY_DATE
                 + " FROM " + TABLE_SPLITS + " s"
                 + " JOIN " + TABLE_TIMES + " t ON t." + KEY_ID + "=s." + KEY_SOLVE_ID
                 + " WHERE t." + KEY_TYPE + "=? AND t." + KEY_SUBTYPE + "=?"
                 + " ORDER BY t." + KEY_DATE + " ASC, s." + KEY_SPLIT_ORDER + " ASC";
         final Cursor cursor = getReadableDatabase().rawQuery(sql, new String[] { type, subtype });
-
-        // cursor
-        // 0: splits.step_id (int)
-        // 1: splits.exec_time_ms (long)
-        // 2: times.penalty (int)
-        // 3: times.history (int)
-        // 4: times.date (long)
 
         org.joda.time.DateTime dtNow = new org.joda.time.DateTime();
         org.joda.time.DateTime dtFrom, dtTo;
@@ -626,17 +637,38 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             dtNow = dtNow.plusDays(1);
             dtTo = new org.joda.time.DateTime(dtNow.getYear(), dtNow.getMonthOfYear(), dtNow.getDayOfMonth(), 5, 0, 0);
         }
+
         try {
             while (cursor.moveToNext()) {
-                if (Solve.getPenalty(cursor.getInt(2)) == PuzzleUtils.PENALTY_DNF) continue;
-                boolean session = cursor.getInt(3) == 0; // current session = not archived
-                long date = cursor.getLong(4);
+                long solveId  = cursor.getLong(0);
+                int  stepId   = cursor.getInt (1);
+                long execTime = cursor.getLong(2);
+                int  penalty  = cursor.getInt (3);
+                int  history  = cursor.getInt (4);
+                long date     = cursor.getLong(5);
+
+                if (Solve.getPenalty(penalty) == PuzzleUtils.PENALTY_DNF) continue;
+
+                boolean session = history == 0; // current session = not archived
                 boolean today = dtFrom.getMillis() <= date && date < dtTo.getMillis();
-                long stepTime = cursor.getLong(1);
-                if (stepTime > 0) addStepTime(map, cursor.getInt(0), stepTime, session, today, type);
+
+                if (execTime > 0) {
+                    addStepTime(map, stepId, execTime, session, today, type);
+                    if (SolveSplit.isF2lDetailStep(stepId)) {
+                        // Keep the detailed F2L step statistics above, and also accumulate them
+                        // into a derived full-F2L row for the same solve.
+                        accumulateF2lTime(mapF2l, solveId, execTime, session, today);
+                    }
+                }
             }
         } finally {
             cursor.close();
+        }
+
+        // Add the derived F2L totals after reading all rows. The accumulator map preserves
+        // chronological solve order, which Statistics relies on for rolling averages.
+        for (F2lAccumulator acc : mapF2l.values()) {
+            addStepTime(map, SolveSplit.STEP_F2L, acc.accExecTime, acc.session, acc.today, type);
         }
 
         // Re-order canonically.
@@ -653,6 +685,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Statistics st = map.get(stepId);
         if (st == null) { st = Statistics.newAllTimeStatistics(puzzleType); map.put(stepId, st); }
         st.addTime(time, session, today);
+    }
+
+    private static void accumulateF2lTime(java.util.LinkedHashMap<Long, F2lAccumulator> mapF2l,
+                                          long solveId, long execTime, boolean session, boolean today) {
+        F2lAccumulator acc = mapF2l.get(solveId);
+        if (acc == null) {
+            acc = new F2lAccumulator();
+            mapF2l.put(solveId, acc);
+        }
+        acc.add(execTime, session, today);
     }
 
     public boolean getBoolean(Cursor cursor, int columnIndex) {

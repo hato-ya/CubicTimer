@@ -73,6 +73,24 @@ public class CubeState {
          39,40,41,42,43,44},
     };
 
+    private static final int [][][] CROSS_EDGES = {
+        {{ 1, 37}, { 3, 10}, { 5, 28}, { 7, 19}},
+        {{10,  3}, {12, 41}, {14, 21}, {16, 48}},
+        {{19,  7}, {21, 14}, {23, 30}, {25, 46}},
+        {{28,  5}, {30, 23}, {32, 39}, {34, 50}},
+        {{37,  1}, {39, 32}, {41, 12}, {43, 52}},
+        {{46, 25}, {48, 16}, {50, 34}, {52, 43}},
+    };
+
+    private static final int [][][] F2L_PAIRS = {
+        {{ 0,  9, 38, 12, 41}, { 2, 29, 36, 32, 39}, { 6, 11, 18, 14, 21}, { 8, 20, 27, 23, 30}},
+        {{ 9,  0, 38,  1, 37}, {11,  6, 18,  7, 19}, {15, 44, 51, 43, 52}, {17, 24, 45, 25, 46}},
+        {{18,  6, 11,  3, 10}, {20,  8, 27,  5, 28}, {24, 17, 45, 16, 48}, {26, 33, 47, 34, 50}},
+        {{27,  8, 20,  7, 19}, {29,  2, 36,  1, 37}, {33, 26, 47, 25, 46}, {35, 42, 53, 43, 52}},
+        {{36,  2, 29,  5, 28}, {38,  0,  9,  3, 10}, {42, 35, 53, 34, 50}, {44, 15, 51, 16, 48}},
+        {{45, 17, 24, 14, 21}, {47, 26, 33, 23, 30}, {51, 15, 44, 12, 41}, {53, 35, 42, 32, 39}},
+    };
+
     private static final int[][] PERM_CW = createPermutations();
 
     // ─── OLL recognition ───
@@ -151,6 +169,33 @@ public class CubeState {
         return true;
     }
 
+    public boolean isF2lSolved(int crossFace, int num) {
+        if (crossFace < 0) return false;
+
+        int pairs = 0;
+
+        // Confirm cross first
+        for (int[] edge : CROSS_EDGES[crossFace]) {
+            if (facelets[edge[0]] != facelets[centerOf(edge[0])] ||
+                    facelets[edge[1]] != facelets[centerOf(edge[1])]) {
+                return false;
+            }
+        }
+
+        // Confirm each F2L pairs
+        for (int[] f2l_pair : F2L_PAIRS[crossFace]) {
+            int face_num = 0;
+            for (int face : f2l_pair) {
+                if (facelets[face] == facelets[centerOf(face)])
+                    face_num++;
+            }
+            if (face_num == 5)
+                pairs++;
+        }
+
+        return num <= pairs;
+    }
+
     public int getCrossFace() {
         for (int face = 0; face < 6; face++) {
             int faceCenterIdx = face * 9 + 4;
@@ -173,6 +218,8 @@ public class CubeState {
 
     public boolean isOllSolved(int crossFace) {
         if (crossFace < 0) return false;
+        if (!isF2lSolved(crossFace)) return false;
+
         int opp = OPPOSITE[crossFace];
         int oppCenter = opp * 9 + 4;
         for (int i = opp * 9; i < opp * 9 + 9; i++) {
@@ -183,6 +230,9 @@ public class CubeState {
 
     public boolean isPllSolved(int crossFace) {
         if (crossFace < 0) return false;
+        if (!isF2lSolved(crossFace)) return false;
+        if (!isOllSolved(crossFace)) return false;
+
         int opp = OPPOSITE[crossFace];
 
         if (facelets[CORNER_SIDES[opp][0][0]] == facelets[CORNER_SIDES[opp][0][1]] &&
@@ -446,6 +496,8 @@ public class CubeState {
     /** Opposite "cross": the four last-layer edges oriented (showing the LL colour), ignoring sides. */
     public boolean isEdgeOllSolved(int crossFace) {
         if (crossFace < 0) return false;
+        if (!isF2lSolved(crossFace)) return false;
+
         int opp = OPPOSITE[crossFace];
         int oc = opp * 9 + 4;
         return facelets[opp * 9 + 1] == facelets[oc] && facelets[opp * 9 + 3] == facelets[oc]
@@ -477,6 +529,9 @@ public class CubeState {
 
     public boolean isCornerPllSolved(int crossFace) {
         if (crossFace < 0) return false;
+        if (!isF2lSolved(crossFace)) return false;
+        if (!isOllSolved(crossFace)) return false;
+
         int opp = OPPOSITE[crossFace];
 
         if (facelets[CORNER_SIDES[opp][0][0]] == facelets[CORNER_SIDES[opp][0][2]] &&

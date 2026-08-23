@@ -118,4 +118,9 @@ public class SolveSplit {
     public void setMoveCount(int moveCount) {
         this.moveCount = moveCount;
     }
+
+    /** Returns true for per-pair F2L steps that can be summed into the aggregate F2L step. */
+    public static boolean isF2lDetailStep(int stepId) {
+        return stepId == STEP_F2L1 || stepId == STEP_F2L2 || stepId == STEP_F2L3 || stepId == STEP_F2L4;
+    }
 }

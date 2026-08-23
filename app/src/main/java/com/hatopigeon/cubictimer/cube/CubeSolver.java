@@ -37,6 +37,10 @@ public class CubeSolver {
         return state.isF2lSolved(crossFace);
     }
 
+    public boolean isF2lSolved(int crossFace, int num) {
+        return state.isF2lSolved(crossFace, num);
+    }
+
     public boolean isOllSolved(int crossFace) {
         return state.isOllSolved(crossFace);
     }

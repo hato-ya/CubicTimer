@@ -475,10 +475,12 @@ public class TimerFragment extends BaseFragment
     private static final int[] STEPS_BEGINNER = {SolveSplit.STEP_CROSS, SolveSplit.STEP_FIRST_LAYER,
             SolveSplit.STEP_SECOND_LAYER, SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL,
             SolveSplit.STEP_CORNER_PLL, SolveSplit.STEP_EDGE_PLL, SolveSplit.STEP_AUF};
-    private static final int[] STEPS_INTERMEDIATE = {SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
+    private static final int[] STEPS_INTERMEDIATE = {SolveSplit.STEP_CROSS,
+            SolveSplit.STEP_F2L1, SolveSplit.STEP_F2L2, SolveSplit.STEP_F2L3, SolveSplit.STEP_F2L4,
             SolveSplit.STEP_EDGE_OLL, SolveSplit.STEP_CORNER_OLL, SolveSplit.STEP_CORNER_PLL,
             SolveSplit.STEP_EDGE_PLL, SolveSplit.STEP_AUF};
-    private static final int[] STEPS_ADVANCED = {SolveSplit.STEP_CROSS, SolveSplit.STEP_F2L,
+    private static final int[] STEPS_ADVANCED = {SolveSplit.STEP_CROSS,
+            SolveSplit.STEP_F2L1, SolveSplit.STEP_F2L2, SolveSplit.STEP_F2L3, SolveSplit.STEP_F2L4,
             SolveSplit.STEP_OLL, SolveSplit.STEP_PLL, SolveSplit.STEP_AUF};
     private String detectionMethod = "cfop_advanced"; // none / cfop_beginner / cfop_intermediate / cfop_advanced
     private int[] methodSteps;          // null = none
@@ -3503,7 +3505,10 @@ public class TimerFragment extends BaseFragment
     private boolean stepDone(int kind) {
         switch (kind) {
             case SolveSplit.STEP_CROSS:         return crossFace >= 0;
-            case SolveSplit.STEP_F2L:           return cubeSolver.isF2lSolved(crossFace);
+            case SolveSplit.STEP_F2L1:          return cubeSolver.isF2lSolved(crossFace, 1);
+            case SolveSplit.STEP_F2L2:          return cubeSolver.isF2lSolved(crossFace, 2);
+            case SolveSplit.STEP_F2L3:          return cubeSolver.isF2lSolved(crossFace, 3);
+            case SolveSplit.STEP_F2L4:          return cubeSolver.isF2lSolved(crossFace, 4);
             case SolveSplit.STEP_OLL:           return cubeSolver.isOllSolved(crossFace);
             case SolveSplit.STEP_PLL:           return cubeSolver.isPllSolved(crossFace);
             case SolveSplit.STEP_AUF:           return cubeSolver.isSolved();
